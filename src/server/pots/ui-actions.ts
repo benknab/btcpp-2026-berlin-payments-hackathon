@@ -37,6 +37,7 @@ const executeAction = Effect.fn("executeSettlementAction")(function* executeActi
     return yield* createPot({ ...action.setup, id: randomUUID() });
   }
   yield* requireStandalonePot(action.id);
+  yield* requireUnreservedWallet((yield* store.get(action.id)).walletFingerprint);
   return yield* action.kind === "refresh" ? confirmPot(action.id) : settlePot(action.id);
 });
 

@@ -32,6 +32,17 @@ export const requireUnreservedWallet = Effect.fn("requireUnreservedWallet")(func
       message: "This wallet is reserved for a group. Configure a new isolated pot wallet for another settlement.",
     });
   }
+  if (groupId !== undefined) {
+    const [existing] = yield* database
+      .select({ id: pots.id })
+      .from(pots)
+      .where(eq(pots.walletFingerprint, fingerprint));
+    if (existing !== undefined && existing.id !== groupId) {
+      yield* new GroupError({
+        message: "This wallet already has another pot. Configure a new isolated Bark pot wallet.",
+      });
+    }
+  }
 });
 
 export const requireStandalonePot = Effect.fn("requireStandalonePot")(function* requireStandalonePot(id: string) {
