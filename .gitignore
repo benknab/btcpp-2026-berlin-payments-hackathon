@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.output/
+.tanstack/
+.vite/
+.vite-plus/
+coverage/
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
