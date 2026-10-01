@@ -1,7 +1,8 @@
 import { GroupCreateForm } from "@/components/group-create-form";
 import { PageShell } from "@/components/page-shell";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/")({
@@ -27,6 +28,14 @@ function Home(): ReactNode {
           <GroupCreateForm />
         </CardContent>
       </Card>
+      <section className="flex flex-col gap-3">
+        <Link to="/settle" className={buttonVariants({ variant: "outline", className: "self-start" })}>
+          Open Bark settlement workspace
+        </Link>
+        <p className="text-xs text-muted-foreground">
+          Separate signet settlement tool. Group expenses and contributions aren’t connected to it yet.
+        </p>
+      </section>
     </PageShell>
   );
 }

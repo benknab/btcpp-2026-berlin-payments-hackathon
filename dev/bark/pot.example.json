@@ -1,0 +1,15 @@
+{
+  "id": "berlin-dinner",
+  "users": [
+    { "id": "alice", "name": "Alice" },
+    { "id": "bob", "name": "Bob" },
+    { "id": "carol", "name": "Carol" },
+    { "id": "dave", "name": "Dave" }
+  ],
+  "debts": [
+    { "from": "alice", "to": "bob", "amountSat": 7000 },
+    { "from": "carol", "to": "bob", "amountSat": 3000 },
+    { "from": "bob", "to": "alice", "amountSat": 2000 },
+    { "from": "dave", "to": "carol", "amountSat": 4000 }
+  ]
+}

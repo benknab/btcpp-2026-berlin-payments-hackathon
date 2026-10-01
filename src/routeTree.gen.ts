@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettleRouteImport } from './routes/settle'
 import { Route as GroupsInviteKeyRouteImport } from './routes/groups.$inviteKey'
 import { Route as GroupsInviteKeyIndexRouteImport } from './routes/groups.$inviteKey.index'
 import { Route as GroupsInviteKeyExpensesExpenseIdRouteImport } from './routes/groups.$inviteKey.expenses.$expenseId'
@@ -19,6 +20,11 @@ import { Route as GroupsInviteKeyExpensesExpenseIdEditRouteImport } from './rout
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettleRoute = SettleRouteImport.update({
+  id: '/settle',
+  path: '/settle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GroupsInviteKeyRoute = GroupsInviteKeyRouteImport.update({
@@ -52,6 +58,7 @@ const GroupsInviteKeyExpensesExpenseIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settle': typeof SettleRoute
   '/groups/$inviteKey': typeof GroupsInviteKeyRouteWithChildren
   '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -60,6 +67,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settle': typeof SettleRoute
   '/groups/$inviteKey': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
   '/groups/$inviteKey/expenses/new': typeof GroupsInviteKeyExpensesNewRoute
@@ -68,6 +76,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settle': typeof SettleRoute
   '/groups/$inviteKey': typeof GroupsInviteKeyRouteWithChildren
   '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settle'
     | '/groups/$inviteKey'
     | '/groups/$inviteKey/'
     | '/groups/$inviteKey/expenses/$expenseId'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settle'
     | '/groups/$inviteKey'
     | '/groups/$inviteKey/expenses/$expenseId'
     | '/groups/$inviteKey/expenses/new'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/settle'
     | '/groups/$inviteKey'
     | '/groups/$inviteKey/'
     | '/groups/$inviteKey/expenses/$expenseId'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettleRoute: typeof SettleRoute
   GroupsInviteKeyRoute: typeof GroupsInviteKeyRouteWithChildren
 }
 
@@ -112,6 +125,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settle': {
+      id: '/settle'
+      path: '/settle'
+      fullPath: '/settle'
+      preLoaderRoute: typeof SettleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/groups/$inviteKey': {
@@ -186,6 +206,7 @@ const GroupsInviteKeyRouteWithChildren = GroupsInviteKeyRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettleRoute: SettleRoute,
   GroupsInviteKeyRoute: GroupsInviteKeyRouteWithChildren,
 }
 export const routeTree = rootRouteImport

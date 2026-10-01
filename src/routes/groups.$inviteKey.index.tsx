@@ -30,9 +30,10 @@ function GroupHome(): ReactNode {
       <ParticipantBalances participants={view.participants} balances={overview.balances} />
       <GroupInvite inviteKey={inviteKey} origin={view.origin} />
       <Alert>
-        <AlertTitle>Shared pot coming next</AlertTitle>
+        <AlertTitle>Payments aren’t connected to this group yet</AlertTitle>
         <AlertDescription>
-          Funding and Bark settlement aren’t connected yet. No money can be deposited or sent from this app.
+          Expense tracking works here. The separate Bark signet settlement workspace is available from the home page,
+          but group funding and payouts still need to be integrated.
         </AlertDescription>
       </Alert>
     </>

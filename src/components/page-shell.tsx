@@ -14,7 +14,7 @@ export function PageShell({ children }: { readonly children: ReactNode }): React
       </header>
       {children}
       <footer className="mt-auto pt-6 text-xs text-muted-foreground">
-        Shared expenses, without the awkward part. Hackathon prototype · no live payments yet.
+        Shared expenses, without the awkward part. Hackathon prototype · Bark signet only. Never use real funds.
       </footer>
     </main>
   );
