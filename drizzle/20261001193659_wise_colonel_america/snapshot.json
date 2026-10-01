@@ -1,0 +1,116 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "570ce6b1-c268-45df-87b8-5cfe457f8f23",
+  "prevIds": [
+    "63961f6f-cfcb-4d69-a974-2e5e144ff693"
+  ],
+  "ddl": [
+    {
+      "name": "notes",
+      "entityType": "tables"
+    },
+    {
+      "name": "pots",
+      "entityType": "tables"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "notes"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "body",
+      "entityType": "columns",
+      "table": "notes"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "CURRENT_TIMESTAMP",
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "notes"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "pots"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "wallet_fingerprint",
+      "entityType": "columns",
+      "table": "pots"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "revision",
+      "entityType": "columns",
+      "table": "pots"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshot",
+      "entityType": "columns",
+      "table": "pots"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "notes_pk",
+      "table": "notes",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "pots_pk",
+      "table": "pots",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "wallet_fingerprint"
+      ],
+      "nameExplicit": false,
+      "name": "pots_wallet_fingerprint_unique",
+      "entityType": "uniques",
+      "table": "pots"
+    }
+  ],
+  "renames": []
+}

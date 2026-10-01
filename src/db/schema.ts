@@ -10,3 +10,10 @@ export const notes = sqliteTable("notes", {
 });
 
 export type Note = typeof notes.$inferSelect;
+
+export const pots = sqliteTable("pots", {
+  id: text("id").primaryKey(),
+  walletFingerprint: text("wallet_fingerprint").notNull().unique(),
+  revision: integer("revision").notNull(),
+  snapshot: text("snapshot").notNull(),
+});

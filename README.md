@@ -32,13 +32,16 @@ practical Bitcoin expense splitting, payments grounded in shared experiences, an
 ## Stack
 
 TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
-with Bark planned for the payment and settlement layer.
+with Bark for the backend signet pot payment and settlement layer.
 
 ## Bark signet development wallet
 
 See [the shared signet wallet notes](dev/bark/README.md) for CLI configuration and access to the funded test wallet.
 Its recovery phrase is intentionally stored in `dev/bark/signet.mnemonic` for developers. Treat it as public and
 use it **only on signet**, never for mainnet or real funds.
+
+The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
+and pays creditors using the Bark TypeScript SDK wrapped in Effect. No UI or public spending endpoints are added.
 
 ## Start
 

@@ -37,6 +37,8 @@ for independent development, create separate signet wallets and fund them from t
 
 ## References
 
+For the backend JSON-to-deposits-to-payouts flow, see [the pot demo](POTS.md).
+
 - [Bark signet guide (source of truth)](https://second.tech/docs/getting-started/bark-cli/signet).
 - [Wallet backups and recovery](https://second.tech/docs/backups).
 - [Signet faucet (GitHub sign-in required)](https://signet.2nd.dev/).
