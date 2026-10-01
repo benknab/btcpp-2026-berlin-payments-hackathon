@@ -67,6 +67,14 @@ pnpm build       # Build client and SSR bundles
 You can also run `pnpm exec vp dev`, `pnpm exec vp check`, or `pnpm exec vp run <task>` directly. The production build
 emits `dist/client` and `dist/server`; choose a TanStack Start hosting adapter for your deployment target.
 
+## Backend testing
+
+Backend and domain tests use **@effect/vitest 4.0.0**, compatible with Effect 4 and Vite+'s bundled Vitest 5.
+Use `it.effect` / `it.effect.each` to return Effects directly, and `layer(...)` when sharing service fixtures.
+The test runner manages scopes, interruption, and test services; don't manually call `Effect.runPromise` in tests.
+Database tests use an isolated in-memory libSQL database and apply the real Drizzle migrations.
+Run them with `pnpm test`; frontend tests can continue to import from `vite-plus/test`.
+
 ## Strictness
 
 - TypeScript enables `strict`, exact optional properties, checked indexed access, checked override declarations,

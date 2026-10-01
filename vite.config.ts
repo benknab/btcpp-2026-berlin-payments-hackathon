@@ -30,6 +30,7 @@ export default defineConfig({
       // Effect uses namespace imports and capitalized service/schema constructors.
       "import/no-namespace": "off",
       "new-cap": ["error", { capIsNew: false }],
+      "no-underscore-dangle": ["error", { allow: ["_tag"] }],
       // Oxfmt owns import order; object key order may carry meaning (e.g. Drizzle schema).
       "sort-imports": "off",
       "no-duplicate-imports": ["error", { allowSeparateTypeImports: true }],
@@ -70,6 +71,7 @@ export default defineConfig({
       "no-console": "error",
       "no-debugger": "error",
       "max-lines-per-function": "warn",
+      "max-statements": "warn",
       "max-lines": "warn",
       "max-params": "warn",
       "complexity": "warn",
@@ -82,6 +84,7 @@ export default defineConfig({
         plugins: ["typescript", "unicorn", "oxc", "import", "react", "jsx-a11y", "vitest"],
         rules: {
           "max-lines-per-function": "off",
+          "max-statements": "off",
           "max-lines": "off",
           "max-params": "off",
           "complexity": "off",

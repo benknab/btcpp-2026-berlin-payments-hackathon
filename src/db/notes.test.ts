@@ -1,31 +1,30 @@
 import * as LibsqlClient from "@effect/sql-libsql/LibsqlClient";
+import { describe, expect, it } from "@effect/vitest";
 import { migrate } from "drizzle-orm/effect-libsql/migrator";
 import { Effect, Layer } from "effect";
-import { describe, expect, it } from "vite-plus/test";
 
 import { Database } from "./database";
 import { addNote, listNotes } from "./notes";
 
 describe("effect + Drizzle + libSQL", (): void => {
-  it("migrates SQLite and inserts and reads notes with native Effects", { timeout: 5000 }, async (): Promise<void> => {
-    expect.hasAssertions();
-    const TestDatabase = Database.layer.pipe(Layer.provide(LibsqlClient.layer({ url: "file::memory:" })));
+  const TestDatabase = Database.layer.pipe(Layer.provide(LibsqlClient.layer({ url: "file::memory:" })));
 
-    const result = await Effect.runPromise(
+  it.effect(
+    "migrates SQLite and inserts and reads notes with native Effects",
+    (): Effect.Effect<void, Effect.Error<ReturnType<typeof migrate>>> =>
       Effect.gen(function* verifyNotes() {
+        expect.hasAssertions();
         const database = yield* Database;
         yield* migrate(database, { migrationsFolder: "./drizzle" });
         const empty = yield* listNotes();
         yield* addNote({ body: "First note" });
         yield* addNote({ body: "Second note" });
         const saved = yield* listNotes();
-        return { empty, saved };
+        expect(empty).toStrictEqual([]);
+        expect(saved.map((note): string => note.body)).toStrictEqual(["Second note", "First note"]);
+        expect(saved).toHaveLength(2);
+        expect(saved[0]?.createdAt).toStrictEqual(expect.any(String));
       }).pipe(Effect.provide(TestDatabase)),
-    );
-
-    expect(result.empty).toStrictEqual([]);
-    expect(result.saved.map((note): string => note.body)).toStrictEqual(["Second note", "First note"]);
-    expect(result.saved).toHaveLength(2);
-    expect(result.saved[0]?.createdAt).toStrictEqual(expect.any(String));
-  });
+    { timeout: 5000 },
+  );
 });

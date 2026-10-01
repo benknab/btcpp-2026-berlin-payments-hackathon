@@ -34,3 +34,4 @@ minimumReleaseAgeExclude:
   - effect@4.0.0
   - "@shadcn/registry@0.1.0"
   - shadcn@4.21.1
+  - "@effect/vitest@4.0.0"
