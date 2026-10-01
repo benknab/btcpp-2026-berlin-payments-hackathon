@@ -7,7 +7,7 @@ import { PlusIcon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-const INITIAL_PEOPLE = [0, 1];
+const INITIAL_PEOPLE = [0];
 const FIRST_GUEST_NUMBER = 2;
 
 export function EventParticipants(): ReactNode {
