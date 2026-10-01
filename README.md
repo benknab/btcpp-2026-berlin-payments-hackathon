@@ -19,6 +19,11 @@ V1 will focus on getting this end-to-end flow working. More advanced features an
 **Current status:** the application scaffold and database-backed demo are working. Expense splitting, pot management,
 Bark integration, and real settlement are planned work, not implemented yet.
 
+## Inspiration
+
+We draw on Zaplit / LNSplit's utility, Evento's social context, and Artmak's visual money movement:
+practical Bitcoin expense splitting, payments grounded in shared experiences, and an intuitive view of money flowing.
+
 ## Stack
 
 TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
