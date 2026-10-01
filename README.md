@@ -5,24 +5,25 @@ A hackathon project for **BTC++ 2026 in Berlin**, exploring shared expenses and 
 ## Project idea
 
 We're aiming to build a **Splitwise / Kittysplit-style app** that doesn't stop at calculating who owes whom.
-Participants share a pot, track expenses, and settle the final balances with actual money from that pot using Bark.
+Participants track out-of-pocket expenses, then settle their net debts through a Bark signet pot at the end.
 
 ### V1: shared-pot settlement
 
-- Create a group and a shared pot.
-- Let participants contribute money and record shared expenses.
-- Calculate each participant's final balance.
-- At the end, settle what everyone is owed from the pot using Bark.
+- Create a group and record shared expenses paid out of pocket.
+- Calculate each participant's net balance like Kittysplit: paid minus their expense share.
+- Let each participant supply their own Bark signet address through a private personal link.
+- The organizer closes the group, freezing expenses and destinations.
+- Debtors scan their assigned pot-address QR and pay their net debt; after confirmation, creditors receive payouts.
 
 V1 will focus on getting this end-to-end flow working. More advanced features and improvements will follow later.
 
 **Current status:** group creation, invitations, equal expense splitting, expense management, and personal balance
-overviews are implemented. A separate Bark signet settlement workspace is available at `/settle`. Group funding and
-settlement are **not connected to the expense flow yet**; the standalone workspace currently settles net debts rather
-than refunding a pre-funded trip pot.
+overviews are implemented, together with group-bound settlement, personal address setup, debtor QR codes, deposit
+progress, and organizer-authorized payouts/recovery. The integration uses Ben's existing net-debt engine, not a
+pre-funded trip pot. Backend tests use offline fixtures; the integrated flow still needs its live signet rehearsal.
 
 See [the Person A / Person B implementation plan](IMPLEMENTATION_PLAN.md) for ownership, semantic commits, remaining
-integration work, and the 23-hour delivery schedule.
+integration safeguards, and the remaining demo acceptance checklist.
 
 ## Inspiration
 
@@ -48,7 +49,30 @@ use it **only on signet**, never for mainnet or real funds.
 The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
 and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local signet settlement
 UI: enter debts directly or automatically resume the saved pot. No operator code is required; keep the app local
-because settlement actions are unauthenticated.
+because standalone settlement actions are unauthenticated. Linked group pots can only be operated through the
+group's organizer-authorized endpoints; the standalone workspace refuses those pots and wallet reservations.
+
+### Group settlement demo
+
+1. Create a group and share its bookkeeping invitation. Record expenses with the actual payer and equal shares.
+2. Open **Review settlement & personal addresses**. Generate each participant's private setup link and send it only
+   to that person, including yourself. Each participant pastes their own `bark address` result.
+3. Click **Refresh status** to load newly saved addresses. Review amounts/destinations, then **Close group** and confirm.
+4. Debtors reopen their private link (or choose themselves on the shared group page) to see their deposit QR and amount.
+   The QR contains only the Bark address: enter the displayed remaining sats in the wallet. It is not a Lightning invoice.
+5. The organizer clicks **Check deposits**, then confirms **Pay creditors** once every debtor is funded.
+6. Read confirmed payout movement references. If a response is lost, refresh and **Reconcile and finish payouts**;
+   never send manually or reset a `sending` payout.
+
+Configure `BARK_POT_URL` and `BARK_POT_TOKEN` on the server as described in [the pot guide](dev/bark/POTS.md).
+Use a **new isolated signet wallet for each pot**. All-square groups need no wallet or participant addresses.
+Closing cannot be undone; initialization failures keep the group locked and offer **Resume pot setup** with the same
+wallet. Keep organizer cookies and private links: account recovery is not implemented. The trusted organizer issues
+bearer links; these provide lightweight access, not proof of identity or ownership of the receiving wallet.
+
+This is a custodial signet-only demo: overpayment refunds, fee allocation, and production access controls are not
+implemented. The unauthenticated standalone workspace means the whole app must remain local/trusted, even though
+group payment actions require organizer authority. Never use mainnet or real funds.
 
 ## Start
 

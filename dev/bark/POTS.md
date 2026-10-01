@@ -116,6 +116,22 @@ can create a pot and trigger funded payouts. Do not expose this testing interfac
 
 ## Boundaries
 
+### Group-linked flow
+
+Groups use this same net-debt engine at `/groups/<invite>/settlement`. Each participant provides their own address
+using an organizer-issued private link. The organizer closes the group with a current server-generated preview;
+the immutable setup, group lock, and wallet reservation are persisted before pot creation. Failed initialization
+can be resumed using the original wallet and frozen setup.
+
+Private participant links later display their own deposit QR or payout status. QR payloads are raw Ark signet addresses;
+the user enters the displayed remaining sats manually. Only the group organizer can reconcile deposits or authorize
+payouts. The standalone `/settle` endpoints reject linked group pots and reserved wallets, including failed setups.
+Wallet insertion also rechecks reservations in a transaction. A second pot requires a new isolated daemon wallet.
+
+The lightweight organizer/participant capabilities do not make the standalone workspace safe for public hosting.
+See [the shared implementation plan](../../IMPLEMENTATION_PLAN.md) and the README for the integrated demo checklist.
+The historical live run below verified Ben's original demo, not the newly integrated group UI.
+
 This is a **server-custodied hackathon prototype**, not trustless escrow or a production payment system. Keep each
 pot wallet exclusive to this flow: no external sends, deletes, restores, or competing wallet copies. Payout history
 matching assumes that exclusivity. Payouts are sequential, not an atomic batch. Excess deposits and leftover fee
