@@ -69,6 +69,9 @@ Advertised total prize value: **37.15M sats**, including tickets, subscriptions,
 
 ## UI and styling
 
+- Keep UI copy minimal and functional: labels, actions, and necessary state or error messages only. Do not add cute
+  messages, slogans, marketing copy, redundant helper text, or prototype commentary to the interface.
+- Use **event** in user-facing creation copy (for example, **Create event**), not **group**.
 - Use Tailwind utility classes for all styling. **Never write custom CSS classes/selectors or CSS modules.**
 - Keep `src/styles.css` limited to Tailwind imports, shadcn theme tokens, and the standard base layer.
 - Use shadcn/ui components from `@/components/ui` instead of rebuilding buttons, inputs, cards, alerts, or form controls.

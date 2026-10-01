@@ -1,41 +1,26 @@
-import { GroupCreateForm } from "@/components/group-create-form";
-import { PageShell } from "@/components/page-shell";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { EventCreateForm } from "@/components/event-create-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/")({
+  head: () => ({ meta: [{ title: "Create event" }] }),
   component: Home,
 });
 
 function Home(): ReactNode {
   return (
-    <PageShell>
-      <section className="flex flex-col gap-3 py-4">
-        <p className="text-sm text-muted-foreground">Less math. More memories.</p>
-        <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Good times. Fair shares.</h1>
-        <p className="max-w-lg text-muted-foreground">
-          Split the weekend, not the friendship. Track what everyone paid and see exactly where you stand.
-        </p>
-      </section>
-      <Card>
+    <main className="mx-auto min-h-svh max-w-xl px-3 py-6 sm:px-6 sm:py-12">
+      <Card className="gap-8 [--card-spacing:--spacing(6)] sm:[--card-spacing:--spacing(8)]">
         <CardHeader>
-          <CardTitle>Create a group</CardTitle>
-          <CardDescription>Start with a name and your people. We’ll handle the math.</CardDescription>
+          <CardTitle>
+            <h1 className="text-3xl font-normal">Create event</h1>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <GroupCreateForm />
+          <EventCreateForm />
         </CardContent>
       </Card>
-      <section className="flex flex-col gap-3">
-        <Link to="/settle" className={buttonVariants({ variant: "outline", className: "self-start" })}>
-          Open Bark settlement workspace
-        </Link>
-        <p className="text-xs text-muted-foreground">
-          Separate signet settlement tool. Group expenses and contributions aren’t connected to it yet.
-        </p>
-      </section>
-    </PageShell>
+    </main>
   );
 }
