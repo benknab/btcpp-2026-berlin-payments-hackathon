@@ -22,7 +22,9 @@ export function ParticipantBalances({
     <Card>
       <CardHeader>
         <CardTitle>Everyone’s share</CardTitle>
-        <CardDescription>Expense balances before contributions and fees.</CardDescription>
+        <CardDescription>
+          Net expense balances. Debtors pay into the pot at closing; creditors receive payouts.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <dl className="flex flex-col gap-3 text-sm">

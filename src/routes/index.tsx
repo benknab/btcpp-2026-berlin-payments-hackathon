@@ -33,7 +33,7 @@ function Home(): ReactNode {
           Open Bark settlement workspace
         </Link>
         <p className="text-xs text-muted-foreground">
-          Separate signet settlement tool. Group expenses and contributions aren’t connected to it yet.
+          Manual signet workspace for standalone pots. For a group, use its own settlement page.
         </p>
       </section>
     </PageShell>

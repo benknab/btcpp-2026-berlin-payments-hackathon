@@ -39,8 +39,8 @@ export function ExpenseSummary({
           </div>
         </dl>
         <p className="text-xs text-muted-foreground">
-          This is your expense balance, not a pot payout. Final payouts also include confirmed contributions and payment
-          fees.
+          At closing, people who owe pay their net debt into the pot. People who are owed receive that amount once all
+          deposits are confirmed.
         </p>
       </CardContent>
     </Card>

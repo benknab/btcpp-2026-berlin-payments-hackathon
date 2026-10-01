@@ -1,4 +1,5 @@
 import { DatabaseLive } from "@/db/database";
+import { readGroupPot } from "@/db/group-payment-access";
 import { getGroup } from "@/db/groups";
 import { issuePersonalLink, personalPayment, savePersonalAddress } from "@/db/participant-payments";
 import { IssuePersonalLink, PersonalPaymentRequest, SavePersonalAddress } from "@/domain/group-settlement";
@@ -14,7 +15,16 @@ export const personalAddressPage = createServerFn({ method: "GET" })
   .handler(({ data }: { readonly data: typeof PersonalPaymentRequest.Type }) => {
     setResponseHeader("Cache-Control", "no-store");
     setResponseHeader("Referrer-Policy", "no-referrer");
-    return Effect.runPromise(personalPayment(data.accessKey).pipe(Effect.provide(DatabaseLive)));
+    return Effect.runPromise(
+      Effect.gen(function* personalPage() {
+        const profile = yield* personalPayment(data.accessKey);
+        const pot = profile.status === "open" ? null : yield* readGroupPot(profile.groupId);
+        return {
+          ...profile,
+          payment: pot?.participants.find((person) => person.userId === profile.participantId) ?? null,
+        };
+      }).pipe(Effect.provide(DatabaseLive)),
+    );
   });
 
 export const participantLink = createServerFn({ method: "POST" })

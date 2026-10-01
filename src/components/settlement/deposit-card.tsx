@@ -1,4 +1,5 @@
 import { CopyAddress } from "@/components/settlement/copy-address";
+import { PaymentQr } from "@/components/settlement/payment-qr";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -30,7 +31,8 @@ export function DepositCard({ participant }: Readonly<{ participant: PotParticip
           <Badge variant={paid ? "default" : "outline"}>{paid ? "Paid in full" : "Awaiting deposit"}</Badge>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
+        {paid ? null : <PaymentQr address={participant.depositAddress} remainingSat={remaining} />}
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor={`deposit-${participant.userId}`}>
