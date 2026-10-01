@@ -46,9 +46,7 @@ describe("settlement form validation", (): void => {
     Effect.gen(function* test() {
       expect((yield* Effect.result(prepareSettlementDraft(initialSettlementDraft)))._tag).toBe("Failure");
       expect(
-        (yield* Effect.result(
-          Schema.decodeUnknownEffect(SettlementPay)({ id: "pot", accessCode: "code", reviewed: false }),
-        ))._tag,
+        (yield* Effect.result(Schema.decodeUnknownEffect(SettlementPay)({ id: "pot", reviewed: false })))._tag,
       ).toBe("Failure");
     }),
   );

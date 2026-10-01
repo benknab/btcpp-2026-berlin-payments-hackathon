@@ -1,4 +1,3 @@
-import { SettlementAccessForm } from "@/components/settlement/access-form";
 import { PotView } from "@/components/settlement/pot-view";
 import { SettlementSetupForm } from "@/components/settlement/setup-form";
 import { useSettlement } from "@/components/settlement/use-settlement";
@@ -15,7 +14,7 @@ export function SettlementScreen(): ReactNode {
         <AlertTitle>Signet test funds only</AlertTitle>
         <AlertDescription>
           This is the final settlement step, not trustless escrow. It moves real signet sats. There is no automatic
-          payout or automatic retry of uncertain payments.
+          payout or automatic retry of uncertain payments. No access code is required; keep this test app local.
         </AlertDescription>
       </Alert>
       {controller.error === null ? null : (
@@ -24,24 +23,12 @@ export function SettlementScreen(): ReactNode {
           <AlertDescription>{controller.error}</AlertDescription>
         </Alert>
       )}
-      {controller.connected ? (
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">Operator connected · dedicated pot wallet</p>
-          <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={controller.handleDisconnect}>
-            Disconnect
-          </Button>
-        </div>
-      ) : (
-        <SettlementAccessForm
-          accessCode={controller.accessCode}
-          pending={pending}
-          onChange={controller.handleAccessCodeChange}
-          onOpen={controller.handleOpen}
-        />
-      )}
-      {controller.connected && controller.pot === null ? (
-        <SettlementSetupForm pending={pending} onCreate={controller.handleCreate} />
+      {controller.error !== null && controller.pot === null ? (
+        <Button type="button" variant="outline" disabled={pending} onClick={controller.handleOpen}>
+          Retry loading saved pot
+        </Button>
       ) : null}
+      {controller.pot === null ? <SettlementSetupForm pending={pending} onCreate={controller.handleCreate} /> : null}
       {controller.pot === null ? null : (
         <PotView
           pot={controller.pot}

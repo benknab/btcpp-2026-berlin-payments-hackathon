@@ -92,14 +92,12 @@ Before connecting:
 2. Start its authenticated daemon on loopback, e.g.:
    `barkd --datadir "$HOME/.local/share/bark-ui-pot" --host 127.0.0.1 --port 3135 --no-logfile`.
 3. Obtain that daemon's token with `barkd --datadir "$HOME/.local/share/bark-ui-pot" secret show`. Set local `.env` values
-   for `BARK_POT_URL=http://127.0.0.1:3135`, `BARK_POT_TOKEN`, and a **separate random** `POT_UI_ACCESS_CODE` of
-   32–256 characters (e.g. generated with `openssl rand -hex 32`). Never commit these values or use a recovery phrase
-   as the access code. Do not prefix them with `VITE_`.
+   for `BARK_POT_URL=http://127.0.0.1:3135` and `BARK_POT_TOKEN`. Never commit the token or prefix it with `VITE_`.
 4. Run `pnpm db:migrate` and `pnpm dev`. Restart the app after changing environment configuration.
 
-Enter the operator access code to connect. The code stays in React memory, not browser storage; it is sent to
-authorized POST server functions. Bark tokens and database access stay server-only. One daemon wallet supports one
-saved pot in the configured database; reconnect after a browser reload to resume it, including completed pots.
+Open `/settle` directly to enter participants and debts; no operator access code is required. The page automatically
+loads any saved pot. Bark tokens and database access stay server-only. One daemon wallet supports one
+saved pot in the configured database; reload the page to resume it, including completed pots.
 To create another pot, configure a new dedicated wallet; never delete an existing snapshot to reuse a funded wallet.
 
 After **Lock details & create pot**, debts and payout destinations are immutable. Send each debtor's required sats
@@ -113,8 +111,8 @@ payout time. Click once to pay creditors, with receipt IDs shown as payouts are 
 or automatic polling occur. An interrupted payout requires a refresh, then **Reconcile / finish payouts** with the
 same wallet/database; uncertain sends remain blocked for manual history investigation, never automatically resent.
 
-Keep the app local or behind trusted access controls. Use HTTPS if accessing it over a network. The shared operator
-code is a hackathon spending gate, not production user authentication, authorization roles, or rate limiting.
+Keep the app local. There is no application authentication or spending access code: anyone who can reach the app
+can create a pot and trigger funded payouts. Do not expose this testing interface to an untrusted network.
 
 ## Boundaries
 
@@ -124,7 +122,7 @@ matching assumes that exclusivity. Payouts are sequential, not an atomic batch. 
 reserves stay in the pot; refunds, fee allocation, per-user authentication, refresh scheduling, and emergency exits are not
 implemented. Bark-confirmed Ark receipts are not new on-chain confirmations.
 
-The UI uses access-code-protected TanStack Start server functions; there are no unauthenticated spending endpoints.
+The UI uses unauthenticated POST TanStack Start server functions for local signet testing only.
 Never expose daemon tokens or SDK implementations to the browser.
 Keep Barkd authenticated and bound to loopback. **Never use this flow or the shared public seed for mainnet.**
 

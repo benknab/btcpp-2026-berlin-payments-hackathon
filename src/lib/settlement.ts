@@ -5,7 +5,6 @@ import { Schema } from "effect";
 export const MAX_SETTLEMENT_USERS = 20;
 export const MAX_SETTLEMENT_DEBTS = 100;
 const MIN_SETTLEMENT_USERS = 2;
-const MAX_ACCESS_CODE_LENGTH = 256;
 
 export const SettlementSetup = Schema.Struct({
   users: PotInputSchema.fields.users.pipe(
@@ -17,11 +16,8 @@ export const SettlementSetup = Schema.Struct({
 });
 export type SettlementSetupInput = typeof SettlementSetup.Type;
 
-export const SettlementAccess = Schema.Struct({
-  accessCode: Schema.String.pipe(Schema.check(Schema.isMinLength(1), Schema.isMaxLength(MAX_ACCESS_CODE_LENGTH))),
-});
-export const SettlementCreate = Schema.Struct({ ...SettlementAccess.fields, setup: SettlementSetup });
-export const SettlementRequest = Schema.Struct({ ...SettlementAccess.fields, id: PotSchema.fields.id });
+export const SettlementCreate = Schema.Struct({ setup: SettlementSetup });
+export const SettlementRequest = Schema.Struct({ id: PotSchema.fields.id });
 export const SettlementPay = Schema.Struct({ ...SettlementRequest.fields, reviewed: Schema.Literal(true) });
 
 export type SettlementResult =

@@ -10,7 +10,7 @@ import { Effect, Layer } from "effect";
 
 import { confirmPot, createPot, settlePot } from "./service";
 import { PotStore, PotStoreLive } from "./store";
-import { authorizeSettlement, UiPotConfigLive } from "./ui-config";
+import { UiPotConfig, UiPotConfigLive } from "./ui-config";
 
 type Action =
   | Readonly<{ kind: "open" }>
@@ -27,7 +27,7 @@ const executeAction = Effect.fn("executeSettlementAction")(function* executeActi
     const bark = yield* Bark;
     const existing = yield* store.findByWallet(yield* bark.fingerprint());
     if (existing !== null) {
-      return yield* new PotError({ message: "This wallet already has a pot. Reconnect to resume it" });
+      return yield* new PotError({ message: "This wallet already has a pot. Reload the page to resume it" });
     }
     return yield* createPot({ ...action.setup, id: randomUUID() });
   }
@@ -54,27 +54,21 @@ const actionResult = Effect.fn("settlementActionResult")(function* actionResult(
   } satisfies SettlementResult;
 });
 
-export const runSettlementAction = Effect.fn("runSettlementAction")(function* runSettlementAction(
-  accessCode: string,
-  action: Action,
-) {
-  const config = yield* authorizeSettlement(accessCode);
+export const runSettlementAction = Effect.fn("runSettlementAction")(function* runSettlementAction(action: Action) {
+  const config = yield* UiPotConfig;
   const services = Layer.merge(barkLayer(config), PotStoreLive.pipe(Layer.provide(DatabaseLive)));
   return yield* actionResult(action).pipe(Effect.provide(services));
 });
 
-export function settlementRequest(accessCode: string, action: Action): Promise<SettlementResult> {
+export function settlementRequest(action: Action): Promise<SettlementResult> {
   return Effect.runPromise(
-    runSettlementAction(accessCode, action).pipe(
+    runSettlementAction(action).pipe(
       Effect.provide(UiPotConfigLive),
       Effect.catch((error: Readonly<{ _tag: string; message: string }>) =>
         Effect.succeed({
           ok: false,
           pot: null,
-          message:
-            error._tag === "PotError"
-              ? error.message
-              : "Configure BARK_POT_TOKEN and POT_UI_ACCESS_CODE on the server first",
+          message: error._tag === "PotError" ? error.message : "Configure BARK_POT_TOKEN on the server first",
         } satisfies SettlementResult),
       ),
     ),

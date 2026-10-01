@@ -1,37 +1,32 @@
-import type { PotError } from "@/lib/pot";
-import { describe, expect, it, vi } from "@effect/vitest";
-import { Effect, Layer, Redacted } from "effect";
+import { describe, expect, it } from "@effect/vitest";
+import { ConfigProvider, Effect, Redacted } from "effect";
 
-import { authorizeSettlement, UiPotConfig } from "./ui-config";
-import type { UiConfiguration } from "./ui-config";
-import { runSettlementAction } from "./ui-service";
+import { UiPotConfig, UiPotConfigLive } from "./ui-config";
 
-const code = "test-operator-secret".repeat(2);
-const config: UiConfiguration = {
-  basePath: "http://127.0.0.1:3135",
-  token: Redacted.make("private-bark-token"),
-  accessCode: Redacted.make(code),
-};
-const ConfigLayer = Layer.succeed(UiPotConfig, config);
-
-describe("settlement operator authorization", (): void => {
-  it.effect("authorizes a matching code without exposing the Bark token", (): Effect.Effect<void, PotError> =>
+describe("settlement daemon configuration", (): void => {
+  it.effect("loads the Bark token without an operator access code", (): Effect.Effect<void, unknown> =>
     Effect.gen(function* test() {
-      const authorized = yield* authorizeSettlement(code);
-      expect(authorized.basePath).toBe(config.basePath);
-      expect(JSON.stringify(authorized.token)).not.toContain("private-bark-token");
-    }).pipe(Effect.provide(ConfigLayer)),
+      const config = yield* UiPotConfig;
+      expect(config.basePath).toBe("http://127.0.0.1:3135");
+      expect(Redacted.value(config.token)).toBe("private-bark-token");
+      expect(JSON.stringify(config)).not.toContain("private-bark-token");
+    }).pipe(
+      Effect.provide(UiPotConfigLive),
+      Effect.provide(ConfigProvider.layer(ConfigProvider.fromUnknown({ BARK_POT_TOKEN: "private-bark-token" }))),
+    ),
   );
 
-  it.effect("rejects an incorrect code before any wallet or database action", (): Effect.Effect<void> =>
-    Effect.gen(function* test() {
-      const fetch = vi.spyOn(globalThis, "fetch");
-      const result = yield* Effect.result(runSettlementAction("incorrect", { kind: "open" }));
-      expect(result).toMatchObject({
-        _tag: "Failure",
-        failure: { _tag: "PotError", message: "Incorrect settlement access code" },
-      });
-      expect(fetch).not.toHaveBeenCalled();
-    }).pipe(Effect.provide(ConfigLayer)),
+  it.effect.each([{}, { BARK_POT_TOKEN: "" }])(
+    "rejects missing or empty daemon configuration %j",
+    (environment: Readonly<{ BARK_POT_TOKEN?: string }>): Effect.Effect<void> =>
+      Effect.gen(function* test() {
+        const result = yield* Effect.result(
+          Effect.service(UiPotConfig).pipe(
+            Effect.provide(UiPotConfigLive),
+            Effect.provide(ConfigProvider.layer(ConfigProvider.fromUnknown(environment))),
+          ),
+        );
+        expect(result._tag).toBe("Failure");
+      }),
   );
 });

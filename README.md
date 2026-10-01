@@ -41,7 +41,9 @@ Its recovery phrase is intentionally stored in `dev/bark/signet.mnemonic` for de
 use it **only on signet**, never for mainnet or real funds.
 
 The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
-and pays creditors using the Bark TypeScript SDK wrapped in Effect. No UI or public spending endpoints are added.
+and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local signet settlement
+UI: enter debts directly or automatically resume the saved pot. No operator code is required; keep the app local
+because settlement actions are unauthenticated.
 
 ## Start
 
@@ -92,7 +94,7 @@ Backend and domain tests use **@effect/vitest 4.0.0**, compatible with Effect 4 
 Use `it.effect` / `it.effect.each` to return Effects directly, and `layer(...)` when sharing service fixtures.
 The test runner manages scopes, interruption, and test services; don't manually call `Effect.runPromise` in tests.
 Database tests use an isolated in-memory libSQL database and apply the real Drizzle migrations.
-Run them with `pnpm test`; frontend tests can continue to import from `vite-plus/test`.
+Run them with `pnpm test`. Do not add UI, component, or browser tests; verify UI changes manually.
 
 ## Strictness
 
