@@ -4,6 +4,7 @@ import { migrate } from "drizzle-orm/effect-libsql/migrator";
 import { Effect, Layer } from "effect";
 
 import { Database } from "./database";
+import { groups, participants } from "./group-schema";
 import { createGroup, getGroup, requireParticipant } from "./groups";
 
 describe("groups and invitation access", () => {
@@ -45,6 +46,24 @@ describe("groups and invitation access", () => {
       expect((yield* Effect.flip(getGroup(first.groupId)))._tag).toBe("GroupError");
       expect((yield* Effect.flip(requireParticipant(first.inviteKey, second.organizerId)))._tag).toBe("GroupError");
       expect((yield* getGroup(first.inviteKey, second.organizerToken)).isOrganizer).toBe(false);
+    }).pipe(Effect.provide(TestDatabase)),
+  );
+
+  it.effect("rejects invalid event creation without persisting an event or participants", () =>
+    Effect.gen(function* verifyInvalidCreation() {
+      expect.hasAssertions();
+      const database = yield* Database;
+      yield* migrate(database, { migrationsFolder: "./drizzle" });
+      const result = yield* Effect.flip(
+        createGroup({
+          name: "Dinner",
+          organizerName: "Alice",
+          participantNames: ["alice"],
+        }),
+      );
+      expect(result._tag).toBe("SchemaError");
+      expect(yield* database.select().from(groups)).toStrictEqual([]);
+      expect(yield* database.select().from(participants)).toStrictEqual([]);
     }).pipe(Effect.provide(TestDatabase)),
   );
 });
