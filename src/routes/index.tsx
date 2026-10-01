@@ -1,6 +1,7 @@
 import { NotesCard } from "@/components/notes-card";
+import { buttonVariants } from "@/components/ui/button";
 import { getNotes } from "@/server/notes";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/")({
@@ -19,6 +20,9 @@ function Home(): ReactNode {
           Build something worth paying for.
         </h1>
         <p className="text-muted-foreground">TanStack Start + Effect + Drizzle + SQLite/libSQL, powered by Vite+.</p>
+        <Link to="/settle" className={buttonVariants({ className: "self-start" })}>
+          Open final pot settlement
+        </Link>
       </header>
       <NotesCard notes={notes} />
     </main>
