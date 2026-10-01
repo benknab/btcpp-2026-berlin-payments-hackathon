@@ -3,12 +3,14 @@ import { createGroup, getGroup, requireParticipant } from "@/db/groups";
 import type { GroupView } from "@/db/groups";
 import { GroupRequest, NewGroup, ParticipantRequest } from "@/domain/group-input";
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestUrl } from "@tanstack/react-start/server";
 import { Effect, Schema } from "effect";
 
 import { readOrganizerToken, readParticipantId, saveOrganizerToken, saveParticipantId } from "./group-session";
 
 export interface GroupPageData extends GroupView {
   readonly selectedParticipantId: string | null;
+  readonly origin: string;
 }
 
 export const newGroup = createServerFn({ method: "POST" })
@@ -30,6 +32,7 @@ export const groupPage = createServerFn({ method: "GET" })
     const selected = readParticipantId(view.group.id);
     return {
       ...view,
+      origin: getRequestUrl().origin,
       selectedParticipantId: view.participants.some((participant) => participant.id === selected)
         ? (selected ?? null)
         : null,

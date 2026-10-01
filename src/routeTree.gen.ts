@@ -10,33 +10,51 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GroupsInviteKeyRouteImport } from './routes/groups.$inviteKey'
+import { Route as GroupsInviteKeyIndexRouteImport } from './routes/groups.$inviteKey.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GroupsInviteKeyRoute = GroupsInviteKeyRouteImport.update({
+  id: '/groups/$inviteKey',
+  path: '/groups/$inviteKey',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupsInviteKeyIndexRoute = GroupsInviteKeyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GroupsInviteKeyRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/groups/$inviteKey': typeof GroupsInviteKeyRouteWithChildren
+  '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/groups/$inviteKey': typeof GroupsInviteKeyIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/groups/$inviteKey': typeof GroupsInviteKeyRouteWithChildren
+  '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/groups/$inviteKey' | '/groups/$inviteKey/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/groups/$inviteKey'
+  id: '__root__' | '/' | '/groups/$inviteKey' | '/groups/$inviteKey/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GroupsInviteKeyRoute: typeof GroupsInviteKeyRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +66,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/groups/$inviteKey': {
+      id: '/groups/$inviteKey'
+      path: '/groups/$inviteKey'
+      fullPath: '/groups/$inviteKey'
+      preLoaderRoute: typeof GroupsInviteKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groups/$inviteKey/': {
+      id: '/groups/$inviteKey/'
+      path: '/'
+      fullPath: '/groups/$inviteKey/'
+      preLoaderRoute: typeof GroupsInviteKeyIndexRouteImport
+      parentRoute: typeof GroupsInviteKeyRoute
+    }
   }
 }
 
+interface GroupsInviteKeyRouteChildren {
+  GroupsInviteKeyIndexRoute: typeof GroupsInviteKeyIndexRoute
+}
+
+const GroupsInviteKeyRouteChildren: GroupsInviteKeyRouteChildren = {
+  GroupsInviteKeyIndexRoute: GroupsInviteKeyIndexRoute,
+}
+
+const GroupsInviteKeyRouteWithChildren = GroupsInviteKeyRoute._addFileChildren(
+  GroupsInviteKeyRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GroupsInviteKeyRoute: GroupsInviteKeyRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
