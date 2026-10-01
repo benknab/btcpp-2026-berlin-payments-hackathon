@@ -8,6 +8,7 @@ import { Context, Effect, Layer, Schema } from "effect";
 export interface PotStorage {
   readonly insert: (pot: Pot) => Effect.Effect<Pot, PotError>;
   readonly get: (id: string) => Effect.Effect<Pot, PotError>;
+  readonly findByWallet: (fingerprint: string) => Effect.Effect<Pot | null, PotError>;
   readonly save: (pot: Pot) => Effect.Effect<Pot, PotError>;
 }
 
@@ -51,6 +52,17 @@ export const PotStoreLive = Layer.effect(
                 : decode(rows[0].snapshot),
             ),
             Effect.mapError((): PotError => new PotError({ message: "Pot not found or unreadable" })),
+          ),
+      findByWallet: (fingerprint): Effect.Effect<Pot | null, PotError> =>
+        database
+          .select()
+          .from(pots)
+          .where(eq(pots.walletFingerprint, fingerprint))
+          .pipe(
+            Effect.mapError((): PotError => new PotError({ message: "Could not load this wallet's pot" })),
+            Effect.flatMap((rows: readonly { readonly snapshot: string }[]) =>
+              rows[0] === undefined ? Effect.succeed(null) : decode(rows[0].snapshot),
+            ),
           ),
       save: (pot): Effect.Effect<Pot, PotError> => {
         const next = { ...pot, revision: pot.revision + 1 };

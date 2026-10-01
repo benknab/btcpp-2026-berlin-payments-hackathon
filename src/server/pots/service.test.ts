@@ -145,6 +145,20 @@ function depositAll(pot: Pot, controls: Controls): void {
 
 describe("durable Bark pot", (): void => {
   it.effect(
+    "finds the persisted pot by wallet for reconnect without mixing wallets",
+    (): Effect.Effect<void, TestError> =>
+      withFixture(() =>
+        Effect.gen(function* test() {
+          const store = yield* PotStore;
+          expect(yield* store.findByWallet("test-wallet")).toBeNull();
+          const pot = yield* createPot(input);
+          expect(yield* store.findByWallet("test-wallet")).toStrictEqual(pot);
+          expect(yield* store.findByWallet("other-wallet")).toBeNull();
+        }),
+      ),
+  );
+
+  it.effect(
     "assigns all addresses, validates deposits, pays exact amounts, and settles idempotently",
     (): Effect.Effect<void, TestError> =>
       withFixture(() =>
