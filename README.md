@@ -45,7 +45,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open <http://localhost:5173>. The example note feature validates input with Effect Schema and runs Drizzle queries as
+Open <http://localhost:3100>. The example note feature validates input with Effect Schema and runs Drizzle queries as
 native Effects. SQLite works locally without a separate database server. Server functions keep database code and
 credentials out of the browser bundle.
 
