@@ -1,76 +1,71 @@
-import { randomUUID } from "node:crypto";
-
 import { DatabaseLive } from "@/db/database";
+import { loadSettlement, saveSettlement } from "@/db/settlements";
 import { PotError } from "@/lib/pot";
-import type { Pot } from "@/lib/pot";
-import type { SettlementResult, SettlementSetupInput } from "@/lib/settlement";
-import { barkLayer } from "@/server/bark/sdk";
+import type { SettlementDocument, SettlementResult, SettlementSetupInput } from "@/lib/settlement";
+import { settlementPaymentId, settlementSetup } from "@/lib/settlement";
 import { Bark } from "@/server/bark/service";
 import { Effect, Layer } from "effect";
 
 import { confirmPot, createPot, settlePot } from "./service";
-import { PotStore, PotStoreLive } from "./store";
-import { UiPotConfig, UiPotConfigLive } from "./ui-config";
+import { PotStoreLive } from "./store";
+import { PotWallet, PotWalletLive } from "./wallet";
 
 type Action =
-  | Readonly<{ kind: "open" }>
-  | Readonly<{ kind: "create"; setup: SettlementSetupInput }>
-  | Readonly<{ kind: "refresh" | "pay"; id: string }>;
+  | Readonly<{ kind: "save"; id: number; setup: SettlementSetupInput }>
+  | Readonly<{ kind: "prepare" | "refresh" | "pay"; id: number }>;
 
-const executeAction = Effect.fn("executeSettlementAction")(function* executeAction(action: Action) {
-  const store = yield* PotStore;
-  if (action.kind === "open") {
-    const bark = yield* Bark;
-    return yield* store.findByWallet(yield* bark.fingerprint());
+const executePayment = Effect.fn("executeSettlementPayment")(function* executePayment(
+  kind: "prepare" | "refresh" | "pay",
+  pot: SettlementDocument,
+) {
+  const id = settlementPaymentId(pot.id);
+  if (kind === "prepare") {
+    return yield* createPot({ ...settlementSetup(pot), id });
   }
-  if (action.kind === "create") {
-    const bark = yield* Bark;
-    const existing = yield* store.findByWallet(yield* bark.fingerprint());
-    if (existing !== null) {
-      return yield* new PotError({ message: "This wallet already has a pot. Reload the page to resume it" });
-    }
-    return yield* createPot({ ...action.setup, id: randomUUID() });
-  }
-  return yield* action.kind === "refresh" ? confirmPot(action.id) : settlePot(action.id);
+  return yield* kind === "refresh" ? confirmPot(id) : settlePot(id);
 });
 
-const actionResult = Effect.fn("settlementActionResult")(function* actionResult(action: Action) {
-  const result = yield* Effect.result(executeAction(action));
+export const runSettlementAction = Effect.fn("runSettlementAction")(function* runSettlementAction(action: Action) {
+  if (action.kind === "save") {
+    return yield* saveSettlement(action.id, action.setup);
+  }
+  const pot = yield* loadSettlement(action.id);
+  if (!pot.locked) {
+    return yield* new PotError({ message: "Save the participants and debts before preparing deposits" });
+  }
+  if (action.kind === "prepare" && pot.execution !== null) {
+    return pot;
+  }
+  if (action.kind !== "prepare" && pot.execution === null) {
+    return yield* new PotError({ message: "Prepare this pot's deposits first" });
+  }
+  const wallets = yield* PotWallet;
+  const bark = yield* wallets.open(pot.id, pot.execution === null);
+  yield* executePayment(action.kind, pot).pipe(Effect.provideService(Bark, bark));
+  return yield* loadSettlement(pot.id);
+});
+
+export const settlementActionResult = Effect.fn("settlementActionResult")(function* settlementActionResult(
+  action: Action,
+) {
+  const result = yield* Effect.result(runSettlementAction(action).pipe(Effect.scoped));
   if (result._tag === "Success") {
     return { ok: true, pot: result.success } satisfies SettlementResult;
   }
-  const store = yield* PotStore;
-  let pot: Pot | null = null;
-  if (action.kind === "refresh" || action.kind === "pay") {
-    pot = yield* store.get(action.id).pipe(Effect.catch(() => Effect.succeed(null)));
-  }
+  const pot = yield* loadSettlement(action.id).pipe(Effect.catch(() => Effect.succeed(null)));
+  const failure: unknown = result.failure;
   return {
     ok: false,
     pot,
     message:
-      result.failure._tag === "PotError"
-        ? result.failure.message
-        : "Bark could not complete the request. Check the pot daemon and refresh; do not resend uncertain payouts",
+      failure instanceof PotError
+        ? failure.message
+        : "Payment request interrupted. Refresh this pot before proceeding; do not resend uncertain payouts",
   } satisfies SettlementResult;
 });
 
-export const runSettlementAction = Effect.fn("runSettlementAction")(function* runSettlementAction(action: Action) {
-  const config = yield* UiPotConfig;
-  const services = Layer.merge(barkLayer(config), PotStoreLive.pipe(Layer.provide(DatabaseLive)));
-  return yield* actionResult(action).pipe(Effect.provide(services));
-});
+const services = Layer.mergeAll(DatabaseLive, PotWalletLive, PotStoreLive.pipe(Layer.provide(DatabaseLive)));
 
 export function settlementRequest(action: Action): Promise<SettlementResult> {
-  return Effect.runPromise(
-    runSettlementAction(action).pipe(
-      Effect.provide(UiPotConfigLive),
-      Effect.catch((error: Readonly<{ _tag: string; message: string }>) =>
-        Effect.succeed({
-          ok: false,
-          pot: null,
-          message: error._tag === "PotError" ? error.message : "Configure BARK_POT_TOKEN on the server first",
-        } satisfies SettlementResult),
-      ),
-    ),
-  );
+  return Effect.runPromise(settlementActionResult(action).pipe(Effect.provide(services)));
 }

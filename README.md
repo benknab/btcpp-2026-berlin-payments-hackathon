@@ -46,9 +46,10 @@ Its recovery phrase is intentionally stored in `dev/bark/signet.mnemonic` for de
 use it **only on signet**, never for mainnet or real funds.
 
 The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
-and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local signet settlement
-UI: enter debts directly or automatically resume the saved pot. No operator code is required; keep the app local
-because settlement actions are unauthenticated.
+and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` to list settled/unsettled pots,
+start a new pot, and open its `/settle/<id>` page. Pots, users, and debt rows use SQLite auto-increment IDs.
+Saving debts needs no Bark configuration; the backend manages a separate signet wallet per pot when deposits are
+prepared. No operator code or daemon token setup is required. Keep the app local because settlement actions are unauthenticated.
 
 ## Start
 

@@ -1,5 +1,5 @@
 import type { Pot, PotParticipant } from "@/lib/pot";
-import { PotInputSchema, PotSchema } from "@/lib/pot";
+import { PotInputSchema, Sats } from "@/lib/pot";
 import { Schema } from "effect";
 
 export const MAX_SETTLEMENT_USERS = 20;
@@ -16,13 +16,42 @@ export const SettlementSetup = Schema.Struct({
 });
 export type SettlementSetupInput = typeof SettlementSetup.Type;
 
-export const SettlementCreate = Schema.Struct({ setup: SettlementSetup });
-export const SettlementRequest = Schema.Struct({ id: PotSchema.fields.id });
+export const SettlementId = Sats.pipe(Schema.check(Schema.isGreaterThan(0)));
+export const SettlementRequest = Schema.Struct({ id: SettlementId });
+export const SettlementCreate = Schema.Struct({ ...SettlementRequest.fields, setup: SettlementSetup });
 export const SettlementPay = Schema.Struct({ ...SettlementRequest.fields, reviewed: Schema.Literal(true) });
 
+export interface SettlementSummary {
+  readonly id: number;
+  readonly createdAt: string;
+  readonly locked: boolean;
+  readonly status: "unsettled" | "settled";
+}
+
+export interface SettlementDocument extends SettlementSummary {
+  readonly users: readonly Readonly<{ id: number; name: string; arkAddress: string }>[];
+  readonly debts: readonly Readonly<{ id: number; fromUserId: number; toUserId: number; amountSat: number }>[];
+  readonly execution: Pot | null;
+}
+
 export type SettlementResult =
-  | Readonly<{ ok: true; pot: Pot | null }>
-  | Readonly<{ ok: false; message: string; pot: Pot | null }>;
+  | Readonly<{ ok: true; pot: SettlementDocument }>
+  | Readonly<{ ok: false; message: string; pot: SettlementDocument | null }>;
+
+export function settlementPaymentId(id: number): string {
+  return `settlement-${id}`;
+}
+
+export function settlementSetup(pot: SettlementDocument): SettlementSetupInput {
+  return {
+    users: pot.users.map((user) => ({ id: String(user.id), name: user.name, arkAddress: user.arkAddress })),
+    debts: pot.debts.map((debt) => ({
+      from: String(debt.fromUserId),
+      to: String(debt.toUserId),
+      amountSat: debt.amountSat,
+    })),
+  };
+}
 
 export function potFullyFunded(pot: Pot): boolean {
   return pot.participants.every((participant): boolean => participant.receivedSat >= participant.payInSat);

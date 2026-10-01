@@ -48,8 +48,8 @@ allocated before promising final payout amounts.
 - No fiat conversion, unequal splits, receipts, comments, production authentication, or mainnet funds.
 
 Choosing a name is **personalization only**, not proof of identity. Invitation links must never authorize wallet
-spending or changes to another participant's payout destination. The current operator access code in `/settle` is a
-separate hackathon gate; the group organizer cookie does not replace it automatically.
+spending or changes to another participant's payout destination. The standalone `/settle` testing workspace has no
+operator access code and must remain local. Its backend-managed pots are separate from group organizer authorization.
 
 ## Ownership
 
@@ -84,11 +84,10 @@ destinations, locking, funding, and fees before sending. Never accept browser-co
 | A6    | `feat(balances): add personalized group overview`                    | Done. Group spending, personal share/payment/expense balance, and everyone's balances; recalculation tested.                 |
 | A7    | `feat(pot): display confirmed funding and expected payouts`          | Next, after money-model agreement and B's group funding API. Pending funds must never count as confirmed money.              |
 | A8    | `feat(settlement): add preview and organizer confirmation`           | Next, after B's group-bound settlement API. Display blockers, locking, partial completion, and unknown outcomes.             |
-| A9    | `test(e2e): cover group expense and settlement journeys`             | Pending. Automate the complete funded group journey, refresh recovery, and failure scenarios.                                |
+| A9    | `docs(demo): verify group expense and settlement journeys`           | Pending. Manually verify the complete funded group journey, refresh recovery, and failure scenarios.                         |
 
-Feature commits include their own tests. A9 adds cross-feature coverage; it is not permission to defer accounting or
-payment-safety tests. Manual browser smoke checks have exercised the group and expense flows, but they are not yet
-the committed, full payment end-to-end suite.
+Feature commits include backend/domain tests. Do not add UI, component, or browser tests (see `AGENTS.md`). A9 adds
+a manual cross-feature demo checklist; it is not permission to defer accounting or payment-safety tests.
 
 ## Person B's semantic slices and remaining bridge
 
