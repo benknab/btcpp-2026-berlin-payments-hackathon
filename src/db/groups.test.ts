@@ -1,0 +1,50 @@
+import * as LibsqlClient from "@effect/sql-libsql/LibsqlClient";
+import { describe, expect, it } from "@effect/vitest";
+import { migrate } from "drizzle-orm/effect-libsql/migrator";
+import { Effect, Layer } from "effect";
+
+import { Database } from "./database";
+import { createGroup, getGroup, requireParticipant } from "./groups";
+
+describe("groups and invitation access", () => {
+  const TestDatabase = Database.layer.pipe(Layer.provide(LibsqlClient.layer({ url: "file::memory:" })));
+
+  it.effect("persists a group and never exposes tokens or their hashes in the shared view", () =>
+    Effect.gen(function* verifyAccess() {
+      expect.hasAssertions();
+      const database = yield* Database;
+      yield* migrate(database, { migrationsFolder: "./drizzle" });
+      const created = yield* createGroup({
+        name: "Berlin",
+        organizerName: "Alice",
+        participantNames: ["Bob", "Carol"],
+      });
+      const shared = yield* getGroup(created.inviteKey);
+      const organizer = yield* getGroup(created.inviteKey, created.organizerToken);
+      expect(shared.participants.map((participant) => participant.name)).toStrictEqual(["Alice", "Bob", "Carol"]);
+      expect(shared.isOrganizer).toBe(false);
+      expect(organizer.isOrganizer).toBe(true);
+      expect(shared.group).not.toHaveProperty("organizerTokenHash");
+      expect(shared.group).not.toHaveProperty("inviteTokenHash");
+      expect(shared.participants).not.toContainEqual(expect.objectContaining({ groupId: created.groupId }));
+      expect((yield* getGroup(created.inviteKey, created.inviteKey)).isOrganizer).toBe(false);
+      expect((yield* getGroup(created.inviteKey, "fake-token")).isOrganizer).toBe(false);
+      yield* requireParticipant(created.inviteKey, created.organizerId);
+    }).pipe(Effect.provide(TestDatabase)),
+  );
+
+  it.effect("rejects unknown invitations and participants from another group", () =>
+    Effect.gen(function* verifyIsolation() {
+      expect.hasAssertions();
+      const database = yield* Database;
+      yield* migrate(database, { migrationsFolder: "./drizzle" });
+      const input = { name: "Berlin", organizerName: "Alice", participantNames: ["Bob"] };
+      const first = yield* createGroup(input);
+      const second = yield* createGroup(input);
+      expect((yield* Effect.flip(getGroup("unknown")))._tag).toBe("GroupError");
+      expect((yield* Effect.flip(getGroup(first.groupId)))._tag).toBe("GroupError");
+      expect((yield* Effect.flip(requireParticipant(first.inviteKey, second.organizerId)))._tag).toBe("GroupError");
+      expect((yield* getGroup(first.inviteKey, second.organizerToken)).isOrganizer).toBe(false);
+    }).pipe(Effect.provide(TestDatabase)),
+  );
+});
