@@ -5,24 +5,64 @@ A hackathon project for **BTC++ 2026 in Berlin**, exploring shared expenses and 
 ## Project idea
 
 We're aiming to build a **Splitwise / Kittysplit-style app** that doesn't stop at calculating who owes whom.
-Participants share a pot, track expenses, and settle the final balances with actual money from that pot using Bark.
+Participants track expenses, then fund an owner-controlled pot to settle their final net balances using Bark.
 
-### V1: shared-pot settlement
+### V1 scope: owner-controlled settlement pot
 
-- Create a group and a shared pot.
-- Let participants contribute money and record shared expenses.
-- Calculate each participant's final balance.
-- At the end, settle what everyone is owed from the pot using Bark.
+1. **Owner creates the group and pot wallet.**
+   - Create a dedicated Bark wallet in the owner's browser using `@secondts/bark/web`.
+   - Store its public Ark address on the backend; the owner's wallet keys stay in the browser.
+   - Back up the mnemonic and wallet data, keeping the data backup current as the wallet changes.
+2. **Friends join.**
+   - Participants join with a name. Anyone owed money supplies a Lightning address before settlement is locked.
+   - Validate receiving addresses and supported payment amounts. V1 uses Lightning addresses (LNURL-pay);
+     BOLT12 offers and Nostr profile lookup are later additions.
+3. **Record expenses and lock settlement.**
+   - Calculate each participant's net contribution or payout, then freeze amounts and payout destinations.
+   - Debtors fund only their net obligation; creditors receive only their net entitlement.
+   - Include the owner's own debtor or creditor position. For V1, the owner covers fees with a separate reserve.
+4. **Participants pay their shares.**
+   - A participant opens the group, selects **Pay Bob's share**, and sees a Lightning invoice and QR code.
+     Anyone can pay that obligation; selecting Bob does not establish the payer's identity.
+   - The backend's dedicated Barkd receiving wallet calls
+     `POST /api/v1/lightning/receives/invoice/for-address`, targeting the owner's stored Ark address.
+   - Barkd claims the incoming Lightning payment and delivers the sats to the owner's Ark address mailbox.
+     The owner's browser can be closed; backend Barkd stays running to process receipts and delivery.
+   - Persist each invoice/payment hash against its settlement and participant obligation. Reuse an existing
+     unexpired invoice when reopening the payment page and retain older attempts for reconciliation.
+   - Track **pending → paid → delivered to pot**, with explicit expired/failed outcomes. Credit actual delivered
+     amounts and account for duplicate or excess contributions separately.
+5. **Owner redistributes the pot.**
+   - The owner opens and unlocks their browser wallet, syncs it, and reviews the payout amounts and destinations.
+   - Start redistribution after all required contributions are delivered and spendable funds cover payouts and fees.
+   - Request invoices automatically from creditors' Lightning addresses. The owner approves, and their browser
+     wallet executes the payments.
+   - Persist each attempt before sending and confirm each payout individually. Reconcile interrupted or unknown
+     outcomes before retrying; payouts are sequential, not an atomic batch.
+   - Account for the owner's entitlement, excess contributions, and leftover fees. Mark the group settled only when
+     all entitlements are accounted for.
 
-V1 will focus on getting this end-to-end flow working. More advanced features and improvements will follow later.
+**Trust model:** friends trust the owner with the pot. Our backend is trusted to deliver incoming contributions;
+it can redirect those contributions, but holds no owner-wallet keys and has no direct spending authority over funds
+already delivered to the owner. The browser wallet still trusts the JavaScript served by the app.
+
+**Wallet lifecycle:** receiving while the owner is offline does not mean funds can be left unattended indefinitely.
+Track VTXO expiries and implement refresh/reconnection handling alongside ongoing backups. See Bark's
+[browser SDK](https://second.tech/docs/bark-sdk/wasm),
+[receive-for-address API](https://second.tech/docs/barkd/api-reference/lightning/create-a-bolt11-invoice-for-an-ark-address),
+and [VTXO lifetime documentation](https://second.tech/docs/learn/lifetime).
+
+**First integration milestone:** verify a complete signet round trip: contribution invoice → owner browser closed →
+delivery → owner reopens → Lightning payout. Use compatible signet recipients; ordinary mainnet Lightning addresses
+cannot receive the test payouts.
 
 **Current status:** group creation, invitations, equal expense splitting, expense management, and personal balance
-overviews are implemented. A separate Bark signet settlement workspace is available at `/settle`. Group funding and
-settlement are **not connected to the expense flow yet**; the standalone workspace currently settles net debts rather
-than refunding a pre-funded trip pot.
+overviews are implemented. A separate, **server-custodied** Bark signet settlement workspace is available at `/settle`.
+Group funding and settlement are **not connected to the expense flow yet**. The browser-owned pot, Lightning
+collection on behalf of its owner, and Lightning-address payouts above are the V1 target, not the current implementation.
 
-See [the Person A / Person B implementation plan](IMPLEMENTATION_PLAN.md) for ownership, semantic commits, remaining
-integration work, and the 23-hour delivery schedule.
+See [the Person A / Person B implementation plan](IMPLEMENTATION_PLAN.md) for the earlier work split and 23-hour delivery
+schedule. The V1 scope above supersedes conflicting settlement assumptions in that plan.
 
 ## Inspiration
 
@@ -37,7 +77,8 @@ practical Bitcoin expense splitting, payments grounded in shared experiences, an
 ## Stack
 
 TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
-with Bark for the backend signet pot payment and settlement layer.
+with Bark for payments. V1 targets `@secondts/bark/web` for the owner's browser wallet and server-side Barkd for
+Lightning collection on the owner's behalf; the current prototype uses backend Barkd wallets for settlement.
 
 ## Bark signet development wallet
 
