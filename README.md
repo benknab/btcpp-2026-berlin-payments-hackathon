@@ -34,6 +34,12 @@ practical Bitcoin expense splitting, payments grounded in shared experiences, an
 TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
 with Bark planned for the payment and settlement layer.
 
+## Bark signet development wallet
+
+See [the shared signet wallet notes](dev/bark/README.md) for CLI configuration and access to the funded test wallet.
+Its recovery phrase is intentionally stored in `dev/bark/signet.mnemonic` for developers. Treat it as public and
+use it **only on signet**, never for mainnet or real funds.
+
 ## Start
 
 Use Node 22.23.1 (or a supported newer version) and pnpm 12.8.1.

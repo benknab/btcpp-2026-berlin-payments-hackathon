@@ -10,6 +10,10 @@
 - Keep database access and credentials server-only. Import server implementations through TanStack Start server functions.
 - Commit generated Drizzle migrations and `src/routeTree.gen.ts`; do not edit generated files manually.
 
+## Bark
+
+- Use [Second's Bark signet guide](https://second.tech/docs/getting-started/bark-cli/signet) as the source of truth for Bark-related work.
+
 ## UI and styling
 
 - Use Tailwind utility classes for all styling. **Never write custom CSS classes/selectors or CSS modules.**
