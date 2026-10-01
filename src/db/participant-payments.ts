@@ -75,7 +75,7 @@ export const savePersonalAddress = Effect.fn("savePersonalAddress")(function* sa
     Effect.gen(function* saveAddress() {
       const profile = yield* personalPayment(valid.accessKey);
       if (profile.status !== "open") {
-        return yield* new GroupError({ message: "Your payout address is locked because settlement has started." });
+        yield* new GroupError({ message: "Your payout address is locked because settlement has started." });
       }
       const [duplicate] = yield* database
         .select({ id: participants.id })
@@ -89,7 +89,7 @@ export const savePersonalAddress = Effect.fn("savePersonalAddress")(function* sa
           ),
         );
       if (duplicate !== undefined) {
-        return yield* new GroupError({ message: "Each person needs a different personal Bark address." });
+        yield* new GroupError({ message: "Each person needs a different personal Bark address." });
       }
       yield* database
         .update(participantPayments)

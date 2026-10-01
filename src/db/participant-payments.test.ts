@@ -53,7 +53,8 @@ it.effect("rejects another participant's destination but permits independent gro
     const members = yield* getGroup(group.inviteKey);
     const bobId = members.participants.find((person) => person.name === "Bob")?.id;
     if (bobId === undefined) {
-      return yield* Effect.die("Missing fixture");
+      yield* Effect.die("Missing fixture");
+      return;
     }
     const aliceLink = yield* issuePersonalLink(group.inviteKey, group.organizerId, group.organizerToken);
     const bobLink = yield* issuePersonalLink(group.inviteKey, bobId, group.organizerToken);

@@ -3,11 +3,12 @@ import { Effect, Schema } from "effect";
 
 import type { ParticipantBalance } from "./accounting";
 import { AccountingError } from "./accounting";
-import { EntityId, InviteKey, ParticipantName, ParticipantRequest } from "./group-input";
+import { EntityId, InviteKey, ParticipantName } from "./group-input";
+
+export { ParticipantRequest as IssuePersonalLink } from "./group-input";
 
 export const PersonalPaymentRequest = Schema.Struct({ accessKey: InviteKey });
 export const SavePersonalAddress = Schema.Struct({ ...PersonalPaymentRequest.fields, arkAddress: SignetAddress });
-export const IssuePersonalLink = ParticipantRequest;
 export const CloseGroupRequest = Schema.Struct({
   inviteKey: InviteKey,
   fingerprint: InviteKey,

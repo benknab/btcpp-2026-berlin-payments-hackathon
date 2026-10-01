@@ -16,4 +16,5 @@ export const groupSettlements = sqliteTable("group_settlements", {
     .primaryKey()
     .references(() => groups.id, { onDelete: "cascade" }),
   snapshot: text("snapshot").notNull(),
+  walletFingerprint: text("wallet_fingerprint").unique(),
 });

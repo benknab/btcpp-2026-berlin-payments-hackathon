@@ -33,7 +33,9 @@ it.effect("nets Kittysplit balances into the exact pot obligations, including ro
       expenses: [{ payerId: "bob", amountSats: 10, shares: yield* splitEqually(10, ids) }],
       contributions: [],
     });
-    expect((yield* netDebts(rounded)).reduce((sum, debt) => sum + debt.amountSat, 0)).toBe(7);
+    expect(
+      (yield* netDebts(rounded)).reduce((sum, debt: Readonly<{ amountSat: number }>) => sum + debt.amountSat, 0),
+    ).toBe(7);
     expect(
       yield* netDebts(yield* calculateBalances({ participantIds: ids, expenses: [], contributions: [] })),
     ).toStrictEqual([]);
