@@ -16,8 +16,13 @@ Participants share a pot, track expenses, and settle the final balances with act
 
 V1 will focus on getting this end-to-end flow working. More advanced features and improvements will follow later.
 
-**Current status:** the application scaffold and database-backed demo are working. Expense splitting, pot management,
-Bark integration, and real settlement are planned work, not implemented yet.
+**Current status:** group creation, invitations, equal expense splitting, expense management, and personal balance
+overviews are implemented. A separate Bark signet settlement workspace is available at `/settle`. Group funding and
+settlement are **not connected to the expense flow yet**; the standalone workspace currently settles net debts rather
+than refunding a pre-funded trip pot.
+
+See [the Person A / Person B implementation plan](IMPLEMENTATION_PLAN.md) for ownership, semantic commits, remaining
+integration work, and the 23-hour delivery schedule.
 
 ## Inspiration
 
@@ -56,7 +61,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open <http://localhost:5173>. The example note feature validates input with Effect Schema and runs Drizzle queries as
+Open <http://localhost:3100> to create a group. Input is validated with Effect Schema and Drizzle queries run as
 native Effects. SQLite works locally without a separate database server. Server functions keep database code and
 credentials out of the browser bundle.
 

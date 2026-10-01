@@ -1,8 +1,8 @@
 import { Input as InputPrimitive } from "@base-ui/react/input";
 import { cn } from "cn";
-import * as React from "react";
+import type { ComponentProps, ReactElement } from "react";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">): React.ReactNode {
+function Input({ className, type, ...props }: ComponentProps<"input">): ReactElement {
   return (
     <InputPrimitive
       type={type}

@@ -1,30 +1,41 @@
-import { NotesCard } from "@/components/notes-card";
+import { GroupCreateForm } from "@/components/group-create-form";
+import { PageShell } from "@/components/page-shell";
 import { buttonVariants } from "@/components/ui/button";
-import { getNotes } from "@/server/notes";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/")({
-  loader: (): ReturnType<typeof getNotes> => getNotes(),
   component: Home,
 });
 
 function Home(): ReactNode {
-  const notes = Route.useLoaderData();
-
   return (
-    <main className="mx-auto flex min-h-svh max-w-3xl flex-col gap-10 px-6 py-20">
-      <header className="flex flex-col gap-4">
-        <p className="text-sm font-medium tracking-widest text-muted-foreground uppercase">BTC++ · Berlin · 2026</p>
-        <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-          Build something worth paying for.
-        </h1>
-        <p className="text-muted-foreground">TanStack Start + Effect + Drizzle + SQLite/libSQL, powered by Vite+.</p>
-        <Link to="/settle" className={buttonVariants({ className: "self-start" })}>
-          Open final pot settlement
+    <PageShell>
+      <section className="flex flex-col gap-3 py-4">
+        <p className="text-sm text-muted-foreground">Less math. More memories.</p>
+        <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Good times. Fair shares.</h1>
+        <p className="max-w-lg text-muted-foreground">
+          Split the weekend, not the friendship. Track what everyone paid and see exactly where you stand.
+        </p>
+      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Create a group</CardTitle>
+          <CardDescription>Start with a name and your people. We’ll handle the math.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GroupCreateForm />
+        </CardContent>
+      </Card>
+      <section className="flex flex-col gap-3">
+        <Link to="/settle" className={buttonVariants({ variant: "outline", className: "self-start" })}>
+          Open Bark settlement workspace
         </Link>
-      </header>
-      <NotesCard notes={notes} />
-    </main>
+        <p className="text-xs text-muted-foreground">
+          Separate signet settlement tool. Group expenses and contributions aren’t connected to it yet.
+        </p>
+      </section>
+    </PageShell>
   );
 }

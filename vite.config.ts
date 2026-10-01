@@ -6,7 +6,7 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
   plugins: [tailwindcss(), tanstackStart(), react()],
   resolve: { tsconfigPaths: true },
-  server: { port: 5173, strictPort: true },
+  server: { port: 3100, strictPort: true },
   lint: {
     options: { typeAware: true, typeCheck: true },
     plugins: ["typescript", "unicorn", "oxc", "import", "react", "jsx-a11y"],

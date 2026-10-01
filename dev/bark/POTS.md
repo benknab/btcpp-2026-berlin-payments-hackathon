@@ -81,7 +81,7 @@ deliberately no automatic retry/reset of an uncertain monetary send.
 
 ## Final settlement UI
 
-Open **http://localhost:5173/settle** (also linked from the home page). This is a final-step interface, not an
+Open **http://localhost:3100/settle** (also linked from the home page). This is a final-step interface, not an
 expense-tracking app: enter participants, personal Bark signet payout addresses, and who owes whom in whole sats.
 The preview nets debts before creating the pot. Everyone supplies a distinct personal address, including debtors.
 
