@@ -1,6 +1,28 @@
-# Berlin Payments Hackathon
+# BTC++ 2026 Berlin Payments Hackathon
 
-TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova).
+A hackathon project for **BTC++ 2026 in Berlin**, exploring shared expenses and real money settlement using **Bark**.
+
+## Project idea
+
+We're aiming to build a **Splitwise / Kittysplit-style app** that doesn't stop at calculating who owes whom.
+Participants share a pot, track expenses, and settle the final balances with actual money from that pot using Bark.
+
+### V1: shared-pot settlement
+
+- Create a group and a shared pot.
+- Let participants contribute money and record shared expenses.
+- Calculate each participant's final balance.
+- At the end, settle what everyone is owed from the pot using Bark.
+
+V1 will focus on getting this end-to-end flow working. More advanced features and improvements will follow later.
+
+**Current status:** the application scaffold and database-backed demo are working. Expense splitting, pot management,
+Bark integration, and real settlement are planned work, not implemented yet.
+
+## Stack
+
+TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
+with Bark planned for the payment and settlement layer.
 
 ## Start
 
