@@ -24,6 +24,11 @@ Bark integration, and real settlement are planned work, not implemented yet.
 We draw on Zaplit / LNSplit's utility, Evento's social context, and Artmak's visual money movement:
 practical Bitcoin expense splitting, payments grounded in shared experiences, and an intuitive view of money flowing.
 
+- [Zaplit](https://github.com/lacrypta/zaplit): Split group expenses at events with Bitcoin Lightning payments via Nostr Wallet Connect.
+- [LNSplit](https://github.com/tumabitcoiner/ln-split): Generate a BOLT11 invoice per person to split a bill using a Lightning address.
+- [Evento](https://github.com/sevenlabsxyz/evento-client): Social-first event management with a built-in Bitcoin Lightning wallet powered by Breez SDK.
+- [Artmak](https://github.com/sbddesign/artmak): An interactive Bitcoin Ark wallet where receiving and sending test coins changes your blob's size and speed.
+
 ## Stack
 
 TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
