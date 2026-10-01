@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GroupsInviteKeyRouteImport } from './routes/groups.$inviteKey'
 import { Route as GroupsInviteKeyIndexRouteImport } from './routes/groups.$inviteKey.index'
+import { Route as GroupsInviteKeyExpensesExpenseIdRouteImport } from './routes/groups.$inviteKey.expenses.$expenseId'
+import { Route as GroupsInviteKeyExpensesNewRouteImport } from './routes/groups.$inviteKey.expenses.new'
+import { Route as GroupsInviteKeyExpensesExpenseIdEditRouteImport } from './routes/groups.$inviteKey.expenses.$expenseId.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,28 +31,73 @@ const GroupsInviteKeyIndexRoute = GroupsInviteKeyIndexRouteImport.update({
   path: '/',
   getParentRoute: () => GroupsInviteKeyRoute,
 } as any)
+const GroupsInviteKeyExpensesExpenseIdRoute =
+  GroupsInviteKeyExpensesExpenseIdRouteImport.update({
+    id: '/expenses/$expenseId',
+    path: '/expenses/$expenseId',
+    getParentRoute: () => GroupsInviteKeyRoute,
+  } as any)
+const GroupsInviteKeyExpensesNewRoute =
+  GroupsInviteKeyExpensesNewRouteImport.update({
+    id: '/expenses/new',
+    path: '/expenses/new',
+    getParentRoute: () => GroupsInviteKeyRoute,
+  } as any)
+const GroupsInviteKeyExpensesExpenseIdEditRoute =
+  GroupsInviteKeyExpensesExpenseIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => GroupsInviteKeyExpensesExpenseIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/groups/$inviteKey': typeof GroupsInviteKeyRouteWithChildren
   '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
+  '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
+  '/groups/$inviteKey/expenses/new': typeof GroupsInviteKeyExpensesNewRoute
+  '/groups/$inviteKey/expenses/$expenseId/edit': typeof GroupsInviteKeyExpensesExpenseIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/groups/$inviteKey': typeof GroupsInviteKeyIndexRoute
+  '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
+  '/groups/$inviteKey/expenses/new': typeof GroupsInviteKeyExpensesNewRoute
+  '/groups/$inviteKey/expenses/$expenseId/edit': typeof GroupsInviteKeyExpensesExpenseIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/groups/$inviteKey': typeof GroupsInviteKeyRouteWithChildren
   '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
+  '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
+  '/groups/$inviteKey/expenses/new': typeof GroupsInviteKeyExpensesNewRoute
+  '/groups/$inviteKey/expenses/$expenseId/edit': typeof GroupsInviteKeyExpensesExpenseIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/groups/$inviteKey' | '/groups/$inviteKey/'
+  fullPaths:
+    | '/'
+    | '/groups/$inviteKey'
+    | '/groups/$inviteKey/'
+    | '/groups/$inviteKey/expenses/$expenseId'
+    | '/groups/$inviteKey/expenses/new'
+    | '/groups/$inviteKey/expenses/$expenseId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/groups/$inviteKey'
-  id: '__root__' | '/' | '/groups/$inviteKey' | '/groups/$inviteKey/'
+  to:
+    | '/'
+    | '/groups/$inviteKey'
+    | '/groups/$inviteKey/expenses/$expenseId'
+    | '/groups/$inviteKey/expenses/new'
+    | '/groups/$inviteKey/expenses/$expenseId/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/groups/$inviteKey'
+    | '/groups/$inviteKey/'
+    | '/groups/$inviteKey/expenses/$expenseId'
+    | '/groups/$inviteKey/expenses/new'
+    | '/groups/$inviteKey/expenses/$expenseId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -80,15 +128,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupsInviteKeyIndexRouteImport
       parentRoute: typeof GroupsInviteKeyRoute
     }
+    '/groups/$inviteKey/expenses/$expenseId': {
+      id: '/groups/$inviteKey/expenses/$expenseId'
+      path: '/expenses/$expenseId'
+      fullPath: '/groups/$inviteKey/expenses/$expenseId'
+      preLoaderRoute: typeof GroupsInviteKeyExpensesExpenseIdRouteImport
+      parentRoute: typeof GroupsInviteKeyRoute
+    }
+    '/groups/$inviteKey/expenses/new': {
+      id: '/groups/$inviteKey/expenses/new'
+      path: '/expenses/new'
+      fullPath: '/groups/$inviteKey/expenses/new'
+      preLoaderRoute: typeof GroupsInviteKeyExpensesNewRouteImport
+      parentRoute: typeof GroupsInviteKeyRoute
+    }
+    '/groups/$inviteKey/expenses/$expenseId/edit': {
+      id: '/groups/$inviteKey/expenses/$expenseId/edit'
+      path: '/edit'
+      fullPath: '/groups/$inviteKey/expenses/$expenseId/edit'
+      preLoaderRoute: typeof GroupsInviteKeyExpensesExpenseIdEditRouteImport
+      parentRoute: typeof GroupsInviteKeyExpensesExpenseIdRoute
+    }
   }
 }
 
+interface GroupsInviteKeyExpensesExpenseIdRouteChildren {
+  GroupsInviteKeyExpensesExpenseIdEditRoute: typeof GroupsInviteKeyExpensesExpenseIdEditRoute
+}
+
+const GroupsInviteKeyExpensesExpenseIdRouteChildren: GroupsInviteKeyExpensesExpenseIdRouteChildren =
+  {
+    GroupsInviteKeyExpensesExpenseIdEditRoute:
+      GroupsInviteKeyExpensesExpenseIdEditRoute,
+  }
+
+const GroupsInviteKeyExpensesExpenseIdRouteWithChildren =
+  GroupsInviteKeyExpensesExpenseIdRoute._addFileChildren(
+    GroupsInviteKeyExpensesExpenseIdRouteChildren,
+  )
+
 interface GroupsInviteKeyRouteChildren {
   GroupsInviteKeyIndexRoute: typeof GroupsInviteKeyIndexRoute
+  GroupsInviteKeyExpensesExpenseIdRoute: typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
+  GroupsInviteKeyExpensesNewRoute: typeof GroupsInviteKeyExpensesNewRoute
 }
 
 const GroupsInviteKeyRouteChildren: GroupsInviteKeyRouteChildren = {
   GroupsInviteKeyIndexRoute: GroupsInviteKeyIndexRoute,
+  GroupsInviteKeyExpensesExpenseIdRoute:
+    GroupsInviteKeyExpensesExpenseIdRouteWithChildren,
+  GroupsInviteKeyExpensesNewRoute: GroupsInviteKeyExpensesNewRoute,
 }
 
 const GroupsInviteKeyRouteWithChildren = GroupsInviteKeyRoute._addFileChildren(
