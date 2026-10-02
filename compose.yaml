@@ -1,0 +1,37 @@
+name: bark-payments
+
+services:
+  # This container includes the web app, an always-running receiving barkd,
+  # and bark/barkd binaries for managed-pot subprocesses. No external daemon is needed.
+  app:
+    build:
+      context: ${BARK_PAYMENTS_SOURCE_DIR:-.}
+    # Second's pinned binary release is x86_64; Docker Desktop emulates it on Apple Silicon.
+    platform: linux/amd64
+    restart: unless-stopped
+    ports:
+      - "${APP_BIND_IP:-127.0.0.1}:${APP_PORT:-3100}:3100"
+    environment:
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-}
+      APP_AUTH_USERNAME: ${APP_AUTH_USERNAME:-}
+      APP_AUTH_PASSWORD: ${APP_AUTH_PASSWORD:-}
+    volumes:
+      - payments-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 90s
+    pids_limit: 256
+    mem_limit: 2g
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  payments-data:

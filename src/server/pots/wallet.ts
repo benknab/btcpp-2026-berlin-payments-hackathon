@@ -9,6 +9,7 @@ import type { Scope } from "effect";
 import { ChildProcess, ChildProcessSpawner } from "effect/process";
 
 import { prepareWalletDirectory, walletIo } from "./wallet-directory";
+import { waitForPotFingerprint } from "./wallet-readiness";
 
 const STARTUP_ATTEMPTS = 30;
 const STARTUP_DELAY_MS = 100;
@@ -70,9 +71,7 @@ const initializeWallet = Effect.fn("initializePotWallet")(function* initializeWa
       ),
     );
   }
-  yield* bark
-    .fingerprint()
-    .pipe(Effect.mapError((): PotError => new PotError({ message: "Could not verify the pot's mainnet wallet" })));
+  yield* waitForPotFingerprint(bark);
   if (allowCreate && ((yield* bark.balance()) > 0 || (yield* bark.history()).length > 0)) {
     return yield* new PotError({
       message: "This wallet already has payment history. Restore its original pot database before continuing",

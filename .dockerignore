@@ -1,0 +1,25 @@
+# Deny everything; only application build inputs enter the context.
+**
+
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!tsconfig.json
+!vite.config.ts
+
+!src/
+!src/**/
+!src/**/*.ts
+!src/**/*.tsx
+!src/styles.css
+src/**/*.test.ts
+src/**/*.test.tsx
+
+!drizzle/
+!drizzle/**/
+!drizzle/**/*.sql
+!drizzle/**/*.json
+
+!scripts/
+!scripts/production.ts
+!scripts/production-healthcheck.ts
