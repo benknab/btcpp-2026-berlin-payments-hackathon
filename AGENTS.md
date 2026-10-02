@@ -1,6 +1,6 @@
 # Project context
 
-SplitBark is a shared-expense app with browser-owned shared-pot settlement using Bark, built for the
+Splitbark is a shared-expense app with browser-owned shared-pot settlement using Bark, built for the
 [bitcoin++ Berlin 2026 payments hackathon](https://btcpp.dev/berlin26/hackathon).
 See `README.md` for the project overview and `dev/bark/BROWSER.md` for the mainnet demo and trust boundaries.
 Keep scope small and prioritize a working demo. The retired server-owned `/settle` workspace must not be restored.

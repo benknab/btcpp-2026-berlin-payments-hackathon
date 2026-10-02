@@ -8,7 +8,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Berlin Payments Hackathon" },
+      { title: "Splitbark" },
+      { name: "description", content: "Kittysplit + Bark" },
     ],
     links: [{ rel: "stylesheet", href: stylesheet }],
   }),

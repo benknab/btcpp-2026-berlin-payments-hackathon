@@ -1,9 +1,9 @@
-# SplitBark
+# Splitbark
+
+Kittysplit + [Bark](https://second.tech).
 
 Shared expenses with Bitcoin settlement, built for the
 [bitcoin++ Berlin 2026 payments hackathon](https://btcpp.dev/berlin26/hackathon).
-Inspired by Splitwise and Kittysplit, SplitBark tracks what everyone owes and settles the balances through
-an owner-controlled shared pot using [Bark](https://second.tech).
 
 ## How it works
 

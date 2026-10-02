@@ -1,7 +1,8 @@
 {
-  "name": "btcpp-2026-berlin-payments-hackathon",
+  "name": "splitbark",
   "version": "0.0.0",
   "private": true,
+  "description": "Kittysplit + Bark",
   "license": "MIT",
   "type": "module",
   "scripts": {
