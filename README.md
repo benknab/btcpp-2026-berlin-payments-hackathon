@@ -5,6 +5,15 @@ Kittysplit + [Bark](https://second.tech).
 Shared expenses with Bitcoin settlement, built for the
 [bitcoin++ Berlin 2026 payments hackathon](https://btcpp.dev/berlin26/hackathon).
 
+Splitbark is a shared-expense app built for trips, dinners, and events. Create an event, invite friends, and track
+who paid and who owes what, with equal, exact, weighted, or percentage splits.
+
+When it's time to settle, participants pay into a shared pot over Lightning. The event owner manages a
+browser-based Bark wallet and pays recipients through Lightning addresses, Ark addresses, or BOLT12 offers.
+
+Wallet keys stay in the owner's browser. Bark's receive-for-address flow lets contributions arrive even while
+that browser is closed, and a recovery phrase can restore spendable Ark funds in another browser.
+
 ## How it works
 
 1. **Create an event.** The owner gets a Bark wallet in their browser. Save its recovery phrase to restore funds later.

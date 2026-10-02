@@ -22,6 +22,18 @@ export function HomeIntroduction(): ReactNode {
         Track shared expenses, split costs, and settle up with Bitcoin using Lightning and Bark.
       </p>
       <p className="text-sm text-muted-foreground">
+        Splitbark is a shared-expense app built for trips, dinners, and events. Create an event, invite friends, and
+        track who paid and who owes what, with equal, exact, weighted, or percentage splits.
+      </p>
+      <p className="text-sm text-muted-foreground">
+        When it’s time to settle, participants pay into a shared pot over Lightning. The event owner manages a
+        browser-based Bark wallet and pays recipients through Lightning addresses, Ark addresses, or BOLT12 offers.
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Wallet keys stay in the owner’s browser. Bark’s receive-for-address flow lets contributions arrive even while
+        that browser is closed, and a recovery phrase can restore spendable Ark funds in another browser.
+      </p>
+      <p className="text-sm text-muted-foreground">
         Built for the{" "}
         <a
           href="https://btcpp.dev/berlin26/hackathon"
