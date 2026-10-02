@@ -1,4 +1,5 @@
 import { ActionError } from "@/components/action-error";
+import { EventFeeReserve } from "@/components/event-fee-reserve";
 import { ExpenseSummary } from "@/components/expense-summary";
 import { GroupInvite } from "@/components/group-invite";
 import { useLiveOverview } from "@/components/use-live-overview";
@@ -20,6 +21,9 @@ function GroupHome(): ReactNode {
   const refreshError = useLiveOverview(view.group.status !== "settled");
   return (
     <>
+      {view.isOrganizer && view.group.arkAddress !== null && view.group.status !== "settled" && (
+        <EventFeeReserve inviteKey={inviteKey} arkAddress={view.group.arkAddress} page={page} />
+      )}
       <ExpenseSummary inviteKey={inviteKey} overview={overview} locked={view.group.status !== "open"} />
       <ActionError message={refreshError} />
       <GroupInvite inviteKey={inviteKey} origin={view.origin} />

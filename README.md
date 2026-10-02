@@ -39,7 +39,7 @@ Participants track expenses, then fund an owner-controlled pot to settle their f
 5. **Owner redistributes the pot.**
    - The owner opens and unlocks their browser wallet, syncs it, and reviews the payout amounts and destinations.
    - Start redistribution after all required contributions and an owner fee-reserve invoice are delivered, and
-     spendable funds cover payouts and current estimated fees. **Owner fee reserve → Estimate fees / deposit**
+     spendable funds cover payouts and current estimated fees. On the event overview, **Owner fee reserve → Estimate fees / deposit**
      estimates remaining payout fees using the browser wallet and creates an invoice for the shortfall.
    - Resolve LNURL-pay invoices, send directly to Ark addresses, or pay BOLT12 offers for the exact settlement amount.
      The owner approves, and their browser wallet executes the payments.
@@ -65,7 +65,11 @@ See [the mainnet browser-pot setup and demo](dev/bark/BROWSER.md). `pnpm dev` st
 and passes its credentials to Vite server-side. Barkd stays running after Vite exits to finish offline delivery.
 
 **Current status:** event creation, invitations, expense management, and personal balance overviews are implemented.
-The event overview shows total spent and a compact remaining-payout tally. **View expenses** opens the searchable
+The event overview shows the organizer's **Owner fee reserve** first, followed by total spent and a compact
+remaining-payout tally. The organizer can deposit a chosen reserve amount immediately after creating an event;
+**Check deposit** reconciles its receipt without locking expenses. Exact fee estimation becomes available after
+settlement is locked, using the same reserve and topping up any shortfall. Deposits do not count as expense payments.
+**View expenses** opens the searchable
 expense list; **View settlement** opens detailed balances, receiving addresses, funding/payout controls, and the event wallet.
 Add/edit expenses support equal splits (everyone or selected people), exact sats, weighted shares, and percentages.
 Weights and percentages support two decimal places; percentages must total 100 and exact amounts must match the total.

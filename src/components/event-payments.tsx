@@ -2,7 +2,6 @@ import type { GroupView } from "@/db/groups";
 import type { EventPageData } from "@/server/event-page";
 import type { ReactNode } from "react";
 
-import { EventFeeReserve } from "./event-fee-reserve";
 import { EventFundingCard } from "./event-funding-card";
 import { EventPayoutCard } from "./event-payout-card";
 import { EventSettlementCard } from "./event-settlement-card";
@@ -26,12 +25,6 @@ export function EventPayments({
       {page.settlement !== null && (
         <EventFundingCard inviteKey={inviteKey} members={page.settlement} invoices={page.invoices} />
       )}
-      {page.settlement !== null &&
-        view.isOrganizer &&
-        view.group.arkAddress !== null &&
-        view.group.status === "settling" && (
-          <EventFeeReserve inviteKey={inviteKey} arkAddress={view.group.arkAddress} page={page} />
-        )}
       {page.settlement !== null && view.isOrganizer && view.group.arkAddress !== null && (
         <EventPayoutCard
           inviteKey={inviteKey}

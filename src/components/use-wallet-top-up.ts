@@ -4,7 +4,7 @@ import { createWalletTopUpInvoice } from "@/server/wallet-top-up";
 import { Schema } from "effect";
 import { useState } from "react";
 
-import { useAction } from "./use-action";
+import { useEventAction } from "./use-event-action";
 
 interface WalletTopUpState {
   readonly amount: string;
@@ -19,7 +19,7 @@ interface WalletTopUpState {
 export function useWalletTopUp(inviteKey: string): WalletTopUpState {
   const [amount, setAmount] = useState("500");
   const [invoice, setInvoice] = useState<WalletTopUpInvoice | null>(null);
-  const action = useAction();
+  const action = useEventAction();
   const valid = Schema.is(PositiveSats)(Number(amount));
   function generate(): void {
     if (!valid) {

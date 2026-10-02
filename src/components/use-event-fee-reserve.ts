@@ -22,6 +22,7 @@ export function useEventFeeReserve(
 ): ReturnType<typeof useEventAction> & {
   readonly requiredSats: number | null;
   readonly prepare: () => void;
+  readonly check: () => void;
 } {
   const action = useEventAction();
   const [requiredSats, setRequiredSats] = useState<number | null>(null);
@@ -30,5 +31,10 @@ export function useEventFeeReserve(
       setRequiredSats(await prepareReserve(inviteKey, arkAddress));
     }, "Could not estimate the fee reserve. Check the wallet and receiving service.");
   }
-  return { ...action, requiredSats, prepare };
+  function check(): void {
+    action.run(async () => {
+      await refreshContributions({ data: { inviteKey } });
+    }, "Could not check the fee deposit. Try again.");
+  }
+  return { ...action, requiredSats, prepare, check };
 }
