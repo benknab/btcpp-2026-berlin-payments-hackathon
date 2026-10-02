@@ -2,7 +2,8 @@ import { getOverview } from "@/db/balances";
 import type { GroupOverview } from "@/db/balances";
 import { DatabaseLive } from "@/db/database";
 import { loadEventInvoices } from "@/db/event-funding";
-import type { EventInvoice } from "@/db/event-payment-schema";
+import type { EventInvoice, EventPayout } from "@/db/event-payment-schema";
+import { loadEventPayouts } from "@/db/event-payouts";
 import { loadEventSettlement } from "@/db/event-settlement";
 import type { EventSettlementMember } from "@/domain/event-settlement";
 import { GroupRequest } from "@/domain/group-input";
@@ -13,6 +14,7 @@ export interface EventPageData {
   readonly overview: GroupOverview;
   readonly settlement: readonly EventSettlementMember[] | null;
   readonly invoices: readonly EventInvoice[];
+  readonly payouts: readonly EventPayout[];
 }
 
 export const eventPage = createServerFn({ method: "GET" })
@@ -23,7 +25,8 @@ export const eventPage = createServerFn({ method: "GET" })
         const overview = yield* getOverview(data.inviteKey);
         const settlement = yield* loadEventSettlement(data.inviteKey);
         const invoices = yield* loadEventInvoices(data.inviteKey);
-        return { overview, settlement, invoices };
+        const payouts = yield* loadEventPayouts(data.inviteKey);
+        return { overview, settlement, invoices, payouts };
       }).pipe(Effect.provide(DatabaseLive)),
     ),
   );

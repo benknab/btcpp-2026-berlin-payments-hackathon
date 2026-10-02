@@ -43,6 +43,12 @@ The URL and token are server-only environment variables. Never use `VITE_` for t
 6. Select **Refresh contributions** to reconcile receipts. Paid but undelivered receipts do not count as funded.
    Unexpired invoices are reused; expired attempts remain stored and are checked for late payments.
 7. In the original browser, select **Sync wallet** to collect mailbox deliveries and inspect spendable sats.
+8. Send a separate fee reserve to the displayed event Ark address. Contributions cover creditor entitlements;
+   the organizer covers send fees. The browser estimates fees and checks spendable funds before sending.
+9. Select **Pay creditors / reconcile**. The browser resolves each creditor's LNURL, checks the signet invoice's
+   amount, expiry, and metadata hash, persists the attempt, and pays creditors sequentially.
+10. The backend verifies each payment preimage and marks the event settled once all creditors are paid.
+    Retrying reconciles an existing in-flight attempt without sending a second payment.
 
 Lightning recipients must support signet. Ordinary mainnet Lightning addresses cannot receive signet payouts.
 Do not clear the organizer's site data. Changing the app's origin (including port) changes which browser wallet storage it sees.
@@ -52,6 +58,20 @@ Do not clear the organizer's site data. Changing the app's origin (including por
 - `groups.ark_address`: public receiving address (nullable for pre-wallet events).
 - `event_settlements`: immutable participant amounts and receiving destinations.
 - `event_invoices`: every contribution invoice, payment hash, expiry, status, and delivered amount.
+- `event_payouts`: creditor invoices and prepared/sending/paid/expired attempt states, with one active attempt per creditor.
 
 The UI refreshes payment status on request. Barkd processes and delivers receipts independently of the UI.
 Browser-storage encryption and complete wallet backup/import are still outstanding; use signet only.
+
+## Verification and remaining limits
+
+Manually verified in Chromium on signet: event wallet creation and SQLite address persistence, wallet reopen/sync,
+expense locking, a 5,000-sat Lightning contribution delivered while the original browser origin was closed,
+and a 5,000-sat browser Lightning payout followed by proof verification and settled status. The payout check used
+a prepared BOLT11 invoice from the local signet daemon; automatic LNURL resolution still needs a compatible
+signet service with browser CORS support for a complete UI-only demo.
+
+An interrupted attempt that never reached Bark remains `sending` and requires manual investigation. The app does
+not automatically replace uncertain payments. Excess contributions block completion; automated refunds are not yet
+implemented. Unused fee reserves stay in the owner's wallet. Keep the receiving daemon and wallet data available
+to reconcile late payments.

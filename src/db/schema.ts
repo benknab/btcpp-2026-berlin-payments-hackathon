@@ -3,7 +3,7 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export { groups, participants } from "./group-schema";
 export { eventSettlements } from "./event-settlement-schema";
-export { eventInvoices } from "./event-payment-schema";
+export { eventInvoices, eventPayouts } from "./event-payment-schema";
 export { expenses, expenseShares } from "./expense-schema";
 export { settlementPots, settlementUsers, settlementDebts } from "./settlement-schema";
 

@@ -61,7 +61,9 @@ overviews are implemented. A separate, **server-custodied** Bark signet settleme
 Event creation generates a dedicated signet wallet using `@secondts/bark/web` and saves its public address in
 `groups.ark_address`. Events can lock net obligations and collect Lightning contributions through a persistent
 Barkd receiving wallet, including while the organizer's browser is closed. See [browser pot setup](dev/bark/BROWSER.md).
-Browser Lightning payouts remain the next milestone.
+The owner can pay creditors from the browser wallet, with persisted attempts and payment-proof verification.
+The signet round trip has been manually verified with a prepared BOLT11 payout invoice; automatic LNURL resolution
+still needs verification against a compatible signet receiving service.
 
 ### Browser event wallets
 
@@ -91,8 +93,8 @@ practical Bitcoin expense splitting, payments grounded in shared experiences, an
 ## Stack
 
 TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
-with Bark for payments. V1 targets `@secondts/bark/web` for the owner's browser wallet and server-side Barkd for
-Lightning collection on the owner's behalf; the current prototype uses backend Barkd wallets for settlement.
+with Bark for payments. Events use `@secondts/bark/web` for the owner's browser wallet and server-side Barkd for
+Lightning collection on the owner's behalf. The separate `/settle` workspace uses backend Barkd wallets.
 
 ## Bark signet development wallet
 

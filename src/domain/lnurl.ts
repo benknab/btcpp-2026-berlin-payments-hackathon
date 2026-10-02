@@ -33,7 +33,7 @@ function encodedEndpoint(candidate: string): string | null {
 }
 
 /** Resolves syntax locally without contacting the receiving service. */
-function lnurlEndpoint(value: string): string | null {
+export function lnurlEndpoint(value: string): string | null {
   if (value.length > MAX_LNURL_LENGTH || value !== value.trim()) {
     return null;
   }
