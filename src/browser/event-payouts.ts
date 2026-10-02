@@ -5,8 +5,8 @@ import { eventPage } from "@/server/event-page";
 import { claimPayout, completeEvent, confirmPayout, preparePayout } from "@/server/event-payouts";
 import type { Wallet } from "@secondts/bark/web";
 
-import { openEventWallet } from "./event-wallet";
 import { resolvePayoutInvoice } from "./lnurl-invoice";
+import { withEventWallet } from "./with-event-wallet";
 
 async function prepareMember(
   inviteKey: string,
@@ -91,22 +91,17 @@ async function processPayouts(
   }
 }
 
-async function runPayouts(inviteKey: string, arkAddress: string): Promise<void> {
+async function runPayouts(inviteKey: string, wallet: Readonly<Wallet>): Promise<void> {
   const page = await eventPage({ data: { inviteKey } });
   if (page.settlement === null || !isEventFunded(page.settlement, page.invoices)) {
     throw new Error("All contributions must be delivered first.");
   }
-  const wallet = await openEventWallet(arkAddress);
-  try {
-    await processPayouts(wallet, { inviteKey, members: page.settlement, payouts: page.payouts });
-    if (!(await completeEvent({ data: { inviteKey } }))) {
-      throw new Error("Payouts are recorded, but excess contributions still need to be returned.");
-    }
-  } finally {
-    wallet.free();
+  await processPayouts(wallet, { inviteKey, members: page.settlement, payouts: page.payouts });
+  if (!(await completeEvent({ data: { inviteKey } }))) {
+    throw new Error("Payouts are recorded, but excess contributions still need to be returned.");
   }
 }
 
 export function payEventCreditors(inviteKey: string, arkAddress: string): Promise<void> {
-  return navigator.locks.request(`bark-event-payout:${arkAddress}`, () => runPayouts(inviteKey, arkAddress));
+  return withEventWallet(arkAddress, (wallet) => runPayouts(inviteKey, wallet));
 }

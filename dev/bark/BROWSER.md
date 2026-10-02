@@ -75,3 +75,7 @@ An interrupted attempt that never reached Bark remains `sending` and requires ma
 not automatically replace uncertain payments. Excess contributions block completion; automated refunds are not yet
 implemented. Unused fee reserves stay in the owner's wallet. Keep the receiving daemon and wallet data available
 to reconcile late payments.
+
+Reconciliation reopens a settled event when it discovers a late delivery. Displayed balances include delivered
+contributions and proven payouts, so a completed event shows zero remaining obligations and an excess remains visible.
+Browser sync and payout operations share a cross-tab wallet lock.

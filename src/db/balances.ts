@@ -1,8 +1,11 @@
 import { calculateBalances } from "@/domain/accounting";
 import type { AccountingError, ParticipantBalance } from "@/domain/accounting";
+import { applySettlementPayments } from "@/domain/settlement-balances";
+import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { Database } from "./database";
+import { eventInvoices, eventPayouts } from "./event-payment-schema";
 import { listExpenses } from "./expenses";
 import type { ExpenseView } from "./expenses";
 import { getGroup } from "./groups";
@@ -27,7 +30,13 @@ export const getOverview = Effect.fn("getOverview")(function* getOverview(
         expenses: entries,
         contributions: [],
       });
-      return { entries, totalSats: entries.reduce((total, expense) => total + expense.amountSats, 0), balances };
+      const invoices = yield* database.select().from(eventInvoices).where(eq(eventInvoices.groupId, view.group.id));
+      const payouts = yield* database.select().from(eventPayouts).where(eq(eventPayouts.groupId, view.group.id));
+      return {
+        entries,
+        totalSats: entries.reduce((total, expense) => total + expense.amountSats, 0),
+        balances: applySettlementPayments(balances, invoices, payouts),
+      };
     }),
   );
 });

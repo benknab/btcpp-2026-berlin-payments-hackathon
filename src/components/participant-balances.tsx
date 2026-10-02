@@ -24,7 +24,7 @@ export function ParticipantBalances({
       <dl className="flex flex-col gap-3 text-sm">
         {participants.map((person) => (
           <SummaryItem key={person.id} label={person.name} className="flex flex-wrap justify-between gap-2">
-            {describeBalance(balances.find((balance) => balance.participantId === person.id)?.expenseBalanceSats ?? 0)}
+            {describeBalance(balances.find((balance) => balance.participantId === person.id)?.settlementSats ?? 0)}
           </SummaryItem>
         ))}
       </dl>

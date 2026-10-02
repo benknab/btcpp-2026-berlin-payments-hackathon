@@ -1,16 +1,16 @@
 import { parseSignetInvoice } from "@/domain/bolt11";
 import { deliveredFor } from "@/domain/event-funding";
-import type { BarkError } from "@/server/bark/error";
+import type { BarkError } from "@/server/bark/receiver";
 import { Receiver } from "@/server/bark/receiver";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { Clock, Effect } from "effect";
 
 import { Database } from "./database";
-import { eventInvoices } from "./event-payment-schema";
 import type { EventInvoice } from "./event-payment-schema";
 import { loadEventSettlement } from "./event-settlement";
 import type { SettlementError } from "./event-settlement";
 import { getGroup, GroupError } from "./groups";
+import { eventInvoices, groups } from "./schema";
 
 export const loadEventInvoices = Effect.fn("loadEventInvoices")(function* loadEventInvoices(inviteKey: string) {
   const view = yield* getGroup(inviteKey);
@@ -32,11 +32,34 @@ function receiptStatus(state: string, invoice: Readonly<EventInvoice>, now: numb
   return invoice.expiresAt <= now ? "expired" : "pending";
 }
 
+const applyReceipt = Effect.fn("applyEventReceipt")(function* applyReceipt(
+  invoice: Readonly<EventInvoice>,
+  status: EventInvoice["status"],
+  amountSats: number,
+) {
+  const database = yield* Database;
+  yield* database.transaction(() =>
+    Effect.gen(function* updateReceipt() {
+      const changed = yield* database
+        .update(eventInvoices)
+        .set({ status, deliveredSats: status === "delivered" ? amountSats : 0 })
+        .where(and(eq(eventInvoices.paymentHash, invoice.paymentHash), eq(eventInvoices.status, invoice.status)))
+        .returning({ paymentHash: eventInvoices.paymentHash });
+      if (changed.length === 1 && status === "delivered") {
+        // A receipt discovered after completion is an excess contribution, requiring a refund.
+        yield* database
+          .update(groups)
+          .set({ status: "settling" })
+          .where(and(eq(groups.id, invoice.groupId), eq(groups.status, "settled")));
+      }
+    }),
+  );
+});
+
 const reconcileInvoice = Effect.fn("reconcileEventInvoice")(function* reconcileInvoice(
   invoice: Readonly<EventInvoice>,
 ) {
   const receiver = yield* Receiver;
-  const database = yield* Database;
   const now = yield* Clock.currentTimeMillis;
   const receipt = yield* receiver.receipt(invoice.paymentHash);
   if (receipt.paymentHash !== invoice.paymentHash || receipt.amountSat > invoice.amountSats) {
@@ -44,10 +67,7 @@ const reconcileInvoice = Effect.fn("reconcileEventInvoice")(function* reconcileI
     return;
   }
   const status = receiptStatus(receipt.state, invoice, now);
-  yield* database
-    .update(eventInvoices)
-    .set({ status, deliveredSats: status === "delivered" ? receipt.amountSat : 0 })
-    .where(and(eq(eventInvoices.paymentHash, invoice.paymentHash), ne(eventInvoices.status, "delivered")));
+  yield* applyReceipt(invoice, status, receipt.amountSat);
 });
 
 export const reconcileEventInvoices = Effect.fn("reconcileEventInvoices")(function* reconcileEventInvoices(

@@ -5,6 +5,8 @@ import { Config, Context, Effect, Layer, Redacted, Schema } from "effect";
 
 import { BarkError } from "./error";
 
+export { BarkError } from "./error";
+
 const TIMEOUT_MS = 30_000;
 const Receipt = Schema.Struct({
   paymentHash: Schema.String,

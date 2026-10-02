@@ -12,7 +12,7 @@ export function ExpenseSummary({
   readonly selectedParticipantId: string | null;
 }): ReactNode {
   const personal = overview.balances.find((balance) => balance.participantId === selectedParticipantId);
-  const net = personal?.expenseBalanceSats ?? 0;
+  const net = personal?.settlementSats ?? 0;
   const balanceLabel = net >= 0 ? "You are owed" : "You owe";
   return (
     <SectionCard title="Summary" contentClassName="flex flex-col gap-4">
