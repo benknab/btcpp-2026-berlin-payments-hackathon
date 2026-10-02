@@ -1,3 +1,4 @@
+import { saveEventId } from "@/browser/saved-events";
 import { useAction } from "@/components/use-action";
 import { useEventWallet } from "@/components/use-event-wallet";
 import { NewGroup } from "@/domain/group-input";
@@ -45,6 +46,7 @@ export function useEventCreate(): EventCreateState {
     action.run(async (): Promise<void> => {
       const arkAddress = await createWallet();
       const created = await newGroup({ data: { ...input, arkAddress } });
+      saveEventId(created.inviteKey);
       await navigate({ to: "/groups/$inviteKey", params: { inviteKey: created.inviteKey } });
     }, "Could not create the event. Try again.");
   }
