@@ -126,7 +126,6 @@ Use **Run workflow** on `master` for a manual retry; other branches remain block
 sudo docker compose --project-name bark-payments -f compose.yaml ps
 sudo docker compose --project-name bark-payments -f compose.yaml logs --tail 100 app
 curl --fail http://127.0.0.1:3101/healthz
-sudo docker compose --project-name bark-payments -f compose.yaml exec app grep '^APP_AUTH_' /data/runtime.env
 ```
 
 Back up the full deployment volume before enabling unattended upgrades with meaningful funds. Container replacement

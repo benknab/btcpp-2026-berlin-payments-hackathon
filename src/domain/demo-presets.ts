@@ -1,7 +1,6 @@
-import { MainnetAddress } from "@/lib/pot";
 import { Schema } from "effect";
 
-import { EntityId, InviteKey } from "./group-input";
+import { EntityId, InviteKey, MainnetAddress } from "./group-input";
 
 export const MAX_DEMO_TOTAL_SATS = 1000;
 export const DemoPresetIdSchema = Schema.Literals(["coffee", "dinner", "weekend"]);

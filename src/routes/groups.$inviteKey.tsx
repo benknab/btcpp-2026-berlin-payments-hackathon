@@ -1,9 +1,11 @@
+import { saveEventId } from "@/browser/saved-events";
 import { EventReceivingAddress } from "@/components/event-receiving-address";
 import { GroupUnavailable } from "@/components/group-unavailable";
 import { PageShell } from "@/components/page-shell";
 import { ParticipantChooser } from "@/components/participant-chooser";
 import { groupPage } from "@/server/groups";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/groups/$inviteKey")({
@@ -16,6 +18,11 @@ function GroupLayout(): ReactNode {
   const view = Route.useLoaderData();
   const { inviteKey } = Route.useParams();
   const selected = view.participants.find((participant) => participant.id === view.selectedParticipantId);
+  useEffect(() => {
+    if (view.selectedParticipantId !== null) {
+      saveEventId(inviteKey);
+    }
+  }, [inviteKey, view.selectedParticipantId]);
 
   return (
     <PageShell>

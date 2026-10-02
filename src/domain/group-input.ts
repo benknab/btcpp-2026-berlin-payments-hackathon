@@ -1,4 +1,3 @@
-import { MainnetAddress } from "@/lib/pot";
 import { Schema } from "effect";
 
 import { ReceivingAddress } from "./payout-destination";
@@ -6,6 +5,9 @@ import { ReceivingAddress } from "./payout-destination";
 export const MAX_GROUP_NAME = 100;
 export const MAX_PARTICIPANT_NAME = 40;
 export const MAX_PARTICIPANTS = 20;
+export const MainnetAddress = Schema.String.pipe(
+  Schema.check(Schema.isPattern(/^ark1[023456789acdefghjklmnpqrstuvwxyz]+$/u)),
+);
 
 export const ParticipantName = Schema.String.pipe(
   Schema.check(Schema.isTrimmed(), Schema.isMinLength(1), Schema.isMaxLength(MAX_PARTICIPANT_NAME)),

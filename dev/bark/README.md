@@ -1,76 +1,43 @@
-# Bark mainnet development wallet
+# Install Bark
 
-Install **Bark and Barkd 0.7.1** using the [repository installation instructions](../../README.md#install-bark-and-barkd).
-Follow [Second's mainnet guide](https://second.tech/docs/getting-started/bark-cli/mainnet) for wallet setup and funding.
-
-## Create a fresh local wallet
-
-The default developer wallet path is `~/.local/share/bark-hackathon-mainnet`. This is a local directory, not a
-wallet included in the repository. On a new machine, create a fresh wallet with its own generated keys:
+Install **Bark and Barkd 0.7.1**. These commands use Second's official releases for macOS and Linux x86-64:
 
 ```sh
-export BARK_DATADIR="$HOME/.local/share/bark-hackathon-mainnet"
-umask 077
-bark create --mainnet --ark https://ark.second.tech --esplora https://mempool.second.tech/api
-bark address
+(
+  set -eu
+  case "$(uname -s)-$(uname -m)" in
+    Darwin-arm64) platform=apple-aarch64 ;;
+    Darwin-x86_64) platform=apple-x86_64 ;;
+    Linux-x86_64) platform=linux-x86_64 ;;
+    *) echo "See Second's install guides for this platform." >&2; exit 1 ;;
+  esac
+
+  mkdir -p "$HOME/.local/bin"
+  for tool in bark barkd; do
+    if [ -e "$HOME/.local/bin/$tool" ] || [ -L "$HOME/.local/bin/$tool" ]; then
+      echo "Already installed: $HOME/.local/bin/$tool; check its version before replacing it." >&2
+      exit 1
+    fi
+  done
+
+  download_dir=$(mktemp -d "${TMPDIR:-/tmp}/bark-install.XXXXXX")
+  for tool in bark barkd; do
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      "https://gitlab.com/ark-bitcoin/bark/-/releases/bark-0.7.1/downloads/$tool-0.7.1-$platform" \
+      --output "$download_dir/$tool"
+    install -m 755 "$download_dir/$tool" "$HOME/.local/bin/$tool"
+  done
+)
+
+export PATH="$HOME/.local/bin:$PATH"
+bark --version
+barkd --version
 ```
 
-Do not use `--force` or delete an existing wallet to rerun setup. If this directory already contains a wallet,
-use it or choose a different `BARK_DATADIR`; set `BARK_FUNDING_DATADIR` to the same alternative path for the app/demo.
-Keep the wallet directory and recovery phrase outside the repository; never print or commit fresh seed phrases.
+Both version commands should report **0.7.1**. Add the PATH export to your shell configuration if needed.
+For other platforms or source builds, see Second's [Bark CLI](https://second.tech/docs/getting-started/bark-cli)
+and [Barkd](https://second.tech/docs/barkd/install) installation guides.
 
-## Fund and check the wallet
-
-Generate a small mainnet Lightning invoice and pay it from your Lightning wallet:
-
-```sh
-bark ln invoice "3000 sats"
-```
-
-For browser-event LNURL testing, use the separate [receiving-daemon setup](BROWSER.md).
-
-```sh
-bark balance
-bark vtxos
-```
-
-The pot demo transfers up to **2,900 real sats plus fees per run**. Check the current spendable balance before running it.
-Ark-to-Ark demo success does not verify Lightning or LNURL payouts.
-
-## Start the developer daemon
-
-After funding, start Barkd in a separate terminal for the app's test payout addresses and `pnpm pot:demo`:
-
-```sh
-barkd --datadir "$HOME/.local/share/bark-hackathon-mainnet" --host 127.0.0.1 --port 3041 --no-logfile
-```
-
-Use your alternative wallet path here if configured. The app/demo default to `http://127.0.0.1:3041`;
-`BARK_FUNDING_URL` overrides that URL. Tokens are retrieved internally; do not commit or expose them.
-**Do not run Bark CLI wallet commands while Barkd is using the same wallet database.** Stop the daemon first.
-
-## Existing remote wallet and backups
-
-The funded wallet used for the 2026-10-01 demo lives on the **remote development environment**, not automatically
-on every checkout. Its initial 300,000-sat funding is historical, not a live or local balance.
-Its old receiving address has been removed from setup instructions to avoid funding a wallet unavailable locally.
-An address cannot restore keys, VTXOs, or payment history.
-
-`signet.mnemonic` is that legacy wallet's intentionally public recovery phrase. **Signet only; never mainnet or
-real funds.** It is not a complete wallet backup and must not be included in the browser bundle or reused for new wallets.
-The pinned CLI's `create --help` describes `--mnemonic` recovery as on-chain-only; do not assume it reproduces
-the funded Ark wallet. Server-assisted recovery exists, but a full restore, including history and in-progress
-exits, requires the current wallet database as well.
-
-Prefer independent, freshly funded wallets on separate machines. If migrating the remote wallet instead, stop
-its daemon first, transfer the complete current wallet directory securely, and stop using the original copy.
-Do not spend independently from multiple copies of the same wallet database. Preserve pot wallet data together
-with the app database when migrating existing pots; the developer wallet alone is not a backup of them.
-
-## References
-
-For the backend JSON-to-deposits-to-payouts flow, see [the pot demo](POTS.md).
-
-- [Bark mainnet guide (source of truth)](https://second.tech/docs/getting-started/bark-cli/mainnet).
-- [Wallet backups and recovery](https://second.tech/docs/backups).
-- [Mainnet connection details](https://second.tech/docs/connection-details).
+Follow [the local setup](../../README.md#run-locally) and [event settlement guide](BROWSER.md).
+The app uses Second's [mainnet connection details](https://second.tech/docs/connection-details).
+Keep wallet directories, recovery phrases, and daemon tokens outside the repository. Never reuse public test seeds.

@@ -9,6 +9,8 @@ import { NodeFileSystem } from "@effect/platform-node";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { Effect, Layer, Logger, ManagedRuntime } from "effect";
 
+import { withServerConfiguration } from "./configuration";
+
 const DIRECTORY_MODE = 0o700;
 const FILE_MODE = 0o600;
 const logDirectory = process.env["PAYMENTS_LOG_DIR"] ?? path.join(homedir(), ".local/share/bark-payments-mainnet/logs");
@@ -40,7 +42,8 @@ export function runServer<Value, Failure>(
 ): Promise<Value> {
   const parent = remoteParent(getRequestHeader("traceparent"));
   const request = observe(name, effect, { ...fields, requestId: crypto.randomUUID(), side: "server" });
-  return runtime.runPromise(parent === undefined ? request : request.pipe(Effect.withParentSpan(parent)));
+  const traced = parent === undefined ? request : request.pipe(Effect.withParentSpan(parent));
+  return runtime.runPromise(withServerConfiguration(traced));
 }
 
 if (import.meta.hot !== undefined) {

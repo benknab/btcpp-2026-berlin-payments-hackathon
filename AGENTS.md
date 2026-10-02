@@ -1,54 +1,9 @@
 # Project context
 
-This repository is for a project entering the **bitcoin++ Berlin 2026 payments hackathon**, “money in movement” (October 1–3, 2026). The project is a shared-expense app with shared-pot settlement using Bark. See `README.md` for the project direction and stack, and `dev/bark/POTS.md` for the backend mainnet demo.
-
-Prioritize a working, demoable Bitcoin project within the roughly 24-hour hacking window. Keep scope small and document setup, the demo flow, and any challenge eligibility requirements as the project takes shape.
-
-Official sources (checked October 1, 2026): [hackathon](https://btcpp.dev/berlin26/hackathon), [prizes/challenges](https://btcpp.dev/berlin26/hackathon#awards), [schedule](https://btcpp.dev/berlin26/hackathon/schedule). Recheck these for changes; this file is a brief context snapshot, not the official rules.
-
-## Participation and submission
-
-- Anything Bitcoin is eligible for the open competition. Teams have **up to 4 builders**; each person belongs to one project team.
-- Sponsor challenges are **optional and stackable** on top of the main competition, subject to eligibility.
-- Sign in with a bitcoin++ profile and [create a project](https://btcpp.dev/berlin26/hackathon/projects/new). Add teammates from their profiles and select applicable challenges.
-- Submit the **pitch, team, repository, demo, and supporting links** before submissions close. The public page does **not specify an exact submission deadline**; confirm it in the platform or with organizers. Prepare a working demo for the expo.
-
-## Timeline
-
-All times are **Europe/Berlin (CEST, UTC+2)** in 2026.
-
-| Date      | Event                          | Time        | Venue       |
-| --------- | ------------------------------ | ----------- | ----------- |
-| Thu Oct 1 | Kickoff                        | 15:30–16:00 | Main Stage  |
-| Thu Oct 1 | Hacking time (scheduled block) | 16:00–20:00 | Main Stage  |
-| Fri Oct 2 | Project expo                   | 15:30–17:00 | Talks Stage |
-| Fri Oct 2 | Judges meeting                 | 17:00–17:30 | Talks Stage |
-| Sat Oct 3 | Finals                         | 14:15–15:15 | Main Stage  |
-| Sat Oct 3 | Awards                         | 16:15–17:00 | Main Stage  |
-
-## Prizes and challenges
-
-Advertised total prize value: **37.15M sats**, including tickets, subscriptions, and credits—not all cash.
-
-### Open competition
-
-| Award                                                                                | Prize                                    |
-| ------------------------------------------------------------------------------------ | ---------------------------------------- |
-| [First place](https://btcpp.dev/berlin26/hackathon/awards/first-place)               | 2.5M sats + tickets valued at 1.6M sats  |
-| [Second place](https://btcpp.dev/berlin26/hackathon/awards/second-place)             | 1.75M sats + tickets valued at 1.6M sats |
-| [Third place](https://btcpp.dev/berlin26/hackathon/awards/third-place)               | 750k sats + tickets valued at 1.6M sats  |
-| [Honorable mentions](https://btcpp.dev/berlin26/hackathon/awards/honorable-mentions) | Tickets valued at 1.6M sats              |
-
-### Stackable sponsor challenges
-
-| Challenge                                                                                                                    | What to build                                                                                                                                                                           | Prize                                                                                    |
-| ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [Ain’t nobody got time for that — Mempool.space](https://btcpp.dev/berlin26/hackathon/awards/ain-t-nobody-got-time-for-that) | Creatively integrate mempool’s public transaction accelerator API for stuck onchain transactions.                                                                                       | Enterprise Silver subscription + 500k sats accelerator credit; advertised value 21M sats |
-| [Best use of Bark — Second](https://btcpp.dev/berlin26/hackathon/awards/best-use-of-bark)                                    | Move Bitcoin using Bark (Ark): wallets, payment flows, merchant tools, payouts, P2P, or infrastructure. CLI, REST API, Rust library, or FFI all qualify.                                | 1.5M sats per winner                                                                     |
-| [Most useful Electrum plugin](https://btcpp.dev/berlin26/hackathon/awards/most-useful-electrum-plugin)                       | Useful everyday [Electrum plugin](https://plugins.electrum.org) for desktop, Android, or daemon.                                                                                        | 1M sats per winner; BOLT11/BOLT12 payout                                                 |
-| [See the Future — Glimpse Markets](https://btcpp.dev/berlin26/hackathon/awards/see-the-future)                               | Readable Bitcoin price forecasts using Glimpse prediction-market data via its [API](https://docs.glimpse.markets/index) or [Python package](https://pypi.org/project/glimpse-markets/). | 1M sats per winner                                                                       |
-| [Trustless Bets — Glimpse Markets](https://btcpp.dev/berlin26/hackathon/awards/trustless-bets)                               | Non-custodial betting/gaming using P2P, self-custodial Bitcoin infrastructure (e.g. Arkade/Bark). **Must run in production with real sats; testnet/signet are ineligible.**             | 750k sats per winner; Lightning payout                                                   |
-| [Most Based Payment Protocol — Base58](https://btcpp.dev/berlin26/hackathon/awards/most-based-payment-protocol)              | Proposal improving Bitcoin payment protocols; think big, idempotent, and peer-to-peer.                                                                                                  | 500k sats                                                                                |
+Splitbark is a shared-expense app with browser-owned shared-pot settlement using Bark, built for the
+[bitcoin++ Berlin 2026 payments hackathon](https://btcpp.dev/berlin26/hackathon).
+See `README.md` for the project overview and `dev/bark/BROWSER.md` for the mainnet demo and trust boundaries.
+Keep scope small and prioritize a working demo. The retired server-owned `/settle` workspace must not be restored.
 
 # Project conventions
 

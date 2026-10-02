@@ -9,13 +9,11 @@ import { ChildProcess, ChildProcessSpawner } from "effect/process";
 import {
   deploymentIo,
   fileExists,
-  loadDeploymentAuth,
   prepareDirectory,
   requireEmptyWallet,
   requireOriginalData,
   writePrivateFile,
 } from "./state";
-import type { DeploymentAuth } from "./state";
 
 const ROOT = "/data";
 const RECEIVER_DIRECTORY = `${ROOT}/receiver`;
@@ -109,10 +107,7 @@ const startReceiver = Effect.fn("startReceiver")(function* startReceiver(token: 
   return { wallet, daemon };
 });
 
-const saveRuntimeEnvironment = Effect.fnUntraced(function* saveRuntimeEnvironment(
-  auth: DeploymentAuth,
-  token: Readonly<Redacted.Redacted>,
-) {
+const saveRuntimeEnvironment = Effect.fnUntraced(function* saveRuntimeEnvironment(token: Readonly<Redacted.Redacted>) {
   yield* writePrivateFile(
     path.join(ROOT, "runtime.env"),
     [
@@ -120,10 +115,7 @@ const saveRuntimeEnvironment = Effect.fnUntraced(function* saveRuntimeEnvironmen
       `BARK_RECEIVER_URL=${RECEIVER_URL}`,
       `BARK_RECEIVER_TOKEN=${Redacted.value(token)}`,
       "BARK_RECEIVER_DATADIR=/data/receiver",
-      "BARK_POTS_DATADIR=/data/pots",
       "PAYMENTS_LOG_DIR=/data/logs",
-      `APP_AUTH_USERNAME=${auth.username}`,
-      `APP_AUTH_PASSWORD=${auth.password}`,
       "",
     ].join("\n"),
   );
@@ -133,12 +125,11 @@ const saveRuntimeEnvironment = Effect.fnUntraced(function* saveRuntimeEnvironmen
 });
 
 export const initializeDeployment = Effect.fn("initializeDeployment")(function* initializeDeployment() {
-  const auth = yield* loadDeploymentAuth(ROOT);
   yield* createReceiver();
   const token = yield* receiverToken();
   const receiver = yield* startReceiver(token);
   yield* migrate(yield* Database, { migrationsFolder: "./drizzle" });
-  yield* saveRuntimeEnvironment(auth, token);
+  yield* saveRuntimeEnvironment(token);
   yield* Effect.logInfo("Mainnet receiver ready; database migrations applied.");
-  return { auth, ...receiver };
+  return receiver;
 });

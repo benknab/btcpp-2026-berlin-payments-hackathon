@@ -1,7 +1,9 @@
 {
-  "name": "btcpp-2026-berlin-payments-hackathon",
+  "name": "splitbark",
   "version": "0.0.0",
   "private": true,
+  "description": "Kittysplit + Bark",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "vp build",
@@ -15,7 +17,6 @@
     "fmt": "vp fmt",
     "fmt:check": "vp fmt --check",
     "lint": "vp lint",
-    "pot:demo": "vp exec tsx src/server/pots/demo.ts",
     "start": "node --import tsx scripts/production.ts",
     "test": "vp test run",
     "test:watch": "vp test",

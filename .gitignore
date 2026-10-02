@@ -13,3 +13,25 @@ tmp/
 *.db-shm
 *.db-wal
 *.db-journal
+
+# Wallets, credentials, diagnostics, and local backups must not be published.
+wallets/
+backups/
+/data/
+mnemonic
+*.mnemonic
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+runtime.env
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+*.jsonl
+*.tar
+*.tar.gz
+*.tgz
+*.zip

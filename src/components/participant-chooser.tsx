@@ -1,3 +1,4 @@
+import { saveEventId } from "@/browser/saved-events";
 import { ActionError } from "@/components/action-error";
 import { SectionCard } from "@/components/section-card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export function ParticipantChooser({ inviteKey, participants }: ChooserProps): R
   function choose(participantId: string): void {
     action.run(async (): Promise<void> => {
       await chooseParticipant({ data: { inviteKey, participantId } });
+      saveEventId(inviteKey);
       await router.invalidate();
     }, "Could not select your name. Try again.");
   }
