@@ -81,26 +81,32 @@ deliberately no automatic retry/reset of an uncertain monetary send.
 
 ## Final settlement UI
 
-Open **http://localhost:3100/settle** (also linked from the home page). This is a final-step interface, not an
-expense-tracking app: enter participants, personal Bark signet payout addresses, and who owes whom in whole sats.
-The preview nets debts before creating the pot. Everyone supplies a distinct personal address, including debtors.
+Open **http://localhost:3100/settle** (also linked from the home page) for the pot list. Click **Start new pot** to
+create a SQLite-backed pot and open `/settle/<id>`. Pots, users, and debt rows have auto-increment integer IDs.
+The list marks pots **Unsettled** until Bark confirms all payouts, then **Settled**. Reopen any pot from the list.
 
-Before connecting:
+Enter participants, distinct personal Bark signet payout addresses, and who owes whom in whole sats. The preview
+nets reciprocal debts. Click **Save & lock debts** to persist the participant and debt rows atomically. This does
+not connect to a wallet, start a daemon, or spend funds. Creating, listing, and reopening pots needs only SQLite.
+Details cannot be changed once saved; start a new pot if they are wrong.
 
-1. Create a **dedicated signet wallet** following the [signet guide](https://second.tech/docs/getting-started/bark-cli/signet).
-   Do not use the shared funding wallet as the pot wallet. Keep wallet data/recovery material outside the repository.
-2. Start its authenticated daemon on loopback, e.g.:
-   `barkd --datadir "$HOME/.local/share/bark-ui-pot" --host 127.0.0.1 --port 3135 --no-logfile`.
-3. Obtain that daemon's token with `barkd --datadir "$HOME/.local/share/bark-ui-pot" secret show`. Set local `.env` values
-   for `BARK_POT_URL=http://127.0.0.1:3135` and `BARK_POT_TOKEN`. Never commit the token or prefix it with `VITE_`.
-4. Run `pnpm db:migrate` and `pnpm dev`. Restart the app after changing environment configuration.
+Click **Prepare deposits** when ready to fund the pot. The backend creates an exclusive signet wallet, runs its
+authenticated daemon on a temporary loopback port, and retrieves its token internally. Install Barkd **0.7.1**
+on the server (`barkd` on `PATH`, or optional `BARKD_BIN`). There is no `BARK_POT_TOKEN` or operator-code setup.
+Wallets use Second's signet Ark and Esplora URLs from the [signet guide](https://second.tech/docs/getting-started/bark-cli/signet).
+The daemon shuts down after each payment request; later requests reopen the same wallet data.
 
-Open `/settle` directly to enter participants and debts; no operator access code is required. The page automatically
-loads any saved pot. Bark tokens and database access stay server-only. One daemon wallet supports one
-saved pot in the configured database; reload the page to resume it, including completed pots.
-To create another pot, configure a new dedicated wallet; never delete an existing snapshot to reuse a funded wallet.
+Wallets live under `~/.local/share/bark-settlement-pots/<database-namespace>/<pot-id>` by default. Optional
+`BARK_POTS_DATADIR` overrides the root; keep it outside the repository. Preserve this directory and the app database
+together. Never delete snapshots, reset the database, or move the wallet root to reuse a funded wallet.
+The backend refuses to recreate a missing wallet for an existing payment snapshot. A wallet-directory lock rejects
+concurrent payment requests. After a server crash, inspect wallet history and ensure its daemon is stopped before
+manually removing only that pot's stale `<pot-id>.lock` directory. No automatic stale-lock recovery is performed.
+Legacy CLI/demo snapshots in the original `pots` table remain untouched; the new list contains pots created through
+this SQLite-backed workspace, not imported demo runs.
 
-After **Lock details & create pot**, debts and payout destinations are immutable. Send each debtor's required sats
+Run `pnpm db:migrate` and `pnpm dev` after updating. Bark credentials and database access stay server-only.
+Send each debtor's required sats
 to their displayed **pot deposit address**, then click **Check deposits / refresh**. Partial deposits are supported;
 unrelated funds and another debtor's overpayment do not fill a missing contribution. If fees are needed, fund an
 independent pot address as a reserve; that transfer does not count toward participant contributions.
@@ -118,15 +124,16 @@ can create a pot and trigger funded payouts. Do not expose this testing interfac
 
 ### Group-linked flow
 
-Groups use this same net-debt engine at `/groups/<invite>/settlement`. Each participant provides their own address
+Groups use this same net-debt engine at `/groups/<invite>/settlement`, with a dedicated backend-managed wallet per
+group ID under the same `BARK_POTS_DATADIR` root. Each participant provides their own address
 using an organizer-issued private link. The organizer closes the group with a current server-generated preview;
 the immutable setup, group lock, and wallet reservation are persisted before pot creation. Failed initialization
 can be resumed using the original wallet and frozen setup.
 
 Private participant links later display their own deposit QR or payout status. QR payloads are raw Ark signet addresses;
 the user enters the displayed remaining sats manually. Only the group organizer can reconcile deposits or authorize
-payouts. The standalone `/settle` endpoints reject linked group pots and reserved wallets, including failed setups.
-Wallet insertion also rechecks reservations in a transaction. A second pot requires a new isolated daemon wallet.
+payouts. Standalone pots use distinct numeric wallet directories; group pots use UUID directories. Wallet insertion
+also rechecks fingerprint reservations in a transaction. Preserve each pot's original wallet directory with the database.
 
 The lightweight organizer/participant capabilities do not make the standalone workspace safe for public hosting.
 See [the shared implementation plan](../../IMPLEMENTATION_PLAN.md) and the README for the integrated demo checklist.

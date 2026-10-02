@@ -27,10 +27,11 @@ export function SettlementSetupForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>1. Set up the final settlement</CardTitle>
+        <CardTitle>Users and debts</CardTitle>
         <CardDescription>
           Enter the agreed debts and everyone’s personal Bark signet address. We net reciprocal debts, so each person
-          only pays or receives their final balance.
+          only pays or receives their final balance. Saving stores these rows in this pot; no wallet connection is
+          needed.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -45,7 +46,7 @@ export function SettlementSetupForm({
       <CardFooter>
         <Button type="submit" form="settlement-setup" disabled={pending}>
           {pending ? <Spinner data-icon="inline-start" /> : null}
-          {pending ? "Creating pot…" : "Lock details & create pot"}
+          {pending ? "Saving…" : "Save & lock debts"}
         </Button>
       </CardFooter>
     </Card>

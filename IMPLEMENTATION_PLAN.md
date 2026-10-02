@@ -49,7 +49,7 @@ displayed remaining amount. V1 is signet Ark only, not a Lightning/on-chain QR f
 - Confirmed receipt attribution, deduplication, spendable balance checks, and exact payouts.
 - Persist-before-send safeguards, movement references, and uncertain-send reconciliation.
 - Verify fee/reserve behavior and real recipient receipts with A during the integrated rehearsal.
-- Keep the configured wallet exclusive: no external sends, competing copies, restores, or snapshot resets.
+- Keep each backend-managed wallet exclusive: no external sends, competing copies, restores, or snapshot resets.
 
 No new contribution-credit/refund backend is required. See [Bark pot documentation](dev/bark/POTS.md).
 
@@ -83,8 +83,9 @@ and documentation. Do not add UI/component/browser test suites; keep tests in ba
 - Private pages disable caching/referrers/indexing and later show that person's own QR or payout status. Participants
   can refresh saved status; only the organizer calls the daemon to check deposits or spend.
 - Losing organizer cookies loses organizer access; recovery is not implemented. Keep the original browser.
-- `/settle` remains Ben's **unauthenticated local-only** standalone workspace. It cannot operate on reserved or linked
-  group pots. It is not safe to expose the whole application publicly without additional perimeter/access controls.
+- `/settle` remains Ben's **unauthenticated local-only** standalone workspace with multiple persisted pots and a
+  backend-managed wallet per pot. It cannot operate on linked group pots. It is not safe to expose the whole application
+  publicly without additional perimeter/access controls.
 
 ## Backend contract and recovery
 
@@ -98,8 +99,8 @@ and documentation. Do not add UI/component/browser test suites; keep tests in ba
 - If pot initialization fails, the lock/reservation remains. **Resume pot setup** recovers the same immutable setup;
   there is no reopening or editing after closing, even if no deposits have arrived.
 - Pot insertion rechecks wallet reservations transactionally. A standalone/group race cannot steal a reserved wallet.
-- One configured daemon wallet supports one saved pot, including completed pots. For another group, configure a
-  new isolated wallet; keep the original wallet/database available for any pending settlement.
+- Each group uses its own backend-managed signet wallet directory, distinct from the numbered standalone pot wallets.
+  Preserve wallet directories and the database for any pending settlement; do not restore one without the other.
 - Backend payout checks require every debtor's attributed receipts and enough spendable funds. Browser amounts,
   selected names, stale readiness, unrelated deposits, and another person's overpayment never authorize payouts.
 - Failed/timeout requests refresh persisted state. A `sending` payout may already have moved money: explicit
@@ -127,7 +128,7 @@ daemon tokens, add new wallet secrets to Git, or use the public development seed
 - [x] Shared name selection does not expose organizer actions (manually exercised).
 - [x] Confirm/cancel closing; close an all-square group without a wallet (manually exercised).
 - [x] Offline backend coverage for locking, stale review, wallet isolation, funding, and payout recovery.
-- [ ] Configure a fresh isolated signet wallet; repeat with valid personal wallet addresses.
+- [ ] Configure backend-managed signet wallets; repeat with valid personal wallet addresses.
 - [ ] Close a nonzero group and scan the debtor QR; enter the displayed remaining sats.
 - [ ] Check real attributed deposits, authorize payouts, and verify recipient-wallet movement references.
 - [ ] Refresh throughout the live flow without changing the snapshot or duplicating payouts.

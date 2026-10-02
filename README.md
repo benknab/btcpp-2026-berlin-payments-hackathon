@@ -48,9 +48,10 @@ use it **only on signet**, never for mainnet or real funds.
 
 The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
 and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local signet settlement
-UI: enter debts directly or automatically resume the saved pot. No operator code is required; keep the app local
-because standalone settlement actions are unauthenticated. Linked group pots can only be operated through the
-group's organizer-authorized endpoints; the standalone workspace refuses those pots and wallet reservations.
+UI: create and list standalone pots at `/settle`, save participants and debts, then open `/settle/<id>` to prepare
+deposits. The backend manages a separate signet wallet for each pot. No operator code is required; keep the app local
+because standalone settlement actions are unauthenticated. Linked group pots use separate wallets and can only be
+operated through the group's organizer-authorized endpoints.
 
 ### Group settlement demo
 
@@ -64,8 +65,8 @@ group's organizer-authorized endpoints; the standalone workspace refuses those p
 6. Read confirmed payout movement references. If a response is lost, refresh and **Reconcile and finish payouts**;
    never send manually or reset a `sending` payout.
 
-Configure `BARK_POT_URL` and `BARK_POT_TOKEN` on the server as described in [the pot guide](dev/bark/POTS.md).
-Use a **new isolated signet wallet for each pot**. All-square groups need no wallet or participant addresses.
+Configure `BARK_POTS_DATADIR` and the backend-managed Bark daemon as described in [the pot guide](dev/bark/POTS.md).
+Each group gets its own isolated signet wallet. All-square groups need no wallet or participant addresses.
 Closing cannot be undone; initialization failures keep the group locked and offer **Resume pot setup** with the same
 wallet. Keep organizer cookies and private links: account recovery is not implemented. The trusted organizer issues
 bearer links; these provide lightweight access, not proof of identity or ownership of the receiving wallet.

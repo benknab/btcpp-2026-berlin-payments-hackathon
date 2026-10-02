@@ -172,3 +172,20 @@ it.effect("closes all-square groups without addresses or wallet configuration", 
     }),
   ),
 );
+
+it.effect("uses the managed wallet for a group payment request and resumes its frozen pot", () =>
+  fixture(() =>
+    Effect.gen(function* test() {
+      const group = yield* setup();
+      const page = yield* groupSettlementPage(group.inviteKey);
+      const action = { inviteKey: group.inviteKey, organizerToken: group.organizerToken };
+      const closed = yield* groupPaymentRequest({
+        ...action,
+        kind: "close",
+        fingerprint: page.preview.fingerprint,
+      });
+      expect(closed.pot?.id).toBe(group.groupId);
+      expect((yield* groupPaymentRequest({ ...action, kind: "refresh" })).pot?.id).toBe(group.groupId);
+    }),
+  ),
+);

@@ -10,6 +10,7 @@ import { Context, Effect, Layer } from "effect";
 
 import type { PotStore } from "./store";
 import { PotStoreLive } from "./store";
+import { PotWallet } from "./wallet";
 
 interface Controls {
   readonly bark: BarkOperations;
@@ -80,15 +81,23 @@ function makeControls(): Controls {
 }
 
 export function fixture(
-  test: () => Effect.Effect<void, unknown, Database | Bark | PotStore | TestControls>,
+  test: () => Effect.Effect<void, unknown, Database | Bark | PotStore | PotWallet | TestControls>,
 ): Effect.Effect<void, unknown> {
   const database = Database.layer.pipe(Layer.provide(LibsqlClient.layer({ url: "file::memory:" })));
   const controls = Layer.sync(TestControls, makeControls);
   const bark = Layer.effect(Bark, TestControls.pipe(Effect.map((value) => value.bark))).pipe(Layer.provide(controls));
+  const wallets = Layer.effect(
+    PotWallet,
+    TestControls.pipe(
+      Effect.map((value) => ({ open: (): Effect.Effect<BarkOperations> => Effect.succeed(value.bark) })),
+    ),
+  ).pipe(Layer.provide(controls));
   return Effect.gen(function* run() {
     yield* migrate(yield* Database, { migrationsFolder: "./drizzle" });
     yield* test();
-  }).pipe(Effect.provide(Layer.mergeAll(database, controls, bark, PotStoreLive.pipe(Layer.provide(database)))));
+  }).pipe(
+    Effect.provide(Layer.mergeAll(database, controls, bark, wallets, PotStoreLive.pipe(Layer.provide(database)))),
+  );
 }
 
 export const setup = Effect.fn("setupGroup")(function* setup(addresses?: boolean) {

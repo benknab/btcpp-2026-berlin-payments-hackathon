@@ -1,18 +1,21 @@
 import { DatabaseLive } from "@/db/database";
 import { groupSettlementPage, lockGroupSettlement } from "@/db/group-settlements";
 import { requireOrganizer } from "@/db/participant-payments";
+import { Bark } from "@/server/bark/service";
 import { Effect, Layer } from "effect";
 
 import { executeGroupPayment } from "./group-service";
 import type { GroupPaymentAction } from "./group-service";
 import { PotStoreLive } from "./store";
-import { UiPotConfigLive } from "./ui-config";
-import { configuredWallet } from "./wallet-layer";
+import { PotWallet, PotWalletLive } from "./wallet";
 
 export type { GroupPaymentAction } from "./group-service";
 
 const withWallet = Effect.fn("withGroupWallet")(function* withWallet(action: GroupPaymentAction) {
-  return yield* executeGroupPayment(action).pipe(Effect.provide(yield* configuredWallet));
+  const page = yield* groupSettlementPage(action.inviteKey);
+  const wallets = yield* PotWallet;
+  const bark = yield* wallets.open(page.preview.snapshot.id, page.status === "open" || page.pot === null);
+  return yield* executeGroupPayment(action).pipe(Effect.provideService(Bark, bark));
 });
 
 export const groupPaymentRequest = Effect.fn("groupPaymentRequest")(function* groupPaymentRequest(
@@ -30,7 +33,11 @@ export const groupPaymentRequest = Effect.fn("groupPaymentRequest")(function* gr
     });
     return yield* groupSettlementPage(action.inviteKey);
   }
-  return yield* withWallet(action).pipe(Effect.provide(UiPotConfigLive));
+  return yield* withWallet(action).pipe(Effect.scoped);
 });
 
-export const GroupPaymentLive = Layer.merge(DatabaseLive, PotStoreLive.pipe(Layer.provide(DatabaseLive)));
+export const GroupPaymentLive = Layer.mergeAll(
+  DatabaseLive,
+  PotWalletLive,
+  PotStoreLive.pipe(Layer.provide(DatabaseLive)),
+);

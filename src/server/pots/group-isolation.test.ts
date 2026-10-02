@@ -6,9 +6,8 @@ import { Effect } from "effect";
 import { fixture, setup } from "./group-service.fixture";
 import { createPot } from "./service";
 import { PotStore } from "./store";
-import { actionResult } from "./ui-actions";
 
-it.effect("atomically keeps standalone pot creation and payouts out of reserved group wallets", () =>
+it.effect("atomically keeps other pot creation out of reserved group wallets", () =>
   fixture(() =>
     Effect.gen(function* test() {
       const group = yield* setup();
@@ -24,9 +23,6 @@ it.effect("atomically keeps standalone pot creation and payouts out of reserved 
       expect(yield* store.findByWallet("isolated-test-wallet")).toBeNull();
       const pot = yield* createPot(snapshot);
       expect(pot.id).toBe(group.groupId);
-      expect(yield* actionResult({ kind: "open" })).toMatchObject({ ok: false, pot: null });
-      expect(yield* actionResult({ kind: "pay", id: pot.id })).toMatchObject({ ok: false, pot: null });
-      expect(yield* actionResult({ kind: "refresh", id: pot.id })).toMatchObject({ ok: false, pot: null });
       const other = yield* createGroup({ name: "Other", organizerName: "Dave", participantNames: ["Eve"] });
       const otherPage = yield* groupSettlementPage(other.inviteKey);
       expect(
