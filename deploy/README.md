@@ -155,6 +155,9 @@ application responsibilities, not features supplied by Docker.
 
 ## Operations
 
+For automatic deployment on pushes to `master` after CI passes, see [push deployment setup](PUSH.md).
+It deploys on this machine over restricted SSH, without modifying the development checkout or replacing wallet data.
+
 ```sh
 docker compose ps
 docker compose logs --tail 100 app
