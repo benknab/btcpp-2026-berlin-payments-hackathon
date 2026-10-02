@@ -1,6 +1,7 @@
 import { parseMainnetInvoice } from "@/domain/bolt11";
 import { Sats } from "@/domain/money";
-import { Configuration, LightningApi, WalletApi } from "@secondts/barkd";
+import { observe } from "@/lib/telemetry";
+import { Configuration, LightningApi, ResponseError, WalletApi } from "@secondts/barkd";
 import { Config, Context, Effect, Layer, Redacted, Schema } from "effect";
 
 import { BarkError } from "./error";
@@ -19,11 +20,28 @@ export interface ReceiverOperations {
 }
 export class Receiver extends Context.Service<Receiver, ReceiverOperations>()("payments/Receiver") {}
 
-function request<Value>(run: () => Promise<Value>): Effect.Effect<Value, BarkError> {
-  return Effect.tryPromise({
-    try: run,
-    catch: () => new BarkError({ operation: "receiver", message: "The mainnet receiving wallet is unavailable." }),
-  });
+function request<Value>(
+  operation: string,
+  run: (signal: Readonly<AbortSignal>) => Promise<Value>,
+): Effect.Effect<Value, BarkError> {
+  return observe(
+    `receiver.${operation}`,
+    Effect.tryPromise({
+      try: (signal: Readonly<AbortSignal>) => run(AbortSignal.any([signal, AbortSignal.timeout(TIMEOUT_MS)])),
+      catch: (error) =>
+        new BarkError({
+          operation,
+          message:
+            error instanceof ResponseError
+              ? `Bark HTTP ${error.response.status}`
+              : "The mainnet receiving wallet is unavailable.",
+        }),
+    }).pipe(
+      Effect.tapError((error: Pick<BarkError, "message">) =>
+        Effect.logWarning("receiver.request.failed", { operation, reason: error.message }),
+      ),
+    ),
+  );
 }
 
 export function makeReceiver(basePath: string, token: Readonly<Redacted.Redacted>): ReceiverOperations {
@@ -33,28 +51,35 @@ export function makeReceiver(basePath: string, token: Readonly<Redacted.Redacted
   return {
     invoice: (address, amountSats) =>
       Effect.gen(function* createInvoice() {
-        const info = yield* request(() => wallet.arkInfo({ signal: AbortSignal.timeout(TIMEOUT_MS) }));
+        const info = yield* request("ark-info", (signal) => wallet.arkInfo({ signal }));
         if (info.network !== "bitcoin") {
           return yield* new BarkError({ operation: "receiver", message: "The receiving wallet must use mainnet." });
         }
-        const response = yield* request(() =>
+        yield* Effect.logInfo("receiver.invoice.requested", { amountSats });
+        const response = yield* request("invoice-for-address", (signal) =>
           lightning.generateInvoiceForAddress(
             { lightningInvoiceForAddressRequest: { address, amountSat: amountSats } },
-            { signal: AbortSignal.timeout(TIMEOUT_MS) },
+            { signal },
           ),
         );
-        yield* Effect.try({
+        const details = yield* Effect.try({
           try: () => parseMainnetInvoice(response.invoice),
           catch: () =>
             new BarkError({ operation: "receiver", message: "The receiving wallet returned an invalid invoice." }),
         });
+        yield* Effect.logInfo("receiver.invoice.created", {
+          paymentHash: details.paymentHash,
+          amountSats: details.amountSats,
+          expiresAt: details.expiresAt,
+        });
         return response.invoice;
       }),
     receipt: (paymentHash) =>
-      request(() =>
-        lightning.getReceiveStatus({ identifier: paymentHash }, { signal: AbortSignal.timeout(TIMEOUT_MS) }),
-      ).pipe(
+      request("receipt", (signal) => lightning.getReceiveStatus({ identifier: paymentHash }, { signal })).pipe(
         Effect.flatMap(Schema.decodeUnknownEffect(Receipt)),
+        Effect.tap((receipt) =>
+          Effect.logInfo("receiver.receipt", { paymentHash, state: receipt.state, amountSats: receipt.amountSat }),
+        ),
         Effect.mapError(() => new BarkError({ operation: "receiver", message: "Could not read the payment status." })),
       ),
   };

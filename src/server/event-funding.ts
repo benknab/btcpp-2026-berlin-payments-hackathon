@@ -6,23 +6,28 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Layer, Schema } from "effect";
 
 import { ReceiverLive } from "./bark/receiver";
+import { runServer } from "./telemetry";
 
 const FundingLive = Layer.merge(DatabaseLive, ReceiverLive);
 
 export const eventInvoicesPage = createServerFn({ method: "GET" })
   .validator(Schema.decodeUnknownSync(GroupRequest))
   .handler(({ data }: { readonly data: typeof GroupRequest.Type }): Promise<readonly EventInvoice[]> =>
-    Effect.runPromise(loadEventInvoices(data.inviteKey).pipe(Effect.provide(DatabaseLive))),
+    runServer("funding.list", loadEventInvoices(data.inviteKey).pipe(Effect.provide(DatabaseLive))),
   );
 
 export const createContributionInvoice = createServerFn({ method: "POST" })
   .validator(Schema.decodeUnknownSync(ParticipantRequest))
   .handler(({ data }: { readonly data: typeof ParticipantRequest.Type }): Promise<EventInvoice> =>
-    Effect.runPromise(contributionInvoice(data.inviteKey, data.participantId).pipe(Effect.provide(FundingLive))),
+    runServer(
+      "funding.invoice",
+      contributionInvoice(data.inviteKey, data.participantId).pipe(Effect.provide(FundingLive)),
+      { participantId: data.participantId },
+    ),
   );
 
 export const refreshContributions = createServerFn({ method: "POST" })
   .validator(Schema.decodeUnknownSync(GroupRequest))
   .handler(({ data }: { readonly data: typeof GroupRequest.Type }): Promise<readonly EventInvoice[]> =>
-    Effect.runPromise(reconcileEventInvoices(data.inviteKey).pipe(Effect.provide(FundingLive))),
+    runServer("funding.reconcile", reconcileEventInvoices(data.inviteKey).pipe(Effect.provide(FundingLive))),
   );

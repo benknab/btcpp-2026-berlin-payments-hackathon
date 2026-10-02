@@ -1,14 +1,13 @@
 import type { AccountingError } from "@/domain/accounting";
 import { SettlementMembers } from "@/domain/event-settlement";
-import type { EventSettlementMember, ReceivingAddressRequest } from "@/domain/event-settlement";
-import { hasUniquePayoutDestinations } from "@/domain/payout-destination";
+import type { EventSettlementMember } from "@/domain/event-settlement";
 import { and, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { getOverview } from "./balances";
 import { Database } from "./database";
 import { eventSettlements } from "./event-settlement-schema";
-import { groups, participants } from "./group-schema";
+import { groups } from "./group-schema";
 import { getGroup, GroupError } from "./groups";
 import type { GroupDatabaseError, GroupView } from "./groups";
 
@@ -34,30 +33,6 @@ export const loadEventSettlement = Effect.fn("loadEventSettlement")(function* lo
   return row === undefined
     ? null
     : yield* Schema.decodeUnknownEffect(Schema.fromJsonString(SettlementMembers))(row.members);
-});
-
-export const saveReceivingAddress = Effect.fn("saveReceivingAddress")(function* saveReceivingAddress(
-  input: typeof ReceivingAddressRequest.Type,
-  token: string | undefined,
-): Effect.fn.Return<void, SettlementError, Database> {
-  const database = yield* Database;
-  yield* database.transaction(() =>
-    Effect.gen(function* updateAddress() {
-      const view = yield* requireOrganizer(input.inviteKey, token);
-      const destinations = view.participants.map((member) =>
-        member.id === input.participantId ? input.lnurl : member.lnurl,
-      );
-      if (
-        view.group.status !== "open" ||
-        !view.participants.some((member) => member.id === input.participantId) ||
-        !hasUniquePayoutDestinations(destinations)
-      ) {
-        yield* new GroupError({ message: "Use a distinct receiving address before settlement is locked." });
-        return;
-      }
-      yield* database.update(participants).set({ lnurl: input.lnurl }).where(eq(participants.id, input.participantId));
-    }),
-  );
 });
 
 const prepareMembers = Effect.fn("prepareEventSettlementMembers")(function* prepareMembers(inviteKey: string) {

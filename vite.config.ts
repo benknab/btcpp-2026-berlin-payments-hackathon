@@ -68,6 +68,7 @@ export default defineConfig({
       "typescript/consistent-type-imports": "error",
       "typescript/explicit-function-return-type": "error",
       "typescript/strict-boolean-expressions": "error",
+      "typescript/prefer-readonly-parameter-types": "off",
       "typescript/switch-exhaustiveness-check": "error",
       "no-console": "error",
       "no-debugger": "error",
@@ -109,13 +110,6 @@ export default defineConfig({
         rules: {
           // TanStack's generated route tree imports Route rather than React components.
           "react/only-export-components": "off",
-        },
-      },
-      {
-        files: ["**/*.tsx"],
-        rules: {
-          // React event and intrinsic props are mutable in the upstream declarations.
-          "typescript/prefer-readonly-parameter-types": "off",
         },
       },
       {

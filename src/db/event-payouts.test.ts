@@ -44,7 +44,7 @@ describe("browser payout coordination", () => {
       Effect.gen(function* verifyNativePayout() {
         expect.hasAssertions();
         const event = yield* eventPaymentFixture(destination);
-        const input = { inviteKey: event.inviteKey, participantId: event.organizerId };
+        const input = { inviteKey: event.inviteKey, participantId: event.organizerId, destination };
         expect(yield* Effect.flip(prepareEventPayout(input, event.organizerToken))).toMatchObject({
           _tag: "GroupError",
         });
@@ -98,7 +98,12 @@ describe("browser payout coordination", () => {
     Effect.gen(function* verifyPayout() {
       expect.hasAssertions();
       const event = yield* eventPaymentFixture();
-      const input = { inviteKey: event.inviteKey, participantId: event.organizerId, invoice: INVOICE };
+      const input = {
+        inviteKey: event.inviteKey,
+        participantId: event.organizerId,
+        destination: "alice@wallet.com",
+        invoice: INVOICE,
+      };
       expect(yield* Effect.flip(prepareEventPayout(input, event.organizerToken))).toMatchObject({ _tag: "GroupError" });
       yield* fundEvent(event);
       expect(yield* Effect.flip(prepareEventPayout(input, "wrong-owner"))).toMatchObject({ _tag: "GroupError" });
@@ -128,7 +133,12 @@ describe("browser payout coordination", () => {
       expect.hasAssertions();
       const event = yield* eventPaymentFixture();
       yield* fundEvent(event);
-      const input = { inviteKey: event.inviteKey, participantId: event.organizerId, invoice: INVOICE };
+      const input = {
+        inviteKey: event.inviteKey,
+        participantId: event.organizerId,
+        destination: "alice@wallet.com",
+        invoice: INVOICE,
+      };
       const payout = yield* prepareEventPayout(input, event.organizerToken);
       const request = { inviteKey: event.inviteKey, paymentHash: payout.paymentHash };
       yield* claimEventPayout(request, event.organizerToken);

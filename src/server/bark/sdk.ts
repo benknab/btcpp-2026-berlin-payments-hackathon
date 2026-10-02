@@ -1,4 +1,5 @@
 import { Sats, MainnetAddress } from "@/lib/pot";
+import { observe } from "@/lib/telemetry";
 import { Configuration, HistoryApi, ResponseError, WalletApi } from "@secondts/barkd";
 import { Effect, Layer, Redacted, Schema } from "effect";
 
@@ -16,15 +17,18 @@ function request<Value>(
   operation: string,
   run: (signal: Readonly<AbortSignal>) => Promise<Value>,
 ): Effect.Effect<Value, BarkError> {
-  return Effect.tryPromise({
-    try: (signal: Readonly<AbortSignal>): Promise<Value> =>
-      run(AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)])),
-    catch: (error): BarkError =>
-      new BarkError({
-        operation,
-        message: error instanceof ResponseError ? `Bark HTTP ${error.response.status}` : "Bark request failed",
-      }),
-  });
+  return observe(
+    `bark.${operation}`,
+    Effect.tryPromise({
+      try: (signal: Readonly<AbortSignal>): Promise<Value> =>
+        run(AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)])),
+      catch: (error): BarkError =>
+        new BarkError({
+          operation,
+          message: error instanceof ResponseError ? `Bark HTTP ${error.response.status}` : "Bark request failed",
+        }),
+    }),
+  );
 }
 
 function decode<Shape extends Schema.Top>(
@@ -104,6 +108,7 @@ export function makeBark(config: BarkConfig): BarkOperations {
         yield* ensureMainnet(wallet);
         yield* decode("send", MainnetAddress, address);
         yield* decode("send", PositiveSats, amountSat);
+        yield* Effect.logInfo("bark.send.authorized", { amountSats: amountSat });
         yield* request("send", (signal: Readonly<AbortSignal>): ReturnType<WalletApi["send"]> =>
           wallet.send({ sendRequest: { destination: address, amountSat } }, { signal }),
         );

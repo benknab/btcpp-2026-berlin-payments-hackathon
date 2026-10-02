@@ -68,12 +68,25 @@ const reconcileInvoice = Effect.fn("reconcileEventInvoice")(function* reconcileI
   }
   const status = receiptStatus(receipt.state, invoice, now);
   yield* applyReceipt(invoice, status, receipt.amountSat);
+  yield* Effect.logInfo("contribution.reconciled", {
+    groupId: invoice.groupId,
+    participantId: invoice.participantId,
+    paymentHash: invoice.paymentHash,
+    previousStatus: invoice.status,
+    status,
+    amountSats: receipt.amountSat,
+    delivered: status === "delivered",
+  });
 });
 
 export const reconcileEventInvoices = Effect.fn("reconcileEventInvoices")(function* reconcileEventInvoices(
   inviteKey: string,
 ) {
   const invoices = yield* loadEventInvoices(inviteKey);
+  yield* Effect.logInfo("contributions.reconciling", {
+    total: invoices.length,
+    outstanding: invoices.filter((entry) => entry.status !== "delivered").length,
+  });
   yield* Effect.forEach(
     invoices.filter((entry) => entry.status !== "delivered"),
     reconcileInvoice,
@@ -108,6 +121,13 @@ const saveInvoice = Effect.fn("saveEventInvoice")(function* saveInvoice(input: {
     deliveredSats: 0,
   };
   yield* database.insert(eventInvoices).values(row);
+  yield* Effect.logInfo("contribution.persisted", {
+    groupId: input.groupId,
+    participantId: input.participantId,
+    paymentHash: details.paymentHash,
+    amountSats: input.amountSats,
+    expiresAt: details.expiresAt,
+  });
   return row;
 });
 
@@ -144,6 +164,12 @@ export const contributionInvoice = Effect.fn("contributionInvoice")(function* co
           invoice.participantId === participantId && (invoice.status === "pending" || invoice.status === "paid"),
       );
       if (existing !== undefined) {
+        yield* Effect.logInfo("contribution.reused", {
+          groupId,
+          participantId,
+          paymentHash: existing.paymentHash,
+          status: existing.status,
+        });
         return existing;
       }
       const amountSats = member.payInSats - deliveredFor(participantId, invoices);

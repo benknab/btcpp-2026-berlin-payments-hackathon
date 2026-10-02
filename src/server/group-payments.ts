@@ -1,4 +1,3 @@
-import { DatabaseLive } from "@/db/database";
 import { groupSettlementPage } from "@/db/group-settlements";
 import type { GroupSettlementPage } from "@/db/group-settlements";
 import { getGroup } from "@/db/groups";
@@ -12,15 +11,17 @@ import type { GroupActionResult } from "./group-action-result";
 import { readOrganizerToken } from "./group-session";
 import { GroupPaymentLive, groupPaymentRequest } from "./pots/group-request";
 import type { GroupPaymentAction } from "./pots/group-request";
+import { DatabaseLive, runServer } from "./runtime";
 
 export const settlementPage = createServerFn({ method: "GET" })
   .validator(Schema.decodeUnknownSync(GroupRequest))
   .handler(({ data }: { readonly data: typeof GroupRequest.Type }): Promise<GroupSettlementPage> =>
-    Effect.runPromise(groupSettlementPage(data.inviteKey).pipe(Effect.provide(DatabaseLive))),
+    runServer("managed.settlement.read", groupSettlementPage(data.inviteKey).pipe(Effect.provide(DatabaseLive))),
   );
 
 function paymentAction(action: Omit<GroupPaymentAction, "organizerToken">): Promise<GroupActionResult> {
-  return Effect.runPromise(
+  return runServer(
+    `managed.${action.kind}`,
     safeGroupResult(() =>
       Effect.gen(function* authorizedAction() {
         const view = yield* getGroup(action.inviteKey);

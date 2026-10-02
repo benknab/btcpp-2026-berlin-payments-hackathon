@@ -5,7 +5,26 @@ its mnemonic stays in localStorage and its wallet state stays in IndexedDB on th
 
 ## Receiving daemon
 
-Install Bark and Barkd 0.7.1 as described in [the wallet guide](README.md). Create a dedicated receiving wallet:
+Install Bark and Barkd 0.7.1 as described in [the wallet guide](README.md), then run:
+
+```sh
+pnpm db:migrate
+pnpm dev
+```
+
+`pnpm dev` creates a fresh mainnet receiving wallet if needed, starts Barkd on `127.0.0.1:3042`, waits for its
+authenticated mainnet health check, and supplies its token to Vite server-side. An existing healthy receiver is reused.
+Its default wallet directory is `~/.local/share/bark-event-receiver-mainnet`; override it with `BARK_RECEIVER_DATADIR`.
+The daemon log is `dev-barkd.log` inside that directory. `BARK_BIN` and `BARKD_BIN` can override executable paths.
+
+Barkd deliberately keeps running after Vite stops or the owner's browser closes, so pending Lightning receipts can
+still be delivered to the event's Ark address. The computer must remain awake and online. Restart `pnpm dev` to
+reconnect; it does not start a second healthy receiver. To stop it explicitly, find the listener with
+`lsof -nP -iTCP:3042 -sTCP:LISTEN` and run `kill -TERM <PID>` after pending receipts have finished.
+
+### Independently managed receiver
+
+For a separately managed Barkd, create a dedicated receiving wallet:
 
 ```sh
 export BARK_DATADIR="$HOME/.local/share/bark-event-receiver-mainnet"
@@ -32,21 +51,37 @@ pnpm db:migrate
 pnpm dev
 ```
 
-The URL and token are server-only environment variables. Never use `VITE_` for them. Restart the app after changing them.
+Set both `BARK_RECEIVER_URL` and `BARK_RECEIVER_TOKEN` to use an independently managed receiver; automatic local startup
+is then skipped, but mainnet readiness is still checked. The URL and token are server-only environment variables.
+Never use `VITE_` for them. `pnpm dev` loads `.env`; restart the app after changing these settings.
 
 ## Demo
+
+For a three-person, two-payout demo, create Alice (owner), Bob, and Charlie. Add **Lunch: 1,500 sats paid by Alice**
+and **Coffee and snacks: 1,500 sats paid by Bob**, each split equally between all three. Alice and Bob each receive
+500 sats; Charlie contributes 1,000 sats. Add Alice's and Bob's LNURLs before locking. The LNURL services must accept
+500-sat payments and support browser CORS. Net settlement does not require creditors to contribute too.
+
+The owner must return in the browser profile and origin that created the event: the invitation link alone does not
+transfer the organizer cookie or the browser-owned wallet.
 
 1. Open the app over localhost or HTTPS and create a new event. Each event gets a separate mainnet browser wallet.
 2. For a small LNURL test, have Alice pay a 2,000-sat expense split equally with Bob: Bob owes Alice 1,000 sats.
    Save Alice's mainnet Lightning address or LNURL. The service must allow the exact 1,000-sat payout and browser CORS.
-3. Select **Lock settlement** to freeze net amounts and payout destinations. Expenses and addresses become read-only.
+3. Select **Start settlement** to freeze net amounts. The organizer can still edit receiving addresses in
+   **Settlement** until each participant's payout starts. Saving a replacement expires any prepared, unsent payout;
+   sending or paid payouts retain their receiving address.
 4. Select **Pay Bob's share**. The backend creates a mainnet Lightning invoice targeting the event's Ark address.
    Anyone with the invitation may pay it; choosing Bob does not authenticate the payer.
 5. Scan the QR code or copy the invoice. The owner can close their browser while Barkd handles payment and delivery.
 6. Select **Refresh contributions** to reconcile receipts. Paid but undelivered receipts do not count as funded.
    Unexpired invoices are reused; expired attempts remain stored and are checked for late payments.
 7. In the original browser, select **Sync wallet** to collect mailbox deliveries and inspect spendable sats.
-8. Send a separate fee reserve to the displayed event Ark address. Contributions cover creditor entitlements;
+8. In **Event wallet · mainnet**, enter a **Top-up amount (sats)** and select **Generate Lightning invoice**.
+   Pay the QR/invoice, then **Sync wallet**. Barkd delivers the top-up even while the browser is closed.
+   This funds the wallet without crediting a participant or changing settlement balances. The invoice is shown
+   in the current page; Barkd retains the receipt if the page is closed. You can also send Ark directly to the displayed address.
+   Contributions cover creditor entitlements;
    the organizer covers receive/send fees. The browser estimates send fees and checks spendable funds before sending.
    Use a small reserve that covers the server's current fee estimate; very small payments may be below server minimums.
 9. Select **Pay creditors / reconcile**. The browser resolves each creditor's LNURL, checks the mainnet invoice's

@@ -30,9 +30,11 @@ export const completeEventSettlement = Effect.fn("completeEventSettlement")(func
           ),
       );
       if (!allPaid || hasExcess) {
+        yield* Effect.logWarning("settlement.incomplete", { groupId: context.group.id, allPaid, hasExcess });
         return false;
       }
       yield* database.update(groups).set({ status: "settled" }).where(eq(groups.id, context.group.id));
+      yield* Effect.logInfo("settlement.completed", { groupId: context.group.id, payouts: payouts.length });
       return true;
     }),
   );

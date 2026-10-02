@@ -3,7 +3,8 @@ import { migrate } from "drizzle-orm/effect-libsql/migrator";
 import { Effect, Layer } from "effect";
 
 import { Database } from "./database";
-import { lockEventSettlement, saveReceivingAddress } from "./event-settlement";
+import { saveReceivingAddress } from "./event-receiving-address";
+import { lockEventSettlement } from "./event-settlement";
 import { addExpense } from "./expenses";
 import { createGroup, getGroup } from "./groups";
 

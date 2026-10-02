@@ -54,7 +54,8 @@ and [VTXO lifetime documentation](https://second.tech/docs/learn/lifetime).
 
 **Current integration milestone:** verify a small mainnet round trip: contribution invoice → owner browser closed →
 delivery → owner reopens → Lightning-address/LNURL payout. Start with a 1,000-sat obligation plus a separate fee reserve.
-See [the mainnet browser-pot setup and demo](dev/bark/BROWSER.md).
+See [the mainnet browser-pot setup and demo](dev/bark/BROWSER.md). `pnpm dev` starts or reuses the local receiving Barkd
+and passes its credentials to Vite server-side. Barkd stays running after Vite exits to finish offline delivery.
 
 **Current status:** event creation, invitations, expense management, and personal balance overviews are implemented.
 The event overview shows total spent and a compact remaining-payout tally. **View expenses** opens the searchable
@@ -118,6 +119,12 @@ practical Bitcoin expense splitting, payments grounded in shared experiences, an
 TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
 with Bark for payments. Events use `@secondts/bark/web` for the owner's browser wallet and server-side Barkd for
 Lightning collection on the owner's behalf. The separate `/settle` workspace uses backend Barkd wallets.
+
+## Payment diagnostics
+
+Structured Effect logs cover event setup, contribution invoices/delivery, wallet sync, fee checks, LNURL resolution,
+and payout authorization/confirmation. Server JSON logs persist under `~/.local/share/bark-payments-mainnet/logs/`.
+See [payment diagnostics](dev/observability/README.md) for log commands and the local OpenTelemetry/Grafana viewer.
 
 ## Bark mainnet development wallet
 

@@ -2,6 +2,7 @@ import init, { generateMnemonic, Wallet } from "@secondts/bark/web";
 import type { Config } from "@secondts/bark/web";
 import wasmUrl from "@secondts/bark/web/bark_ffi_wasm_bg.wasm?url";
 
+import { browserOperation } from "./telemetry";
 import { findWallet, readWallet, saveWallet } from "./wallet-storage";
 import type { EventWalletRecord } from "./wallet-storage";
 
@@ -31,20 +32,22 @@ async function openWallet(record: EventWalletRecord, createIfNotExists: boolean)
   });
 }
 
-export async function createEventWallet(id: string): Promise<string> {
-  await initialize();
-  const record = prepareWallet(id);
-  if (record.arkAddress !== null) {
-    return record.arkAddress;
-  }
-  const wallet = await openWallet(record, true);
-  try {
-    const arkAddress = await wallet.newAddress();
-    saveWallet(id, { ...record, arkAddress });
-    return arkAddress;
-  } finally {
-    wallet.free();
-  }
+export function createEventWallet(id: string): Promise<string> {
+  return browserOperation("wallet.create", async (trace) => {
+    await initialize();
+    const record = prepareWallet(id);
+    if (record.arkAddress !== null) {
+      return record.arkAddress;
+    }
+    const wallet = await trace.step("wallet.initialize", { walletId: id }, () => openWallet(record, true));
+    try {
+      const arkAddress = await trace.step("wallet.address", { walletId: id }, () => wallet.newAddress());
+      saveWallet(id, { ...record, arkAddress });
+      return arkAddress;
+    } finally {
+      wallet.free();
+    }
+  });
 }
 
 function prepareWallet(id: string): EventWalletRecord {

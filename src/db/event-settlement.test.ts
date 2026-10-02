@@ -4,7 +4,8 @@ import { migrate } from "drizzle-orm/effect-libsql/migrator";
 import { Effect, Layer } from "effect";
 
 import { Database } from "./database";
-import { loadEventSettlement, lockEventSettlement, saveReceivingAddress } from "./event-settlement";
+import { saveReceivingAddress } from "./event-receiving-address";
+import { loadEventSettlement, lockEventSettlement } from "./event-settlement";
 import { addExpense } from "./expenses";
 import { createGroup, getGroup } from "./groups";
 
@@ -42,7 +43,7 @@ describe("event settlement snapshot", () => {
     }).pipe(Effect.provide(TestDatabase)),
   );
 
-  it.effect("freezes net obligations and destinations once, including the owner", () =>
+  it.effect("freezes net obligations but allows the organizer to update receiving addresses", () =>
     Effect.gen(function* verifySnapshot() {
       expect.hasAssertions();
       const event = yield* fixture();
@@ -56,9 +57,13 @@ describe("event settlement snapshot", () => {
         { name: "Bob", payInSats: 5000, receiveSats: 0, lnurl: null },
       ]);
       expect(yield* lockEventSettlement(event.inviteKey, event.organizerToken)).toStrictEqual(members);
+      yield* saveReceivingAddress({ ...address, lnurl: "new@wallet.com" }, event.organizerToken);
       expect(
-        (yield* Effect.flip(saveReceivingAddress({ ...address, lnurl: "new@wallet.com" }, event.organizerToken)))._tag,
-      ).toBe("GroupError");
+        (yield* loadEventSettlement(event.inviteKey))?.find((member) => member.participantId === event.organizerId),
+      ).toMatchObject({ lnurl: "new@wallet.com", receiveSats: 5000, payInSats: 0 });
+      expect(
+        (yield* getGroup(event.inviteKey)).participants.find((member) => member.id === event.organizerId)?.lnurl,
+      ).toBe("new@wallet.com");
       expect(
         (yield* Effect.flip(addExpense({ ...event.expense, expenseId: "00000000-0000-4000-8000-000000000002" })))._tag,
       ).toBe("ExpenseError");

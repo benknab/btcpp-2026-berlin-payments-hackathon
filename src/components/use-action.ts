@@ -1,3 +1,4 @@
+import { PaymentError } from "@/domain/payment-error";
 import { useRef, useState } from "react";
 
 interface ActionState {
@@ -8,7 +9,7 @@ interface ActionState {
 
 export function useAction(): ActionState {
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const inFlight = useRef(false);
 
   function run(action: () => Promise<void>, failureMessage: string): void {
@@ -17,10 +18,10 @@ export function useAction(): ActionState {
     }
     setPending(true);
     inFlight.current = true;
-    setError(null);
+    setActionError(null);
     action()
-      .catch((): void => {
-        setError(failureMessage);
+      .catch((error: unknown): void => {
+        setActionError(error instanceof PaymentError ? error.message : failureMessage);
       })
       .finally((): void => {
         inFlight.current = false;
@@ -28,5 +29,5 @@ export function useAction(): ActionState {
       });
   }
 
-  return { pending, error, run };
+  return { pending, error: actionError, run };
 }

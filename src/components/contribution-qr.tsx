@@ -7,7 +7,13 @@ import { ReadOnlyField } from "./read-only-field";
 import { Button } from "./ui/button";
 import { useAction } from "./use-action";
 
-export function ContributionQr({ invoice }: { readonly invoice: Readonly<EventInvoice> }): ReactNode {
+export function ContributionQr({
+  invoice,
+  title = "Contribution invoice",
+}: {
+  readonly invoice: Pick<EventInvoice, "invoice" | "paymentHash" | "expiresAt">;
+  readonly title?: string;
+}): ReactNode {
   const action = useAction();
   function handleCopy(): void {
     action.run(() => navigator.clipboard.writeText(invoice.invoice), "Could not copy the invoice.");
@@ -16,7 +22,7 @@ export function ContributionQr({ invoice }: { readonly invoice: Readonly<EventIn
     <div className="flex flex-col gap-3">
       <QRCodeSVG
         value={`lightning:${invoice.invoice.toUpperCase()}`}
-        title="Contribution invoice"
+        title={title}
         marginSize={4}
         className="size-48"
       />

@@ -21,7 +21,7 @@ export function EventPayments({
   }
   return (
     <>
-      <EventSettlementCard inviteKey={inviteKey} view={view} members={page.settlement} />
+      <EventSettlementCard inviteKey={inviteKey} view={view} members={page.settlement} payouts={page.payouts} />
       {page.settlement !== null && (
         <EventFundingCard inviteKey={inviteKey} members={page.settlement} invoices={page.invoices} />
       )}
@@ -36,7 +36,13 @@ export function EventPayments({
         />
       )}
       {view.group.arkAddress !== null && (
-        <EventWalletCard arkAddress={view.group.arkAddress} isOrganizer={view.isOrganizer} />
+        <EventWalletCard
+          inviteKey={inviteKey}
+          arkAddress={view.group.arkAddress}
+          isOrganizer={view.isOrganizer}
+          ownerAddress={view.participants.find((member) => member.position === 0)?.lnurl ?? ""}
+          settled={view.group.status === "settled"}
+        />
       )}
     </>
   );

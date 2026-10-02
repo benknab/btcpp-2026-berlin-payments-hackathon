@@ -7,17 +7,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { DateTime, Effect, Schema } from "effect";
 
 import { newId } from "./group-tokens";
+import { runServer } from "./telemetry";
 
 export const groupExpenses = createServerFn({ method: "GET" })
   .validator(Schema.decodeUnknownSync(GroupRequest))
   .handler(({ data }: { readonly data: typeof GroupRequest.Type }): Promise<readonly ExpenseView[]> =>
-    Effect.runPromise(listExpenses(data.inviteKey).pipe(Effect.provide(DatabaseLive))),
+    runServer("expenses.list", listExpenses(data.inviteKey).pipe(Effect.provide(DatabaseLive))),
   );
 
 export const expenseDetail = createServerFn({ method: "GET" })
   .validator(Schema.decodeUnknownSync(ExpenseRequest))
   .handler(({ data }: { readonly data: typeof ExpenseRequest.Type }): Promise<ExpenseView> =>
-    Effect.runPromise(getExpense(data.inviteKey, data.expenseId).pipe(Effect.provide(DatabaseLive))),
+    runServer("expense.read", getExpense(data.inviteKey, data.expenseId).pipe(Effect.provide(DatabaseLive))),
   );
 
 export const expenseDraft = createServerFn({ method: "GET" }).handler(
@@ -30,17 +31,20 @@ export const expenseDraft = createServerFn({ method: "GET" }).handler(
 export const saveExpense = createServerFn({ method: "POST" })
   .validator(Schema.decodeUnknownSync(NewExpense))
   .handler(({ data }: { readonly data: typeof NewExpense.Type }): Promise<string> =>
-    Effect.runPromise(addExpense(data).pipe(Effect.provide(DatabaseLive))),
+    runServer("expense.create", addExpense(data).pipe(Effect.provide(DatabaseLive)), {
+      expenseId: data.expenseId,
+      amountSats: data.amountSats,
+    }),
   );
 
 export const updateExpense = createServerFn({ method: "POST" })
   .validator(Schema.decodeUnknownSync(EditExpense))
   .handler(({ data }: { readonly data: typeof EditExpense.Type }): Promise<void> =>
-    Effect.runPromise(editExpense(data).pipe(Effect.provide(DatabaseLive))),
+    runServer("expense.update", editExpense(data).pipe(Effect.provide(DatabaseLive)), { expenseId: data.expenseId }),
   );
 
 export const removeExpense = createServerFn({ method: "POST" })
   .validator(Schema.decodeUnknownSync(DeleteExpense))
   .handler(({ data }: { readonly data: typeof DeleteExpense.Type }): Promise<void> =>
-    Effect.runPromise(deleteExpense(data).pipe(Effect.provide(DatabaseLive))),
+    runServer("expense.delete", deleteExpense(data).pipe(Effect.provide(DatabaseLive)), { expenseId: data.expenseId }),
   );

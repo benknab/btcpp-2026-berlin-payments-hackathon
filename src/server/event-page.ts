@@ -1,6 +1,5 @@
 import { getOverview } from "@/db/balances";
 import type { GroupOverview } from "@/db/balances";
-import { DatabaseLive } from "@/db/database";
 import { loadEventInvoices } from "@/db/event-funding";
 import type { EventInvoice, EventPayout } from "@/db/event-payment-schema";
 import { loadEventPayouts } from "@/db/event-payouts";
@@ -9,6 +8,8 @@ import type { EventSettlementMember } from "@/domain/event-settlement";
 import { GroupRequest } from "@/domain/group-input";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
+
+import { DatabaseLive, runServer } from "./runtime";
 
 export interface EventPageData {
   readonly overview: GroupOverview;
@@ -20,7 +21,8 @@ export interface EventPageData {
 export const eventPage = createServerFn({ method: "GET" })
   .validator(Schema.decodeUnknownSync(GroupRequest))
   .handler(({ data }: { readonly data: typeof GroupRequest.Type }): Promise<EventPageData> =>
-    Effect.runPromise(
+    runServer(
+      "event.page",
       Effect.gen(function* page() {
         const overview = yield* getOverview(data.inviteKey);
         const settlement = yield* loadEventSettlement(data.inviteKey);

@@ -1,4 +1,9 @@
-import type { PrepareEventPayout, EventPayoutRequest, ConfirmEventPayout } from "@/domain/event-payout";
+import type {
+  PrepareEventPayout,
+  EventPayoutRequest,
+  ConfirmEventPayout,
+  ReleaseEventPayout,
+} from "@/domain/event-payout";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { Clock, Effect } from "effect";
 
@@ -36,6 +41,7 @@ const existingPayout = Effect.fn("existingEventPayout")(function* existingPayout
     );
   const now = yield* Clock.currentTimeMillis;
   if (row?.status === "prepared" && row.expiresAt <= now) {
+    yield* Effect.logInfo("payout.expired", { groupId, participantId, paymentHash: row.paymentHash });
     yield* database
       .update(eventPayouts)
       .set({ status: "expired" })
@@ -57,7 +63,15 @@ export const prepareEventPayout = Effect.fn("prepareEventPayout")(function* prep
       if (member === undefined || member.receiveSats === 0 || member.lnurl === null) {
         return yield* new GroupError({ message: "This participant has no payout." });
       }
+      if (input.destination !== member.lnurl) {
+        return yield* new GroupError({ message: "The receiving address changed. Reload settlement before paying." });
+      }
       const existing = yield* existingPayout(context.group.id, input.participantId);
+      yield* Effect.logInfo(existing === null || existing === undefined ? "payout.preparing" : "payout.reused", {
+        groupId: context.group.id,
+        participantId: input.participantId,
+        amountSats: member.receiveSats,
+      });
       return (
         existing ??
         (yield* insertPayout({
@@ -94,6 +108,15 @@ export const claimEventPayout = Effect.fn("claimEventPayout")(function* claimEve
     .set({ status: "sending", historyStartId: input.historyStartId ?? null })
     .where(and(eq(eventPayouts.paymentHash, row.paymentHash), eq(eventPayouts.status, "prepared")))
     .returning();
+  yield* Effect.logInfo("payout.claimed", {
+    groupId: context.group.id,
+    participantId: row.participantId,
+    paymentHash: row.paymentHash,
+    claimed: changed.length === 1,
+    previousStatus: row.status,
+    method: row.method,
+    amountSats: row.amountSats,
+  });
   return { claimed: changed.length === 1, payout: changed[0] ?? row };
 });
 
@@ -112,6 +135,13 @@ export const confirmEventPayout = Effect.fn("confirmEventPayout")(function* conf
     return;
   }
   const receipt = yield* payoutReceipt(row, input);
+  yield* Effect.logInfo("payout.proof.verified", {
+    groupId: context.group.id,
+    participantId: row.participantId,
+    paymentHash: row.paymentHash,
+    method: row.method,
+    amountSats: row.amountSats,
+  });
   if (row.status === "paid") {
     return;
   }
@@ -132,4 +162,40 @@ export const confirmEventPayout = Effect.fn("confirmEventPayout")(function* conf
       yield* new GroupError({ message: "This payout was not started." });
     }
   }
+  yield* Effect.logInfo("payout.confirmed", { groupId: context.group.id, paymentHash: row.paymentHash });
+});
+
+/** Browser-held wallet evidence uses the same organizer trust boundary as native payout proofs. */
+export const releaseUnstartedPayout = Effect.fn("releaseUnstartedPayout")(function* releaseUnstartedPayout(
+  input: typeof ReleaseEventPayout.Type,
+  token: string | undefined,
+) {
+  const context = yield* requirePayoutContext(input.inviteKey, token);
+  const database = yield* Database;
+  if (input.pendingSendCount !== 0) {
+    yield* new GroupError({ message: "A Lightning send is still pending." });
+    return;
+  }
+  const changed = yield* database
+    .update(eventPayouts)
+    .set({ status: "expired" })
+    .where(
+      and(
+        eq(eventPayouts.groupId, context.group.id),
+        eq(eventPayouts.paymentHash, input.paymentHash),
+        eq(eventPayouts.method, "bolt12"),
+        eq(eventPayouts.status, "sending"),
+        eq(eventPayouts.historyStartId, input.historyLastId),
+      ),
+    )
+    .returning();
+  if (changed.length !== 1) {
+    yield* new GroupError({ message: "Payout changed or cannot be released. Reload settlement." });
+    return;
+  }
+  yield* Effect.logInfo("payout.unstarted.released", {
+    groupId: context.group.id,
+    paymentHash: input.paymentHash,
+    historyLastId: input.historyLastId,
+  });
 });

@@ -1,8 +1,12 @@
 import type { EventPayout } from "@/db/event-payment-schema";
 import type { PayoutMovement } from "@/domain/event-payout";
+import { PaymentError } from "@/domain/payment-error";
 import { matchesPayoutMovement } from "@/domain/payout-movement";
 import { claimPayout, confirmPayout } from "@/server/event-payouts";
 import type { Wallet } from "@secondts/bark/web";
+
+import { releaseUnstartedBolt12, unstartedBolt12Error } from "./payout-recovery";
+import type { BrowserTrace } from "./telemetry";
 
 interface WalletMovement {
   readonly id: number;
@@ -13,7 +17,7 @@ interface WalletMovement {
   readonly paymentHash?: string | undefined;
 }
 
-function receipt(movement: WalletMovement): typeof PayoutMovement.Type {
+export function receipt(movement: WalletMovement): typeof PayoutMovement.Type {
   return {
     id: movement.id,
     status: movement.status,
@@ -43,35 +47,61 @@ export async function executeNativePayout(
   wallet: Readonly<Wallet>,
   inviteKey: string,
   payout: Readonly<EventPayout>,
+  trace: BrowserTrace,
 ): Promise<void> {
   const history = await wallet.history();
   const data = { inviteKey, paymentHash: payout.paymentHash };
   const claim = await claimPayout({
     data: { ...data, historyStartId: Math.max(0, ...history.map((entry: WalletMovement) => entry.id)) },
+    headers: trace.headers,
   });
   if (claim.payout.status === "paid") {
     return;
   }
   if (claim.claimed) {
-    await (payout.method === "ark"
-      ? wallet.sendArkoorPayment(claim.payout.invoice, claim.payout.amountSats)
-      : wallet.payLightningOffer({ offer: claim.payout.invoice, amountSats: claim.payout.amountSats, wait: true }));
+    try {
+      await trace.step<unknown>(
+        "wallet.native.send",
+        { method: payout.method, amountSats: payout.amountSats, paymentHash: payout.paymentHash },
+        () =>
+          payout.method === "ark"
+            ? wallet.sendArkoorPayment(claim.payout.invoice, claim.payout.amountSats)
+            : wallet.payLightningOffer({
+                offer: claim.payout.invoice,
+                amountSats: claim.payout.amountSats,
+                wait: true,
+              }),
+      );
+    } catch (error) {
+      if (await releaseUnstartedBolt12(wallet, inviteKey, claim.payout, trace)) {
+        throw unstartedBolt12Error(error);
+      }
+      throw error;
+    }
+  } else if (await releaseUnstartedBolt12(wallet, inviteKey, claim.payout, trace)) {
+    throw new PaymentError("bolt12NotStarted");
   }
   let movement = await payoutMovement(wallet, claim.payout);
   if (payout.method === "ark") {
     if (movement.status !== "successful") {
       throw new Error("Ark payout is unresolved. Reconcile before sending another payment.");
     }
-    await confirmPayout({ data: { ...data, movement: receipt(movement) } });
+    await confirmPayout({ data: { ...data, movement: receipt(movement) }, headers: trace.headers });
     return;
   }
   if (movement.paymentHash === undefined) {
     throw new Error("BOLT12 payout has no payment hash yet. Reconcile before sending another payment.");
   }
-  const status = await wallet.checkLightningPayment({ paymentHash: movement.paymentHash, wait: true });
+  const { paymentHash } = movement;
+  const status = await trace.step("wallet.native.reconcile", { paymentHash }, () =>
+    wallet.checkLightningPayment({ paymentHash, wait: true }),
+  );
   if (status.type !== "paid") {
     throw new Error("BOLT12 payout is unresolved. Reconcile before sending another payment.");
   }
   movement = await payoutMovement(wallet, claim.payout);
-  await confirmPayout({ data: { ...data, preimage: status.preimage, movement: receipt(movement) } });
+  await confirmPayout({
+    data: { ...data, preimage: status.preimage, movement: receipt(movement) },
+    headers: trace.headers,
+  });
 }

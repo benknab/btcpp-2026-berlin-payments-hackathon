@@ -19,7 +19,10 @@ function arkRecipient(value: string | undefined): string | null {
 }
 
 /** Native payout receipts are organizer-attested wallet history, not independently verified Ark proofs. */
-export function matchesPayoutMovement(payout: Readonly<EventPayout>, movement: typeof PayoutMovement.Type): boolean {
+export function matchesPayoutMovement(
+  payout: Pick<EventPayout, "historyStartId" | "amountSats" | "invoice" | "method">,
+  movement: typeof PayoutMovement.Type,
+): boolean {
   if (
     payout.historyStartId === null ||
     movement.id <= payout.historyStartId ||
