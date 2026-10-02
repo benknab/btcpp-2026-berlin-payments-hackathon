@@ -55,6 +55,12 @@ describe("groups and invitation access", () => {
     { name: "Dinner", organizerName: "Alice", participantNames: ["alice"] },
     { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], participantLnurls: ["invalid"] },
     { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], participantLnurls: [] },
+    {
+      name: "Dinner",
+      organizerName: "Alice",
+      participantNames: ["Bob", "Carol"],
+      participantLnurls: ["bob@wallet.com", "lightning:bob@wallet.com"],
+    },
   ])("rejects invalid event creation without persisting an event or participants %j", (input: typeof NewGroup.Type) =>
     Effect.gen(function* verifyInvalidCreation() {
       expect.hasAssertions();

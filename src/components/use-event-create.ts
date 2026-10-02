@@ -1,6 +1,6 @@
 import { useAction } from "@/components/use-action";
 import { NewGroup } from "@/domain/group-input";
-import { isLnurl, LNURL_ERROR } from "@/domain/lnurl";
+import { DUPLICATE_LNURL_ERROR, hasUniqueLnurls, isLnurl, LNURL_ERROR } from "@/domain/lnurl";
 import { newGroup } from "@/server/groups";
 import { useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
@@ -25,6 +25,10 @@ export function useEventCreate(): EventCreateState {
     const participantLnurls = form.getAll("participantLnurl").map((value: unknown) => formText(value));
     if (participantLnurls.some((value) => value !== "" && !isLnurl(value))) {
       setValidation(LNURL_ERROR);
+      return;
+    }
+    if (!hasUniqueLnurls(participantLnurls)) {
+      setValidation(DUPLICATE_LNURL_ERROR);
       return;
     }
     const input = {

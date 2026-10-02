@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-import { Lnurl } from "./lnurl";
+import { DUPLICATE_LNURL_ERROR, hasUniqueLnurls, Lnurl } from "./lnurl";
 
 export const MAX_GROUP_NAME = 100;
 export const MAX_PARTICIPANT_NAME = 40;
@@ -35,6 +35,7 @@ export const NewGroup = Schema.Struct({
         input.participantLnurls.length === input.participantNames.length ||
         "Receiving addresses must match the participants.",
     ),
+    Schema.makeFilter((input) => hasUniqueLnurls(input.participantLnurls ?? []) || DUPLICATE_LNURL_ERROR),
   ),
 );
 

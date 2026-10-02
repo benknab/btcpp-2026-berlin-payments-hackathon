@@ -1,7 +1,13 @@
 import { describe, expect, it } from "@effect/vitest";
+import { bech32 } from "@scure/base";
 import { Effect, Schema } from "effect";
 
 import { GroupRequest, MAX_PARTICIPANTS, NewGroup } from "./group-input";
+
+const BOB_LNURL = bech32.encodeFromBytes(
+  "lnurl",
+  new TextEncoder().encode("https://wallet.com/.well-known/lnurlp/bob"),
+);
 
 describe("group validation", () => {
   it.effect("accepts a group without an email or account", () =>
@@ -24,6 +30,32 @@ describe("group validation", () => {
       expect.hasAssertions();
       expect((yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input)))._tag).toBe("SchemaError");
     }),
+  );
+
+  it.effect.each([
+    { participantLnurls: ["bob@wallet.com", "bob@wallet.com"] },
+    { participantLnurls: ["bob@wallet.com", "lightning:bob@wallet.com"] },
+    { participantLnurls: [BOB_LNURL, BOB_LNURL.toUpperCase()] },
+    { participantLnurls: [BOB_LNURL, `lightning:${BOB_LNURL}`] },
+    { participantLnurls: ["bob@wallet.com", BOB_LNURL] },
+  ])(
+    "rejects duplicate receiving destinations %#",
+    ({ participantLnurls }: { readonly participantLnurls: readonly string[] }) =>
+      Effect.gen(function* verifyDuplicates() {
+        expect.hasAssertions();
+        const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob", "Carol"], participantLnurls };
+        expect((yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input)))._tag).toBe("SchemaError");
+      }),
+  );
+
+  it.effect.each([{ participantLnurls: [null, null] }, { participantLnurls: ["bob@wallet.com", "carol@wallet.com"] }])(
+    "allows blank or distinct receiving destinations %#",
+    ({ participantLnurls }: { readonly participantLnurls: readonly (string | null)[] }) =>
+      Effect.gen(function* verifyDistinctDestinations() {
+        expect.hasAssertions();
+        const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob", "Carol"], participantLnurls };
+        expect(yield* Schema.decodeUnknownEffect(NewGroup)(input)).toStrictEqual(input);
+      }),
   );
 
   it.effect("rejects malformed invite keys", () =>
