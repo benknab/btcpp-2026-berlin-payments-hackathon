@@ -1,4 +1,4 @@
-import { INVOICE, MAINNET_ARK_ADDRESS } from "@/domain/payout-fixture";
+import { BOLT12_OFFER, INVOICE, MAINNET_ARK_ADDRESS } from "@/domain/payout-fixture";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 
@@ -60,9 +60,10 @@ describe("settlement receiving address changes", () => {
           saveReceivingAddress({ ...input, participantId: event.organizerId }, undefined, event.organizerId),
         ),
       ).toMatchObject({ _tag: "GroupError" });
-      expect(
-        yield* Effect.flip(saveReceivingAddress({ ...input, participantId: carol.id }, undefined, carol.id)),
-      ).toMatchObject({ _tag: "GroupError" });
+      yield* saveReceivingAddress({ ...input, participantId: carol.id }, undefined, carol.id);
+      expect((yield* getGroup(event.inviteKey)).participants.find((member) => member.id === carol.id)?.lnurl).toBe(
+        "bob@wallet.com",
+      );
     }).pipe(Effect.provide(EventTestDatabase)),
   );
   it.effect("invalidates an unsent invoice and rejects stale preparation and claim requests", () =>
@@ -133,22 +134,26 @@ describe("settlement receiving address changes", () => {
     }).pipe(Effect.provide(EventTestDatabase)),
   );
 
-  it.effect("requires the selected identity and keeps receiving addresses distinct during settlement", () =>
-    Effect.gen(function* test() {
-      const event = yield* fundedEvent();
-      const input = { inviteKey: event.inviteKey, participantId: event.organizerId, lnurl: "new@wallet.com" };
-      expect(yield* Effect.flip(saveReceivingAddress(input, "wrong-token"))).toMatchObject({ _tag: "GroupError" });
-      expect(
-        yield* Effect.flip(saveReceivingAddress({ ...input, participantId: event.bobId }, event.organizerToken)),
-      ).toMatchObject({ _tag: "GroupError" });
-      yield* saveReceivingAddress({ ...input, participantId: event.bobId }, undefined, event.bobId);
-      expect(yield* Effect.flip(saveReceivingAddress(input, event.organizerToken))).toMatchObject({
-        _tag: "GroupError",
-      });
-      expect(
-        (yield* loadEventSettlement(event.inviteKey))?.find((member) => member.participantId === event.organizerId)
-          ?.lnurl,
-      ).toBe("alice@wallet.com");
-    }).pipe(Effect.provide(EventTestDatabase)),
+  it.effect.each(["new@wallet.com", MAINNET_ARK_ADDRESS, BOLT12_OFFER])(
+    "requires the selected identity and allows a shared destination during settlement: %s",
+    (lnurl) =>
+      Effect.gen(function* test() {
+        const event = yield* fundedEvent();
+        const input = { inviteKey: event.inviteKey, participantId: event.organizerId, lnurl };
+        expect(yield* Effect.flip(saveReceivingAddress(input, "wrong-token"))).toMatchObject({ _tag: "GroupError" });
+        expect(
+          yield* Effect.flip(saveReceivingAddress({ ...input, participantId: event.bobId }, event.organizerToken)),
+        ).toMatchObject({ _tag: "GroupError" });
+        yield* saveReceivingAddress({ ...input, participantId: event.bobId }, undefined, event.bobId);
+        yield* saveReceivingAddress(input, event.organizerToken);
+        expect((yield* getGroup(event.inviteKey)).participants.map((member) => member.lnurl)).toStrictEqual([
+          lnurl,
+          lnurl,
+        ]);
+        expect(
+          (yield* loadEventSettlement(event.inviteKey))?.find((member) => member.participantId === event.organizerId)
+            ?.lnurl,
+        ).toBe(lnurl);
+      }).pipe(Effect.provide(EventTestDatabase)),
   );
 });

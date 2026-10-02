@@ -94,7 +94,7 @@ shared developer mainnet wallet. Start its daemon on port 3041 using the command
 personal wallets: **all default payouts return to the shared wallet**. The fields remain editable. If the daemon is
 unavailable, enter personal mainnet addresses manually or start it and click **Retry address generation**.
 
-Enter participants, distinct Bark mainnet payout addresses, and who owes whom in whole sats. The preview
+Enter participants, valid Bark mainnet payout addresses, and who owes whom in whole sats. The preview
 nets reciprocal debts. Click **Save & lock debts** to persist the participant and debt rows atomically. This does
 not connect to a wallet, start a daemon, or spend funds. Creating, listing, and reopening pots needs only SQLite.
 Details cannot be changed once saved; start a new pot if they are wrong.

@@ -3,7 +3,6 @@ import { Schema } from "effect";
 
 export const MAX_LNURL_LENGTH = 2048;
 export const LNURL_ERROR = "Enter a valid Lightning address or HTTPS LNURL.";
-export const DUPLICATE_LNURL_ERROR = "Each participant needs a different LNURL or Lightning address.";
 
 const LIGHTNING_ADDRESS = /^[a-z\d._+-]+@(?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+[a-z]{2,63}$/u;
 
@@ -48,14 +47,6 @@ export function lnurlEndpoint(value: string): string | null {
 /** Validates encoding and destination syntax, not the remote service's availability or LNURL-pay support. */
 export function isLnurl(value: string): boolean {
   return lnurlEndpoint(value) !== null;
-}
-
-export function hasUniqueLnurls(values: readonly (string | null)[]): boolean {
-  const endpoints = values.flatMap((value) => {
-    const endpoint = value === null ? null : lnurlEndpoint(value);
-    return endpoint === null ? [] : [endpoint];
-  });
-  return new Set(endpoints).size === endpoints.length;
 }
 
 export const Lnurl = Schema.String.pipe(Schema.check(Schema.makeFilter((value) => isLnurl(value) || LNURL_ERROR)));

@@ -1,11 +1,7 @@
 import { MainnetAddress } from "@/lib/pot";
 import { Schema } from "effect";
 
-import {
-  DUPLICATE_PAYOUT_DESTINATION_ERROR,
-  hasUniquePayoutDestinations,
-  ReceivingAddress,
-} from "./payout-destination";
+import { ReceivingAddress } from "./payout-destination";
 
 export const MAX_GROUP_NAME = 100;
 export const MAX_PARTICIPANT_NAME = 40;
@@ -41,11 +37,6 @@ export const NewGroup = Schema.Struct({
         input.participantLnurls === undefined ||
         input.participantLnurls.length === input.participantNames.length ||
         "Receiving addresses must match the participants.",
-    ),
-    Schema.makeFilter(
-      (input) =>
-        hasUniquePayoutDestinations([input.organizerLnurl, ...(input.participantLnurls ?? [])]) ||
-        DUPLICATE_PAYOUT_DESTINATION_ERROR,
     ),
   ),
 );

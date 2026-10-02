@@ -34,10 +34,9 @@ export interface Obligation {
 
 const initialBalances = Effect.fn("initialPotBalances")(function* initialBalances(input: PotInput) {
   const balances = new Map(input.users.map((user): [string, number] => [user.id, 0]));
-  const addresses = new Set(input.users.map((user): string => user.arkAddress));
-  if (input.users.length === 0 || balances.size !== input.users.length || addresses.size !== input.users.length) {
+  if (input.users.length === 0 || balances.size !== input.users.length) {
     return yield* new PotError({
-      message: "Users must have unique IDs and payout addresses; at least one is required",
+      message: "Users must have unique IDs; at least one is required",
     });
   }
   return balances;

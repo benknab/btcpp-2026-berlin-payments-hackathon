@@ -6,7 +6,6 @@ import { lnurlEndpoint } from "./lnurl";
 
 export const MAX_PAYOUT_DESTINATION_LENGTH = 10_000;
 export const PAYOUT_DESTINATION_ERROR = "Enter a Lightning address, LNURL, Bark mainnet address, or BOLT12 offer.";
-export const DUPLICATE_PAYOUT_DESTINATION_ERROR = "Each participant needs a different receiving address.";
 const MIN_ARK_PAYLOAD_LENGTH = 39;
 
 export type PayoutDestination = Readonly<{ kind: "lnurl" | "ark" | "bolt12"; value: string }>;
@@ -41,17 +40,6 @@ export function payoutDestination(value: string): PayoutDestination | null {
 
 export function isPayoutDestination(value: string): boolean {
   return payoutDestination(value) !== null;
-}
-
-export function hasUniquePayoutDestinations(values: readonly (string | null)[]): boolean {
-  const destinations = values.flatMap((value) => {
-    const destination = value === null ? null : payoutDestination(value);
-    if (destination === null) {
-      return [];
-    }
-    return [destination.kind === "lnurl" ? lnurlEndpoint(destination.value) : destination.value];
-  });
-  return new Set(destinations).size === destinations.length;
 }
 
 export const ReceivingAddress = Schema.String.pipe(

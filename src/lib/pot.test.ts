@@ -57,6 +57,18 @@ describe("JSON pot obligations", (): void => {
     }),
   );
 
+  it.effect("keeps obligations separate when participants share a payout address", () =>
+    Effect.gen(function* test() {
+      const shared = {
+        ...input,
+        users: input.users.map((user) => ({ ...user, arkAddress: "ark1ace" })),
+      };
+      expect(yield* calculateObligations(yield* Schema.decodeUnknownEffect(PotInputSchema)(shared))).toStrictEqual(
+        yield* calculateObligations(input),
+      );
+    }),
+  );
+
   it.effect.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1])(
     "rejects non-positive or unsafe debt amount %s",
     (amountSat): Effect.Effect<void> =>

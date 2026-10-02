@@ -2,7 +2,7 @@ import { describe, expect, it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
 
 import { CreateGroupRequest } from "./group-input";
-import { hasUniquePayoutDestinations, payoutDestination, ReceivingAddress } from "./payout-destination";
+import { payoutDestination, ReceivingAddress } from "./payout-destination";
 import { BOLT12_OFFER, MAINNET_ARK_ADDRESS, SIGNET_ARK_ADDRESS } from "./payout-fixture";
 
 describe("settlement receiving addresses", () => {
@@ -53,12 +53,17 @@ describe("settlement receiving addresses", () => {
     }),
   );
 
-  it.effect("normalizes native destinations for duplicate detection", () =>
+  it.effect("normalizes native destinations for payment matching", () =>
     Effect.sync(() => {
       expect.hasAssertions();
-      expect(hasUniquePayoutDestinations([MAINNET_ARK_ADDRESS, MAINNET_ARK_ADDRESS.toUpperCase()])).toBe(false);
-      expect(hasUniquePayoutDestinations([BOLT12_OFFER, `lightning:${BOLT12_OFFER.toUpperCase()}`])).toBe(false);
-      expect(hasUniquePayoutDestinations([null, "alice@wallet.com", MAINNET_ARK_ADDRESS, BOLT12_OFFER])).toBe(true);
+      expect(payoutDestination(MAINNET_ARK_ADDRESS.toUpperCase())).toStrictEqual({
+        kind: "ark",
+        value: MAINNET_ARK_ADDRESS,
+      });
+      expect(payoutDestination(`lightning:${BOLT12_OFFER.toUpperCase()}`)).toStrictEqual({
+        kind: "bolt12",
+        value: BOLT12_OFFER,
+      });
     }),
   );
 });

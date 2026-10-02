@@ -23,7 +23,7 @@ export function EventReceivingAddress({
   function handleSave(): void {
     action.run(async () => {
       await updateReceivingAddress({ data: { inviteKey, participantId: participant.id, lnurl: value.trim() } });
-    }, "Could not save the receiving address. Use a distinct Lightning address, LNURL, Ark address, or BOLT12 offer.");
+    }, "Could not save the receiving address.");
   }
   return (
     <FieldGroup className="gap-2">

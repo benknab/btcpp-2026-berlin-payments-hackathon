@@ -67,12 +67,6 @@ describe("groups and invitation access", () => {
     { name: "Dinner", organizerName: "Alice", participantNames: ["alice"] },
     { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], participantLnurls: ["invalid"] },
     { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], participantLnurls: [] },
-    {
-      name: "Dinner",
-      organizerName: "Alice",
-      participantNames: ["Bob", "Carol"],
-      participantLnurls: ["bob@wallet.com", "lightning:bob@wallet.com"],
-    },
   ])("rejects invalid event creation without persisting an event or participants %j", (input) =>
     Effect.gen(function* verifyInvalidCreation() {
       expect.hasAssertions();
@@ -106,6 +100,28 @@ describe("groups and invitation access", () => {
         { name: "Bob", lnurl: null },
         { name: "Carol", lnurl: "carol@wallet.com" },
       ]);
+    }).pipe(Effect.provide(TestDatabase)),
+  );
+
+  it.effect("persists shared receiving destinations without merging participants", () =>
+    Effect.gen(function* verifySharedDestinations() {
+      const database = yield* Database;
+      yield* migrate(database, { migrationsFolder: "./drizzle" });
+      const created = yield* createGroup({
+        name: "Dinner",
+        arkAddress: "ark1ace",
+        organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
+        participantNames: ["Bob", "Carol"],
+        participantLnurls: ["alice@wallet.com", "lightning:alice@wallet.com"],
+      });
+      const reloaded = yield* getGroup(created.inviteKey);
+      expect(reloaded.participants.map(({ name, lnurl }) => ({ name, lnurl }))).toStrictEqual([
+        { name: "Alice", lnurl: "alice@wallet.com" },
+        { name: "Bob", lnurl: "alice@wallet.com" },
+        { name: "Carol", lnurl: "lightning:alice@wallet.com" },
+      ]);
+      expect(new Set(reloaded.participants.map((member) => member.id)).size).toBe(3);
     }).pipe(Effect.provide(TestDatabase)),
   );
 });

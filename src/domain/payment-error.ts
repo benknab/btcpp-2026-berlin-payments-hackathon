@@ -17,7 +17,8 @@ const messages = {
   withdrawalEmpty: "No spendable balance remains after fees.",
   withdrawalPending: "Withdrawal is unresolved. Use Reconcile withdrawal before sending again.",
   withdrawalFailed: "The withdrawal failed. Try again or change the owner wallet.",
-  withdrawalDestination: "Enter a different wallet's Lightning address, LNURL, Ark address, or BOLT12 offer.",
+  withdrawalDestination:
+    "Enter a valid Lightning address, LNURL, Ark address, or BOLT12 offer outside the event wallet.",
   withdrawalBusy: "A Lightning payment is still pending. Reconcile it before withdrawing.",
 } as const;
 

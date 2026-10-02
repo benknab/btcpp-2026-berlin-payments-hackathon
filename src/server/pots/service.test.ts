@@ -158,13 +158,16 @@ describe("durable Bark pot", (): void => {
       ),
   );
 
-  it.effect(
-    "assigns all addresses, validates deposits, pays exact amounts, and settles idempotently",
-    (): Effect.Effect<void, TestError> =>
+  it.effect.each([false, true])(
+    "assigns deposit addresses, pays exact amounts, and settles idempotently (shared payout address: %s)",
+    (sharedAddress): Effect.Effect<void, TestError> =>
       withFixture(() =>
         Effect.gen(function* test() {
           const controls = yield* TestControls;
-          const pot = yield* createPot(input);
+          const pot = yield* createPot({
+            ...input,
+            users: sharedAddress ? input.users.map((user) => ({ ...user, arkAddress: "ark1ace" })) : input.users,
+          });
           expect(new Set(pot.participants.map((participant): string => participant.depositAddress)).size).toBe(3);
           expect(pot.totalSat).toBe(9000);
           depositAll(pot, controls);
@@ -211,6 +214,39 @@ describe("durable Bark pot", (): void => {
           expect((yield* settlePot(pot.id)).status).toBe("settled");
         }),
       ),
+  );
+
+  it.effect("reconciles equal payouts to a shared address without reusing receipts or resending", () =>
+    withFixture(() =>
+      Effect.gen(function* test() {
+        const controls = yield* TestControls;
+        const pot = yield* createPot({
+          ...input,
+          users: input.users.map((user) => ({ ...user, arkAddress: "ark1ace" })),
+          debts: [
+            { from: "alice", to: "bob", amountSat: 5000 },
+            { from: "alice", to: "carol", amountSat: 5000 },
+          ],
+        });
+        expect(new Set(pot.participants.map((participant) => participant.depositAddress)).size).toBe(3);
+        depositAll(pot, controls);
+        controls.setSendMode("lost-response");
+        expect(yield* Effect.result(settlePot(pot.id))).toMatchObject({ _tag: "Failure" });
+        expect(controls.sendCount()).toBe(1);
+        controls.setSendMode("unrecorded");
+        expect(yield* Effect.result(settlePot(pot.id))).toMatchObject({ _tag: "Failure" });
+        expect(controls.sendCount()).toBe(2);
+        const store = yield* PotStore;
+        const unresolved = yield* store.get(pot.id);
+        expect(unresolved.participants.map((participant) => participant.payoutStatus)).toStrictEqual([
+          "not-needed",
+          "paid",
+          "sending",
+        ]);
+        expect(yield* Effect.result(settlePot(pot.id))).toMatchObject({ _tag: "Failure" });
+        expect(controls.sendCount()).toBe(2);
+      }),
+    ),
   );
 
   it.effect(

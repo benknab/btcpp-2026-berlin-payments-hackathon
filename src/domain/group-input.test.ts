@@ -3,6 +3,7 @@ import { bech32 } from "@scure/base";
 import { Effect, Schema } from "effect";
 
 import { CreateGroupRequest, GroupRequest, MAX_PARTICIPANTS, NewGroup } from "./group-input";
+import { BOLT12_OFFER, MAINNET_ARK_ADDRESS } from "./payout-fixture";
 
 const BOB_LNURL = bech32.encodeFromBytes(
   "lnurl",
@@ -27,8 +28,8 @@ describe("group validation", () => {
       }),
   );
 
-  it.effect("rejects a guest destination that duplicates the owner's", () =>
-    Effect.gen(function* verifyOwnerUniqueness() {
+  it.effect("accepts a guest destination that duplicates the owner's", () =>
+    Effect.gen(function* verifySharedOwnerDestination() {
       const input = {
         name: "Dinner",
         organizerName: "Alice",
@@ -36,7 +37,11 @@ describe("group validation", () => {
         participantNames: ["Bob"],
         participantLnurls: ["lightning:alice@wallet.com"],
       };
-      expect(yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input))).toMatchObject({ _tag: "SchemaError" });
+      expect(yield* Schema.decodeUnknownEffect(NewGroup)(input)).toStrictEqual(input);
+      expect(yield* Schema.decodeUnknownEffect(CreateGroupRequest)({ ...input, arkAddress: "ark1ace" })).toStrictEqual({
+        ...input,
+        arkAddress: "ark1ace",
+      });
     }),
   );
   it.effect.each([undefined, null, "", "tark1ace", "not-an-address"])(
@@ -108,8 +113,12 @@ describe("group validation", () => {
     { participantLnurls: [BOB_LNURL, BOB_LNURL.toUpperCase()] },
     { participantLnurls: [BOB_LNURL, `lightning:${BOB_LNURL}`] },
     { participantLnurls: ["bob@wallet.com", BOB_LNURL] },
+    { participantLnurls: [MAINNET_ARK_ADDRESS, MAINNET_ARK_ADDRESS] },
+    { participantLnurls: [MAINNET_ARK_ADDRESS, MAINNET_ARK_ADDRESS.toUpperCase()] },
+    { participantLnurls: [BOLT12_OFFER, BOLT12_OFFER] },
+    { participantLnurls: [BOLT12_OFFER, `lightning:${BOLT12_OFFER.toUpperCase()}`] },
   ])(
-    "rejects duplicate receiving destinations %#",
+    "accepts shared receiving destinations %#",
     ({ participantLnurls }: { readonly participantLnurls: readonly string[] }) =>
       Effect.gen(function* verifyDuplicates() {
         expect.hasAssertions();
@@ -120,7 +129,13 @@ describe("group validation", () => {
           participantNames: ["Bob", "Carol"],
           participantLnurls,
         };
-        expect((yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input)))._tag).toBe("SchemaError");
+        expect(yield* Schema.decodeUnknownEffect(NewGroup)(input)).toStrictEqual(input);
+        expect(
+          yield* Schema.decodeUnknownEffect(CreateGroupRequest)({ ...input, arkAddress: "ark1ace" }),
+        ).toStrictEqual({
+          ...input,
+          arkAddress: "ark1ace",
+        });
       }),
   );
 

@@ -1,6 +1,5 @@
 import { SettlementMembers } from "@/domain/event-settlement";
 import type { ReceivingAddressRequest } from "@/domain/event-settlement";
-import { hasUniquePayoutDestinations } from "@/domain/payout-destination";
 import { and, eq, ne } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
@@ -73,15 +72,8 @@ export const saveReceivingAddress = Effect.fn("saveReceivingAddress")(function* 
         yield* new GroupError({ message: "Only change your own receiving address after selecting your name." });
         return;
       }
-      const destinations = view.participants.map((member) =>
-        member.id === input.participantId ? input.lnurl : member.lnurl,
-      );
-      if (
-        (view.group.status !== "open" && view.group.status !== "settling") ||
-        !view.participants.some((member) => member.id === input.participantId) ||
-        !hasUniquePayoutDestinations(destinations)
-      ) {
-        yield* new GroupError({ message: "Use a distinct receiving address while settlement is active." });
+      if (view.group.status !== "open" && view.group.status !== "settling") {
+        yield* new GroupError({ message: "Receiving addresses cannot change after settlement." });
         return;
       }
       if (view.group.status === "settling") {

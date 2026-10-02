@@ -19,7 +19,8 @@ Participants track expenses, then fund an owner-controlled pot to settle their f
      The owner no longer fills in guests' destinations. Owner destination changes require the organizer cookie;
      guest changes must match the selected participant cookie. Name selection is not authenticated identity.
    - Supported payout destinations: Lightning addresses/LNURL-pay, Bark mainnet Ark addresses (`ark1…`), and
-     BOLT12 offers (`lno1…`). Nostr profile lookup is not supported.
+     BOLT12 offers (`lno1…`). Participants may share receiving destinations, and withdrawals may reuse them.
+     Nostr profile lookup is not supported.
 3. **Record expenses and lock settlement.**
    - Calculate each participant's net contribution or payout, then freeze amounts and payout destinations.
    - Debtors fund only their net obligation; creditors receive only their net entitlement.
