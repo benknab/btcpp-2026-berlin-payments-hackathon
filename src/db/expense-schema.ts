@@ -1,3 +1,4 @@
+import type { ExpenseSplit } from "@/domain/expense-split";
 import { sql } from "drizzle-orm";
 import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
@@ -16,6 +17,7 @@ export const expenses = sqliteTable(
     description: text("description").notNull(),
     amountSats: integer("amount_sats").notNull(),
     date: text("date").notNull(),
+    split: text("split", { mode: "json" }).$type<ExpenseSplit>(),
     version: integer("version").notNull().default(1),
     createdAt: text("created_at")
       .notNull()

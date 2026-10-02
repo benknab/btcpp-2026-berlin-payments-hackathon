@@ -1,5 +1,6 @@
 import { ActionError } from "@/components/action-error";
 import { ExpenseFields } from "@/components/expense-fields";
+import { ExpenseSplitter } from "@/components/expense-splitter";
 import { MessageAlert } from "@/components/message-alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldLegend, FieldSet } from "@/components/ui/field";
@@ -21,11 +22,12 @@ export function ExpenseFormDetails({ options, form, participants, locked }: Expe
     <FieldSet disabled={locked}>
       <FieldLegend className="sr-only">Expense details</FieldLegend>
       <ExpenseFields form={form} participants={participants} />
-      <p className="text-sm text-muted-foreground">
-        {options.existing === null
-          ? `Split equally between all ${participants.length} participants.`
-          : `Split equally between the original ${options.existing.shares.length} participants.`}
-      </p>
+      <ExpenseSplitter
+        split={form.split}
+        participants={participants}
+        disabled={locked || form.pending}
+        showError={form.values.amount !== ""}
+      />
       <ActionError message={form.error} />
       {form.success === null ? null : (
         <MessageAlert title="Expense saved">
@@ -33,7 +35,7 @@ export function ExpenseFormDetails({ options, form, participants, locked }: Expe
         </MessageAlert>
       )}
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={form.pending}>
+        <Button type="submit" disabled={locked || form.pending || form.split.error !== null}>
           {form.pending ? "Saving…" : submitLabel}
         </Button>
         <Link

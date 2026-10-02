@@ -24,7 +24,10 @@ function ExpenseDetail(): ReactNode {
   const payer = view.participants.find((person) => person.id === expense.payerId);
   const shares = (
     <>
-      <p className="text-sm text-muted-foreground">Split equally between {expense.shares.length} people.</p>
+      <p className="text-sm text-muted-foreground">
+        {expense.split === null || expense.split.mode === "equal" ? "Equal split" : "Custom split"} ·{" "}
+        {expense.shares.length} people
+      </p>
       <dl className="flex flex-col gap-3">
         {expense.shares.map((share) => (
           <SummaryItem

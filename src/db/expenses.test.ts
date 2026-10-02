@@ -4,17 +4,96 @@ import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/effect-libsql/migrator";
 import { Effect, Layer } from "effect";
 
+import { getOverview } from "./balances";
 import { Database } from "./database";
-import { expenseShares } from "./expense-schema";
 import { addExpense, deleteExpense, editExpense, getExpense, listExpenses } from "./expenses";
-import { groups, participants } from "./group-schema";
 import { createGroup, getGroup } from "./groups";
+import { expenseShares, groups, participants } from "./schema";
 
 const TestDatabase = Database.layer.pipe(Layer.provide(LibsqlClient.layer({ url: "file::memory:" })));
 const EXPENSE_ID = "00000000-0000-4000-8000-000000000001";
 const EXTRA_PARTICIPANT_ID = "00000000-0000-4000-8000-000000000002";
 
 describe("persisted expenses", () => {
+  it.effect(
+    "persists custom settings, updates balances, and rejects conflicting retries and invalid replacements",
+    () =>
+      Effect.gen(function* verifyCustomSplits() {
+        expect.hasAssertions();
+        const database = yield* Database;
+        yield* migrate(database, { migrationsFolder: "./drizzle" });
+        const created = yield* createGroup({
+          name: "Custom",
+          organizerName: "Alice",
+          participantNames: ["Bob"],
+          arkAddress: "tark1ace",
+        });
+        const view = yield* getGroup(created.inviteKey);
+        const bob = yield* Effect.fromNullishOr(view.participants.find((person) => person.name === "Bob"));
+        const input = {
+          inviteKey: created.inviteKey,
+          expenseId: EXPENSE_ID,
+          payerId: created.organizerId,
+          description: "Dinner",
+          amountSats: 101,
+          date: "2026-10-02",
+          split: {
+            mode: "shares",
+            entries: [
+              { participantId: created.organizerId, value: 1 },
+              { participantId: bob.id, value: 2 },
+            ],
+          } as const,
+        };
+        yield* addExpense(input);
+        yield* addExpense(input);
+        yield* addExpense({ ...input, split: { ...input.split, entries: input.split.entries.toReversed() } });
+        expect(
+          (yield* Effect.flip(
+            addExpense({
+              ...input,
+              split: {
+                ...input.split,
+                entries: input.split.entries.map((entry) => ({ ...entry, value: entry.value * 2 })),
+              },
+            }),
+          ))._tag,
+        ).toBe("ExpenseError");
+        const saved = yield* getExpense(created.inviteKey, EXPENSE_ID);
+        expect(saved.split).toStrictEqual(input.split);
+        expect(saved.shares.find((share) => share.participantId === bob.id)?.amountSats).toBe(67);
+        const overview = yield* getOverview(created.inviteKey);
+        expect(overview.balances.find((balance) => balance.participantId === created.organizerId)?.settlementSats).toBe(
+          67,
+        );
+        const changed = { mode: "amount", entries: [{ participantId: bob.id, value: 101 }] } as const;
+        expect((yield* Effect.flip(addExpense({ ...input, split: changed })))._tag).toBe("ExpenseError");
+        expect(
+          (yield* Effect.flip(
+            editExpense({
+              ...input,
+              version: 1,
+              split: { mode: "amount", entries: [{ participantId: bob.id, value: 100 }] },
+            }),
+          ))._tag,
+        ).toBe("AccountingError");
+        expect(
+          (yield* Effect.flip(
+            editExpense({
+              ...input,
+              version: 1,
+              split: { mode: "equal", entries: [{ participantId: EXTRA_PARTICIPANT_ID, value: 1 }] },
+            }),
+          ))._tag,
+        ).toBe("AccountingError");
+        expect(yield* getExpense(created.inviteKey, EXPENSE_ID)).toStrictEqual(saved);
+        yield* editExpense({ ...input, version: 1, split: changed });
+        const edited = yield* getExpense(created.inviteKey, EXPENSE_ID);
+        expect(edited.split).toStrictEqual(changed);
+        expect(edited.shares).toStrictEqual([{ participantId: bob.id, amountSats: 101 }]);
+        expect(edited.version).toBe(2);
+      }).pipe(Effect.provide(TestDatabase)),
+  );
   it.effect("creates, retries without duplication, edits, and deletes an expense and its shares", () =>
     Effect.gen(function* verifyExpenseLifecycle() {
       expect.hasAssertions();

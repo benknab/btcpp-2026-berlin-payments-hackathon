@@ -1,6 +1,7 @@
 import { calculateBalances, splitEqually } from "@/domain/accounting";
 import type { AccountingError, ExpenseShare } from "@/domain/accounting";
 import { DeleteExpense, EditExpense, NewExpense } from "@/domain/expense-input";
+import { calculateExpenseSplit } from "@/domain/expense-split";
 import { and, desc, eq } from "drizzle-orm";
 import type { EffectDrizzleQueryError } from "drizzle-orm/effect-core/errors";
 import { Data, Effect, Schema } from "effect";
@@ -43,6 +44,7 @@ export const listExpenses = Effect.fn("listExpenses")(function* listExpenses(
     description: expense.description,
     amountSats: expense.amountSats,
     date: expense.date,
+    split: expense.split,
     version: expense.version,
     createdAt: expense.createdAt,
     shares: shares
@@ -86,13 +88,27 @@ const validateTotals = Effect.fn("validateTotals")(function* validateTotals(
   });
 });
 
+function matchesSplit(saved: Expense["split"], requested: Expense["split"]): boolean {
+  if (saved === null || requested === null) {
+    return saved === requested;
+  }
+  return (
+    saved.mode === requested.mode &&
+    saved.entries.length === requested.entries.length &&
+    saved.entries.every((entry) =>
+      requested.entries.some((other) => other.participantId === entry.participantId && other.value === entry.value),
+    )
+  );
+}
+
 function matchesExpense(existing: Expense, valid: typeof NewExpense.Type, groupId: string): boolean {
   return (
     existing.groupId === groupId &&
     existing.payerId === valid.payerId &&
     existing.description === valid.description &&
     existing.amountSats === valid.amountSats &&
-    existing.date === valid.date
+    existing.date === valid.date &&
+    matchesSplit(existing.split, valid.split ?? null)
   );
 }
 
@@ -110,9 +126,22 @@ const requireMatchingExpense = Effect.fn("requireMatchingExpense")(function* req
   existing: Expense,
   valid: typeof NewExpense.Type,
   groupId: string,
+  shares: readonly ExpenseShare[],
 ) {
   if (!matchesExpense(existing, valid, groupId)) {
     return yield* new ExpenseError({ message: "This expense request was already used. Open a fresh expense form." });
+  }
+  const saved = yield* getExpense(valid.inviteKey, existing.id);
+  if (
+    saved.shares.length !== shares.length ||
+    shares.some(
+      (share) =>
+        !saved.shares.some(
+          (entry) => entry.participantId === share.participantId && entry.amountSats === share.amountSats,
+        ),
+    )
+  ) {
+    return yield* new ExpenseError({ message: "This expense request was already used with a different split." });
   }
   return existing.id;
 });
@@ -134,14 +163,14 @@ export const addExpense = Effect.fn("addExpense")(function* addExpense(
     Effect.gen(function* saveExpense() {
       const view = yield* requireOpenGroup(valid.inviteKey);
       yield* requireParticipant(valid.inviteKey, valid.payerId);
+      const ids = view.participants.map((participant) => participant.id);
+      const shares = yield* valid.split === undefined
+        ? splitEqually(valid.amountSats, ids)
+        : calculateExpenseSplit(valid.amountSats, valid.split, ids);
       const [existing] = yield* database.select().from(expenses).where(eq(expenses.id, valid.expenseId));
       if (existing !== undefined) {
-        return yield* requireMatchingExpense(existing, valid, view.group.id);
+        return yield* requireMatchingExpense(existing, valid, view.group.id, shares);
       }
-      const shares = yield* splitEqually(
-        valid.amountSats,
-        view.participants.map((participant) => participant.id),
-      );
       const expense = {
         id: valid.expenseId,
         groupId: view.group.id,
@@ -149,6 +178,7 @@ export const addExpense = Effect.fn("addExpense")(function* addExpense(
         description: valid.description,
         amountSats: valid.amountSats,
         date: valid.date,
+        split: valid.split ?? null,
         version: 1,
       };
       yield* validateTotals(valid.inviteKey, { ...expense, createdAt: "", shares });
@@ -170,6 +200,7 @@ const persistReplacement = Effect.fn("persistExpenseReplacement")(function* pers
       description: replacement.description,
       amountSats: replacement.amountSats,
       date: replacement.date,
+      split: replacement.split,
       version: replacement.version,
     })
     .where(
@@ -186,16 +217,23 @@ export const editExpense = Effect.fn("editExpense")(function* editExpense(
   const database = yield* Database;
   yield* database.transaction(() =>
     Effect.gen(function* updateExpense() {
-      yield* requireOpenGroup(valid.inviteKey);
+      const view = yield* requireOpenGroup(valid.inviteKey);
       yield* requireParticipant(valid.inviteKey, valid.payerId);
       const original = yield* getExpense(valid.inviteKey, valid.expenseId);
       if (original.version !== valid.version) {
         return yield* new ExpenseError({ message: "Someone changed this expense. Refresh before editing it." });
       }
-      const shares = yield* splitEqually(
-        valid.amountSats,
-        original.shares.map((share) => share.participantId),
-      );
+      const split = valid.split ?? original.split;
+      const shares = yield* split === null
+        ? splitEqually(
+            valid.amountSats,
+            original.shares.map((share) => share.participantId),
+          )
+        : calculateExpenseSplit(
+            valid.amountSats,
+            split,
+            view.participants.map((participant) => participant.id),
+          );
       const replacement = {
         ...original,
         payerId: valid.payerId,
@@ -204,6 +242,7 @@ export const editExpense = Effect.fn("editExpense")(function* editExpense(
         date: valid.date,
         version: valid.version + 1,
         shares,
+        split,
       };
       yield* validateTotals(valid.inviteKey, replacement);
       yield* persistReplacement(replacement, valid.version);

@@ -27,8 +27,8 @@ export function ExpenseDetailActions({ inviteKey, expense, open }: ExpenseDetail
       ) : (
         <p>Expenses are locked for settlement.</p>
       )}
-      <Link to="/groups/$inviteKey" params={{ inviteKey }} className={buttonVariants({ variant: "ghost" })}>
-        Back to group
+      <Link to="/groups/$inviteKey/expenses" params={{ inviteKey }} className={buttonVariants({ variant: "ghost" })}>
+        Back to expenses
       </Link>
     </>
   );

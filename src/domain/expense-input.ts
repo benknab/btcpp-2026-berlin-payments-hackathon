@@ -1,5 +1,6 @@
 import { DateTime, Option, Schema } from "effect";
 
+import { ExpenseSplitSchema } from "./expense-split";
 import { EntityId, InviteKey } from "./group-input";
 import { PositiveSats } from "./money";
 
@@ -25,6 +26,7 @@ export const NewExpense = Schema.Struct({
   description: Description,
   amountSats: PositiveSats,
   date: ExpenseDate,
+  split: Schema.optionalKey(ExpenseSplitSchema),
 });
 export const EditExpense = Schema.Struct({ ...NewExpense.fields, version: Version });
 export const ExpenseRequest = Schema.Struct({ inviteKey: InviteKey, expenseId: EntityId });

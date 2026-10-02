@@ -1,9 +1,10 @@
+import { ActionError } from "@/components/action-error";
 import { EventPayments } from "@/components/event-payments";
-import { ExpenseList } from "@/components/expense-list";
 import { ExpenseSummary } from "@/components/expense-summary";
 import { GroupInvite } from "@/components/group-invite";
 import { ParticipantBalances } from "@/components/participant-balances";
 import { buttonVariants } from "@/components/ui/button";
+import { useLiveOverview } from "@/components/use-live-overview";
 import { eventPage } from "@/server/event-page";
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
@@ -19,17 +20,17 @@ function GroupHome(): ReactNode {
   const view = groupRoute.useLoaderData();
   const page = Route.useLoaderData();
   const { overview } = page;
+  const refreshError = useLiveOverview(view.group.status !== "settled");
   return (
     <>
-      <ExpenseSummary overview={overview} selectedParticipantId={view.selectedParticipantId} />
-      <ExpenseList
+      <ExpenseSummary
         inviteKey={inviteKey}
-        entries={overview.entries}
-        participants={view.participants}
+        overview={overview}
         selectedParticipantId={view.selectedParticipantId}
         locked={view.group.status !== "open"}
       />
-      <ParticipantBalances participants={view.participants} balances={overview.balances} />
+      <ParticipantBalances participants={view.participants} balances={overview.balances} status={view.group.status} />
+      <ActionError message={refreshError} />
       <EventPayments inviteKey={inviteKey} view={view} page={page} />
       {page.settlement === null && (
         <Link

@@ -56,8 +56,14 @@ and [VTXO lifetime documentation](https://second.tech/docs/learn/lifetime).
 delivery → owner reopens → Lightning payout. Use compatible signet recipients; ordinary mainnet Lightning addresses
 cannot receive the test payouts.
 
-**Current status:** group creation, invitations, equal expense splitting, expense management, and personal balance
-overviews are implemented. A separate, **server-custodied** Bark signet settlement workspace is available at `/settle`.
+**Current status:** event creation, invitations, expense management, and personal balance overviews are implemented.
+The event overview shows costs and remaining pot payouts; **View expenses** opens the searchable expense list.
+Add/edit expenses support equal splits (everyone or selected people), exact sats, weighted shares, and percentages.
+Weights and percentages support two decimal places; percentages must total 100 and exact amounts must match the total.
+Proportional splits allocate whole sats by largest remainder, with participant IDs breaking ties. Split settings persist
+on edit. Run `pnpm db:migrate` for the additive split-settings migration; existing equal splits remain valid.
+The overview refreshes every 15 seconds while visible, and confirmed settlement payments reduce remaining balances.
+A separate, **server-custodied** Bark signet settlement workspace is available at `/settle`.
 Event creation generates a dedicated signet wallet using `@secondts/bark/web` and saves its public address in
 `groups.ark_address`. Events can lock net obligations and collect Lightning contributions through a persistent
 Barkd receiving wallet, including while the organizer's browser is closed. See [browser pot setup](dev/bark/BROWSER.md).

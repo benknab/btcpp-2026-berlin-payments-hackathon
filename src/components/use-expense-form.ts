@@ -1,5 +1,8 @@
 import { useAction } from "@/components/use-action";
+import { useExpenseSplit } from "@/components/use-expense-split";
+import type { ExpenseSplitState } from "@/components/use-expense-split";
 import type { ExpenseView } from "@/db/expenses";
+import type { ParticipantData } from "@/db/groups";
 import { NewExpense } from "@/domain/expense-input";
 import { expenseDraft, saveExpense, updateExpense } from "@/server/expenses";
 import { useNavigate, useRouter } from "@tanstack/react-router";
@@ -21,6 +24,7 @@ export interface ExpenseFormValues {
   readonly date: string;
 }
 export interface ExpenseFormState {
+  readonly split: ExpenseSplitState;
   readonly values: ExpenseFormValues;
   readonly pending: boolean;
   readonly error: string | null;
@@ -39,11 +43,15 @@ function initialValues(options: ExpenseFormOptions): ExpenseFormValues {
   };
 }
 
-export function useExpenseForm(options: ExpenseFormOptions): ExpenseFormState {
+export function useExpenseForm(
+  options: ExpenseFormOptions,
+  participants: readonly ParticipantData[],
+): ExpenseFormState {
   const action = useAction();
   const router = useRouter();
   const navigate = useNavigate();
   const [values, setValues] = useState(() => initialValues(options));
+  const split = useExpenseSplit(options.existing, participants, values.amount);
   const [validation, setValidation] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -61,9 +69,14 @@ export function useExpenseForm(options: ExpenseFormOptions): ExpenseFormState {
       description: values.description.trim(),
       amountSats: Number(values.amount),
       date: values.date,
+      split: split.config,
     };
     if (!Schema.is(NewExpense)(data)) {
       setValidation("Choose a payer, add a description, and enter positive whole sats and a valid date.");
+      return;
+    }
+    if (split.error !== null) {
+      setValidation(split.error);
       return;
     }
     setValidation(null);
@@ -82,8 +95,9 @@ export function useExpenseForm(options: ExpenseFormOptions): ExpenseFormState {
       const next = await expenseDraft();
       await router.invalidate();
       setValues({ ...values, id: next.id, description: "", amount: "" });
-      setSuccess(`Added ${data.description}. Ready for the next one.`);
+      split.reset();
+      setSuccess(`Added ${data.description}.`);
     }, "Could not save. Check your connection; refresh if someone edited this expense or settlement started.");
   }
-  return { values, pending: action.pending, error: validation ?? action.error, success, change, handleSubmit };
+  return { values, split, pending: action.pending, error: validation ?? action.error, success, change, handleSubmit };
 }
