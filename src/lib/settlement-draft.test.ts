@@ -3,7 +3,12 @@ import { Effect, Schema } from "effect";
 
 import type { PotError } from "./pot";
 import { SettlementPay } from "./settlement";
-import { initialSettlementDraft, prepareSettlementDraft, removeDraftUser } from "./settlement-draft";
+import {
+  fillDraftAddresses,
+  initialSettlementDraft,
+  prepareSettlementDraft,
+  removeDraftUser,
+} from "./settlement-draft";
 import type { SettlementDraft } from "./settlement-draft";
 
 const draft: SettlementDraft = {
@@ -53,5 +58,28 @@ describe("settlement form validation", (): void => {
 
   it("removes a participant's debts rather than leaving dangling references", (): void => {
     expect(removeDraftUser(draft, "alice")).toStrictEqual({ users: [draft.users[1]], debts: [] });
+  });
+
+  it("fills initial participant addresses in request order", () => {
+    const filled = fillDraftAddresses(initialSettlementDraft, ["alice", "bob"], ["tark1ace", "tark1q0q"]);
+    expect(filled.users.map((user) => user.arkAddress)).toStrictEqual(["tark1ace", "tark1q0q"]);
+    expect(filled.debts).toBe(initialSettlementDraft.debts);
+    expect(initialSettlementDraft.users.map((user) => user.arkAddress)).toStrictEqual(["", ""]);
+  });
+
+  it("preserves edits and removed participants when an address response arrives", () => {
+    const current = {
+      ...initialSettlementDraft,
+      users: [
+        { id: "bob", name: "Renamed Bob", arkAddress: "tark1personal" },
+        { id: "carol", name: "Carol", arkAddress: "" },
+      ],
+    };
+    expect(
+      fillDraftAddresses(current, ["alice", "bob", "carol"], ["tark1ace", "tark1q0q", "tark1car0l"]).users,
+    ).toStrictEqual([
+      { id: "bob", name: "Renamed Bob", arkAddress: "tark1personal" },
+      { id: "carol", name: "Carol", arkAddress: "tark1car0l" },
+    ]);
   });
 });

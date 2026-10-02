@@ -30,8 +30,8 @@ export function SettlementSetupForm({
         <CardTitle>Users and debts</CardTitle>
         <CardDescription>
           Enter the agreed debts and everyone’s personal Bark signet address. We net reciprocal debts, so each person
-          only pays or receives their final balance. Saving stores these rows in this pot; no wallet connection is
-          needed.
+          only pays or receives their final balance. Test payout addresses are filled automatically; saving the debts
+          does not spend funds.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -44,7 +44,7 @@ export function SettlementSetupForm({
         </form>
       </CardContent>
       <CardFooter>
-        <Button type="submit" form="settlement-setup" disabled={pending}>
+        <Button type="submit" form="settlement-setup" disabled={pending || controller.addressPending}>
           {pending ? <Spinner data-icon="inline-start" /> : null}
           {pending ? "Saving…" : "Save & lock debts"}
         </Button>

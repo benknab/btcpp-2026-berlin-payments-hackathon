@@ -28,6 +28,21 @@ export const initialSettlementDraft: SettlementDraft = {
   debts: [{ id: "debt-1", from: "alice", to: "bob", amount: "" }],
 };
 
+export function fillDraftAddresses(
+  draft: SettlementDraft,
+  ids: readonly string[],
+  addresses: readonly string[],
+): SettlementDraft {
+  const generated = new Map(ids.map((id, index) => [id, addresses[index]]));
+  return {
+    ...draft,
+    users: draft.users.map((user) => ({
+      ...user,
+      arkAddress: user.arkAddress.trim() === "" ? (generated.get(user.id) ?? user.arkAddress) : user.arkAddress,
+    })),
+  };
+}
+
 const Amount = Schema.NumberFromString.pipe(
   Schema.check(Schema.isInt(), Schema.isGreaterThan(0), Schema.isLessThanOrEqualTo(Number.MAX_SAFE_INTEGER)),
 );

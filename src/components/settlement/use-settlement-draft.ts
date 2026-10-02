@@ -1,6 +1,12 @@
+import { useParticipantAddresses } from "@/components/settlement/use-participant-addresses";
 import type { Obligation } from "@/lib/pot";
 import type { SettlementSetupInput } from "@/lib/settlement";
-import { initialSettlementDraft, prepareSettlementDraft, removeDraftUser } from "@/lib/settlement-draft";
+import {
+  canAddDraftUser,
+  initialSettlementDraft,
+  prepareSettlementDraft,
+  removeDraftUser,
+} from "@/lib/settlement-draft";
 import type { DraftDebt, DraftUser, SettlementDraft } from "@/lib/settlement-draft";
 import { Effect } from "effect";
 import { useState } from "react";
@@ -13,6 +19,9 @@ export interface DraftPreview {
 export interface DraftController {
   readonly draft: SettlementDraft;
   readonly showErrors: boolean;
+  readonly addressPending: boolean;
+  readonly addressError: string | null;
+  readonly handleAddressRetry: () => void;
   readonly preview: DraftPreview | null;
   readonly handlePrepare: () => SettlementSetupInput | null;
   readonly handleUserChange: (user: DraftUser) => void;
@@ -26,11 +35,17 @@ export interface DraftController {
 export function useSettlementDraft(): DraftController {
   const [draft, setDraft] = useState(initialSettlementDraft);
   const [showErrors, setShowErrors] = useState(false);
+  const { addressPending, addressError, generateAddresses } = useParticipantAddresses(setDraft);
   const result = Effect.runSync(Effect.result(prepareSettlementDraft(draft)));
   const preview = result._tag === "Success" ? result.success : null;
   return {
     draft,
     showErrors,
+    addressPending,
+    addressError,
+    handleAddressRetry: (): void => {
+      generateAddresses(draft.users.filter((user) => user.arkAddress.trim() === "").map((user) => user.id));
+    },
     preview,
     handlePrepare: (): SettlementSetupInput | null => {
       setShowErrors(true);
@@ -55,10 +70,15 @@ export function useSettlementDraft(): DraftController {
       setDraft((current) => ({ ...current, debts: current.debts.filter((debt) => debt.id !== id) }));
     },
     handleUserAdd: (): void => {
+      if (!canAddDraftUser(draft) || addressPending) {
+        return;
+      }
+      const id = crypto.randomUUID();
       setDraft((current) => ({
         ...current,
-        users: [...current.users, { id: crypto.randomUUID(), name: "", arkAddress: "" }],
+        users: [...current.users, { id, name: "", arkAddress: "" }],
       }));
+      generateAddresses([id]);
     },
     handleDebtAdd: (): void => {
       setDraft((current) => ({

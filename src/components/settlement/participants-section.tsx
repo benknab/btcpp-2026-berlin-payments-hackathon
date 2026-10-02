@@ -1,3 +1,4 @@
+import { ParticipantAddressStatus } from "@/components/settlement/participant-address-status";
 import { ParticipantInput } from "@/components/settlement/participant-input";
 import type { DraftController } from "@/components/settlement/use-settlement-draft";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,11 @@ export function ParticipantsSection({
   return (
     <FieldSet>
       <FieldLegend>Participants & payout addresses</FieldLegend>
-      <FieldDescription>Addresses are locked when the pot is created. Never enter a recovery phrase.</FieldDescription>
+      <FieldDescription>
+        Testing: fresh tark addresses are filled from the shared signet wallet. Payouts return to that wallet, not
+        individual participants. Replace them with personal addresses if needed; saving locks them.
+      </FieldDescription>
+      <ParticipantAddressStatus controller={controller} pending={pending} />
       <FieldGroup>
         {controller.draft.users.map((user) => (
           <ParticipantInput
@@ -35,7 +40,7 @@ export function ParticipantsSection({
         type="button"
         variant="outline"
         className="self-start"
-        disabled={pending || !canAddDraftUser(controller.draft)}
+        disabled={pending || controller.addressPending || !canAddDraftUser(controller.draft)}
         onClick={controller.handleUserAdd}
       >
         <PlusIcon data-icon="inline-start" /> Add participant

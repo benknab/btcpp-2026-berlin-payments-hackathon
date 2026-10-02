@@ -87,7 +87,13 @@ Open **http://localhost:3100/settle** (also linked from the home page) for the p
 create a SQLite-backed pot and open `/settle/<id>`. Pots, users, and debt rows have auto-increment integer IDs.
 The list marks pots **Unsettled** until Bark confirms all payouts, then **Settled**. Reopen any pot from the list.
 
-Enter participants, distinct personal Bark signet payout addresses, and who owes whom in whole sats. The preview
+For testing, the initial participants and each **Add participant** receive fresh `tark` payout addresses from the
+shared developer signet wallet. Start its daemon on port 3031 using the command above; `BARK_FUNDING_DATADIR` and
+`BARK_FUNDING_URL` select a different existing signet wallet. Address generation does not spend funds or create
+personal wallets: **all default payouts return to the shared wallet**. The fields remain editable. If the daemon is
+unavailable, enter personal signet addresses manually or start it and click **Retry address generation**.
+
+Enter participants, distinct Bark signet payout addresses, and who owes whom in whole sats. The preview
 nets reciprocal debts. Click **Save & lock debts** to persist the participant and debt rows atomically. This does
 not connect to a wallet, start a daemon, or spend funds. Creating, listing, and reopening pots needs only SQLite.
 Details cannot be changed once saved; start a new pot if they are wrong.
