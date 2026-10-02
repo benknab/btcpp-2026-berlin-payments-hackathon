@@ -10,10 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettleRouteImport } from './routes/settle'
 import { Route as GroupsInviteKeyRouteImport } from './routes/groups.$inviteKey'
-import { Route as SettleIndexRouteImport } from './routes/settle.index'
-import { Route as SettlePotIdRouteImport } from './routes/settle.$potId'
 import { Route as GroupsInviteKeyIndexRouteImport } from './routes/groups.$inviteKey.index'
 import { Route as GroupsInviteKeySettlementRouteImport } from './routes/groups.$inviteKey.settlement'
 import { Route as GroupsInviteKeyExpensesIndexRouteImport } from './routes/groups.$inviteKey.expenses.index'
@@ -26,25 +23,10 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettleRoute = SettleRouteImport.update({
-  id: '/settle',
-  path: '/settle',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GroupsInviteKeyRoute = GroupsInviteKeyRouteImport.update({
   id: '/groups/$inviteKey',
   path: '/groups/$inviteKey',
   getParentRoute: () => rootRouteImport,
-} as any)
-const SettleIndexRoute = SettleIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SettleRoute,
-} as any)
-const SettlePotIdRoute = SettlePotIdRouteImport.update({
-  id: '/$potId',
-  path: '/$potId',
-  getParentRoute: () => SettleRoute,
 } as any)
 const GroupsInviteKeyIndexRoute = GroupsInviteKeyIndexRouteImport.update({
   id: '/',
@@ -84,10 +66,7 @@ const GroupsInviteKeyExpensesExpenseIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/settle': typeof SettleRouteWithChildren
   '/groups/$inviteKey': typeof GroupsInviteKeyRouteWithChildren
-  '/settle/$potId': typeof SettlePotIdRoute
-  '/settle/': typeof SettleIndexRoute
   '/groups/$inviteKey/settlement': typeof GroupsInviteKeySettlementRoute
   '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -97,8 +76,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/settle/$potId': typeof SettlePotIdRoute
-  '/settle': typeof SettleIndexRoute
   '/groups/$inviteKey/settlement': typeof GroupsInviteKeySettlementRoute
   '/groups/$inviteKey': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -109,10 +86,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/settle': typeof SettleRouteWithChildren
   '/groups/$inviteKey': typeof GroupsInviteKeyRouteWithChildren
-  '/settle/$potId': typeof SettlePotIdRoute
-  '/settle/': typeof SettleIndexRoute
   '/groups/$inviteKey/settlement': typeof GroupsInviteKeySettlementRoute
   '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -124,10 +98,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/settle'
     | '/groups/$inviteKey'
-    | '/settle/$potId'
-    | '/settle/'
     | '/groups/$inviteKey/settlement'
     | '/groups/$inviteKey/'
     | '/groups/$inviteKey/expenses/$expenseId'
@@ -137,8 +108,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/settle/$potId'
-    | '/settle'
     | '/groups/$inviteKey/settlement'
     | '/groups/$inviteKey'
     | '/groups/$inviteKey/expenses/$expenseId'
@@ -148,10 +117,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/settle'
     | '/groups/$inviteKey'
-    | '/settle/$potId'
-    | '/settle/'
     | '/groups/$inviteKey/settlement'
     | '/groups/$inviteKey/'
     | '/groups/$inviteKey/expenses/$expenseId'
@@ -162,7 +128,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SettleRoute: typeof SettleRouteWithChildren
   GroupsInviteKeyRoute: typeof GroupsInviteKeyRouteWithChildren
 }
 
@@ -175,33 +140,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settle': {
-      id: '/settle'
-      path: '/settle'
-      fullPath: '/settle'
-      preLoaderRoute: typeof SettleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/groups/$inviteKey': {
       id: '/groups/$inviteKey'
       path: '/groups/$inviteKey'
       fullPath: '/groups/$inviteKey'
       preLoaderRoute: typeof GroupsInviteKeyRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/settle/': {
-      id: '/settle/'
-      path: '/'
-      fullPath: '/settle/'
-      preLoaderRoute: typeof SettleIndexRouteImport
-      parentRoute: typeof SettleRoute
-    }
-    '/settle/$potId': {
-      id: '/settle/$potId'
-      path: '/$potId'
-      fullPath: '/settle/$potId'
-      preLoaderRoute: typeof SettlePotIdRouteImport
-      parentRoute: typeof SettleRoute
     }
     '/groups/$inviteKey/': {
       id: '/groups/$inviteKey/'
@@ -248,19 +192,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface SettleRouteChildren {
-  SettlePotIdRoute: typeof SettlePotIdRoute
-  SettleIndexRoute: typeof SettleIndexRoute
-}
-
-const SettleRouteChildren: SettleRouteChildren = {
-  SettlePotIdRoute: SettlePotIdRoute,
-  SettleIndexRoute: SettleIndexRoute,
-}
-
-const SettleRouteWithChildren =
-  SettleRoute._addFileChildren(SettleRouteChildren)
-
 interface GroupsInviteKeyExpensesExpenseIdRouteChildren {
   GroupsInviteKeyExpensesExpenseIdEditRoute: typeof GroupsInviteKeyExpensesExpenseIdEditRoute
 }
@@ -299,7 +230,6 @@ const GroupsInviteKeyRouteWithChildren = GroupsInviteKeyRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SettleRoute: SettleRouteWithChildren,
   GroupsInviteKeyRoute: GroupsInviteKeyRouteWithChildren,
 }
 export const routeTree = rootRouteImport

@@ -1,6 +1,6 @@
 # Project context
 
-This repository is for a project entering the **bitcoin++ Berlin 2026 payments hackathon**, “money in movement” (October 1–3, 2026). The project is a shared-expense app with shared-pot settlement using Bark. See `README.md` for the project direction and stack, and `dev/bark/POTS.md` for the backend mainnet demo.
+This repository is for a project entering the **bitcoin++ Berlin 2026 payments hackathon**, “money in movement” (October 1–3, 2026). The project is a shared-expense app with browser-owned shared-pot settlement using Bark. See `README.md` for the project direction and stack, and `dev/bark/BROWSER.md` for the mainnet demo. The legacy server-owned `/settle` workspace is removed; do not restore its routes or payment engine.
 
 Prioritize a working, demoable Bitcoin project within the roughly 24-hour hacking window. Keep scope small and document setup, the demo flow, and any challenge eligibility requirements as the project takes shape.
 

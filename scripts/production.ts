@@ -12,7 +12,7 @@ process.umask(PRIVATE_UMASK);
 const production = Effect.gen(function* production() {
   const deployment = yield* initializeDeployment();
   yield* serveDeployment(deployment);
-  yield* Effect.logInfo("Deployment ready; login credentials are in /data/runtime.env (not printed to logs).");
+  yield* Effect.logInfo("Deployment ready; receiver credentials remain server-only in /data/runtime.env.");
   const code = yield* deployment.daemon.exitCode;
   return yield* Effect.fail(new Error(`Receiving Barkd exited (${code}); restarting the entire deployment.`));
 });

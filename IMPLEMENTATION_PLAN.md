@@ -1,6 +1,6 @@
 # Implementation plan: Person A + Person B
 
-This plan records the original signet implementation. The managed event settlement and private participant links
+This plan records the original signet implementation. The standalone `/settle` workspace, managed event settlement, and private participant links
 described below have been removed; this is a historical plan, not current setup guidance. See [README.md](README.md)
 and [the browser-wallet guide](dev/bark/BROWSER.md) for the supported mainnet flow.
 

@@ -15,7 +15,6 @@
     "fmt": "vp fmt",
     "fmt:check": "vp fmt --check",
     "lint": "vp lint",
-    "pot:demo": "vp exec tsx src/server/pots/demo.ts",
     "start": "node --import tsx scripts/production.ts",
     "test": "vp test run",
     "test:watch": "vp test",

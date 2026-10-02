@@ -7,9 +7,8 @@ import type { ServerMiddleware } from "srvx";
 import { loadServerEntry } from "srvx/loader";
 import { staticMiddleware } from "srvx/static";
 
-import { authorizeRequest } from "./http-policy";
+import { rejectCrossOriginRequest } from "./http-policy";
 import { configuredValue, deploymentIo } from "./state";
-import type { DeploymentAuth } from "./state";
 
 const MAXIMUM_PORT = 65_535;
 const Port = Schema.Int.check(Schema.isBetween({ minimum: 1, maximum: MAXIMUM_PORT }));
@@ -32,14 +31,14 @@ const loadHandler = Effect.fnUntraced(function* loadHandler() {
 });
 
 function securityMiddleware(
-  settings: Readonly<{ auth: DeploymentAuth; publicOrigin: string | undefined; health: Effect.Effect<Response> }>,
+  settings: Readonly<{ publicOrigin: string | undefined; health: Effect.Effect<Response> }>,
 ): ServerMiddleware {
   return async (request, next): Promise<Response> => {
     const url = new URL(request.url);
     if (url.pathname === "/healthz" && request.method === "GET") {
       return Effect.runPromise(settings.health);
     }
-    const rejected = authorizeRequest(request, settings.auth, settings.publicOrigin ?? url.origin);
+    const rejected = rejectCrossOriginRequest(request, settings.publicOrigin ?? url.origin);
     const original = rejected ?? (await next());
     const response = new Response(original.body, original);
     secureHeaders(response.headers);
@@ -55,7 +54,7 @@ function secureHeaders(headers: Readonly<Headers>): void {
 }
 
 export const serveDeployment = Effect.fn("serveDeployment")(function* serveDeployment(
-  deployment: Readonly<{ auth: DeploymentAuth; wallet: WalletApi }>,
+  deployment: Readonly<{ wallet: WalletApi }>,
 ) {
   const port = yield* Schema.decodeUnknownEffect(Port)(PORT);
   const publicOrigin = configuredValue(process.env["PUBLIC_ORIGIN"]);
@@ -80,7 +79,7 @@ export const serveDeployment = Effect.fn("serveDeployment")(function* serveDeplo
         gracefulShutdown: false,
         maxRequestBodySize: MAXIMUM_BODY_BYTES,
         middleware: [
-          securityMiddleware({ auth: deployment.auth, publicOrigin, health }),
+          securityMiddleware({ publicOrigin, health }),
           staticMiddleware({ dir: "./dist/client", dotfiles: false }),
         ],
         // Use the configured origin, not user-supplied forwarded headers, for SSR and secure cookies.

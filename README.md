@@ -76,7 +76,6 @@ Weights and percentages support two decimal places; percentages must total 100 a
 Proportional splits allocate whole sats by largest remainder, with participant IDs breaking ties. Split settings persist
 on edit. Run `pnpm db:migrate` for the additive split-settings migration; existing equal splits remain valid.
 The overview refreshes every 15 seconds while visible, and confirmed settlement payments reduce remaining balances.
-A separate, **server-custodied** Bark mainnet settlement workspace is available at `/settle`.
 Event creation generates a dedicated mainnet wallet using `@secondts/bark/web` and saves its public address in
 `groups.ark_address`. Events can lock net obligations and collect Lightning contributions through a persistent
 Barkd receiving wallet, including while the organizer's browser is closed. See [browser pot setup](dev/bark/BROWSER.md).
@@ -106,6 +105,13 @@ receiver availability or resolve uncertain payment outcomes.
 Events use only browser-owned wallet settlement. Managed event settlement and private participant links have been
 removed, including their server endpoints and database tables. Run `pnpm db:migrate` to drop `group_settlements` and
 `participant_payments`. Existing managed settlements are not supported or converted; use new events for the browser flow.
+
+The older standalone `/settle` workspace, server-owned pot wallet engine, test-address generator, and `pot:demo`
+command are also removed. Docker serves events and invitations without a shared Basic login; organizer and participant
+cookie checks and cross-origin action protection remain. Legacy standalone table definitions, database records, and
+wallet directories are retained for recovery, with no application actions that read or spend from them. This cleanup
+requires no migration or database reset. Owner recovery remains self-declared as described below; use only small amounts
+with trusted participants, and keep invitation links private.
 
 ### Browser event wallets
 
@@ -146,7 +152,7 @@ practical Bitcoin expense splitting, payments grounded in shared experiences, an
 
 TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4, and shadcn/ui (Base UI, Nova),
 with Bark for payments. Events use `@secondts/bark/web` for the owner's browser wallet and server-side Barkd for
-Lightning collection on the owner's behalf. The separate `/settle` workspace uses backend Barkd wallets.
+Lightning collection on the owner's behalf. Only the browser wallet executes event payouts.
 
 ## Payment diagnostics
 
@@ -225,11 +231,8 @@ Installing the tools or cloning this repository does **not** restore the funded 
 An Ark address is only a receiving destination, not a wallet backup. The legacy recovery phrase in
 `dev/bark/signet.mnemonic` is public and is not a complete backup of that wallet; never use it for mainnet.
 
-The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
-and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local mainnet settlement
-UI: create and list standalone pots at `/settle`, save participants and debts, then open `/settle/<id>` to prepare
-deposits. The backend manages a separate mainnet wallet for each pot. No operator code is required; keep the app local
-because standalone settlement actions are unauthenticated.
+Use [the browser-wallet demo](dev/bark/BROWSER.md) for the supported event settlement flow. The legacy
+[server-owned pot demo](dev/bark/POTS.md) is retired; do not fund its old addresses.
 
 ### Event settlement demo
 
@@ -240,7 +243,7 @@ because standalone settlement actions are unauthenticated.
 5. After settlement, use **Withdraw max** for any remainder. Never resend an uncertain payment manually.
 
 See [the browser-wallet demo](dev/bark/BROWSER.md) for setup and the full flow. Mnemonic recovery and self-declared owner
-access are described above. The unauthenticated standalone workspace means the whole app must remain local/trusted.
+access are described above. Use small amounts with trusted participants; this is not production authentication.
 
 ## Start
 
@@ -253,7 +256,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open <http://localhost:3100> to create a group. Input is validated with Effect Schema and Drizzle queries run as
+Open <http://localhost:3100> to create an event. Input is validated with Effect Schema and Drizzle queries run as
 native Effects. SQLite works locally without a separate database server. Server functions keep database code and
 credentials out of the browser bundle.
 
@@ -263,12 +266,10 @@ Run the production app and Barkd together, with automatic mainnet receiver creat
 
 ```sh
 docker compose up --detach --build --wait --wait-timeout 180
-docker compose exec app grep '^APP_AUTH_' /data/runtime.env
 ```
 
-Open <http://localhost:3100> with the generated login. The entire deployment is password-protected because the
-standalone settlement workspace is not safe for untrusted users. No manual Bark `.env` setup is required.
-The persistent volume contains the full receiver/pot wallet data and application database; never delete it.
+Open <http://localhost:3100>; events and invitations do not require a shared login. No manual Bark `.env` setup is required.
+The persistent volume contains the full receiver wallet data and application database; never delete it.
 See [deployment instructions](deploy/README.md) for HTTPS, reverse proxies, backups, recovery, and security boundaries.
 
 ## Database

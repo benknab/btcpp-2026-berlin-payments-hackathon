@@ -1,8 +1,8 @@
 name: bark-payments
 
 services:
-  # This container includes the web app, an always-running receiving barkd,
-  # and bark/barkd binaries for managed-pot subprocesses. No external daemon is needed.
+  # This container includes the web app and an always-running receiving barkd.
+  # Owner event wallets stay in the browser. No external daemon is needed.
   app:
     build:
       context: ${BARK_PAYMENTS_SOURCE_DIR:-.}
@@ -13,8 +13,6 @@ services:
       - "${APP_BIND_IP:-127.0.0.1}:${APP_PORT:-3100}:3100"
     environment:
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-}
-      APP_AUTH_USERNAME: ${APP_AUTH_USERNAME:-}
-      APP_AUTH_PASSWORD: ${APP_AUTH_PASSWORD:-}
     volumes:
       - payments-data:/data
     read_only: true

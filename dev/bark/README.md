@@ -16,7 +16,7 @@ bark address
 ```
 
 Do not use `--force` or delete an existing wallet to rerun setup. If this directory already contains a wallet,
-use it or choose a different `BARK_DATADIR`; set `BARK_FUNDING_DATADIR` to the same alternative path for the app/demo.
+use it or choose a different `BARK_DATADIR`.
 Keep the wallet directory and recovery phrase outside the repository; never print or commit fresh seed phrases.
 
 ## Fund and check the wallet
@@ -34,19 +34,19 @@ bark balance
 bark vtxos
 ```
 
-The pot demo transfers up to **2,900 real sats plus fees per run**. Check the current spendable balance before running it.
-Ark-to-Ark demo success does not verify Lightning or LNURL payouts.
+The app's event wallets live in the owner's browser, not in this developer wallet. Never send real sats as a deployment
+health check. Ark-to-Ark success does not verify Lightning or LNURL payouts.
 
 ## Start the developer daemon
 
-After funding, start Barkd in a separate terminal for the app's test payout addresses and `pnpm pot:demo`:
+For independent developer-wallet API experiments, start Barkd in a separate terminal:
 
 ```sh
 barkd --datadir "$HOME/.local/share/bark-hackathon-mainnet" --host 127.0.0.1 --port 3041 --no-logfile
 ```
 
-Use your alternative wallet path here if configured. The app/demo default to `http://127.0.0.1:3041`;
-`BARK_FUNDING_URL` overrides that URL. Tokens are retrieved internally; do not commit or expose them.
+Use your alternative wallet path here if configured. The app does not connect to this daemon;
+its dedicated receiving daemon uses port 3042. Do not commit or expose daemon tokens.
 **Do not run Bark CLI wallet commands while Barkd is using the same wallet database.** Stop the daemon first.
 
 ## Existing remote wallet and backups
@@ -69,7 +69,7 @@ with the app database when migrating existing pots; the developer wallet alone i
 
 ## References
 
-For the backend JSON-to-deposits-to-payouts flow, see [the pot demo](POTS.md).
+For the supported event flow, see [browser-owned event pots](BROWSER.md). The [server-owned pot demo](POTS.md) is retired.
 
 - [Bark mainnet guide (source of truth)](https://second.tech/docs/getting-started/bark-cli/mainnet).
 - [Wallet backups and recovery](https://second.tech/docs/backups).

@@ -1,20 +1,9 @@
-import { randomBytes } from "node:crypto";
-import { access, mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { parseEnv } from "node:util";
 
 import { Effect, Schema } from "effect";
 
-const MINIMUM_PASSWORD_LENGTH = 24;
-const USERNAME = Schema.String.check(Schema.isPattern(/^[a-zA-Z0-9_-]+$/u));
-const PASSWORD = Schema.String.check(
-  Schema.isMinLength(MINIMUM_PASSWORD_LENGTH),
-  Schema.isPattern(/^[a-zA-Z0-9_-]+$/u),
-);
-const AuthCredentials = Schema.Struct({ username: USERNAME, password: PASSWORD });
 const MissingFile = Schema.Struct({ code: Schema.Literal("ENOENT") });
-export type DeploymentAuth = typeof AuthCredentials.Type;
-const PASSWORD_BYTES = 32;
 const FILE_MODE = 0o600;
 const DIRECTORY_MODE = 0o700;
 
@@ -74,20 +63,3 @@ export const requireEmptyWallet = Effect.fnUntraced(function* requireEmptyWallet
 export function configuredValue(value: string | undefined): string | undefined {
   return value === "" ? undefined : value;
 }
-
-export const loadDeploymentAuth = Effect.fnUntraced(function* loadDeploymentAuth(directory: string) {
-  const filename = path.join(directory, "runtime.env");
-  const saved = (yield* fileExists(filename))
-    ? parseEnv(yield* deploymentIo(() => readFile(filename, "utf8"), "Could not read deployment credentials."))
-    : {};
-  const username = configuredValue(process.env["APP_AUTH_USERNAME"]) ?? saved["APP_AUTH_USERNAME"] ?? "admin";
-  const password =
-    configuredValue(process.env["APP_AUTH_PASSWORD"]) ??
-    saved["APP_AUTH_PASSWORD"] ??
-    randomBytes(PASSWORD_BYTES).toString("base64url");
-  return yield* Schema.decodeUnknownEffect(AuthCredentials)({ username, password }).pipe(
-    Effect.mapError(
-      () => new Error("Use an alphanumeric auth username and a password of at least 24 URL-safe characters."),
-    ),
-  );
-});

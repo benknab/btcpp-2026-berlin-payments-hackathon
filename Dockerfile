@@ -34,7 +34,6 @@ WORKDIR /app
 ENV NODE_ENV=production \
     DATABASE_URL=file:/data/mainnet.db \
     BARK_RECEIVER_DATADIR=/data/receiver \
-    BARK_POTS_DATADIR=/data/pots \
     PAYMENTS_LOG_DIR=/data/logs \
     BARK_BIN=/usr/local/bin/bark \
     BARKD_BIN=/usr/local/bin/barkd \
