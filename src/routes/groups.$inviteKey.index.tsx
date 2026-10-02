@@ -1,3 +1,4 @@
+import { EventWalletCard } from "@/components/event-wallet-card";
 import { ExpenseList } from "@/components/expense-list";
 import { ExpenseSummary } from "@/components/expense-summary";
 import { GroupInvite } from "@/components/group-invite";
@@ -27,6 +28,9 @@ function GroupHome(): ReactNode {
         locked={view.group.status !== "open"}
       />
       <ParticipantBalances participants={view.participants} balances={overview.balances} />
+      {view.group.arkAddress !== null && (
+        <EventWalletCard arkAddress={view.group.arkAddress} isOrganizer={view.isOrganizer} />
+      )}
       <GroupInvite inviteKey={inviteKey} origin={view.origin} />
     </>
   );
