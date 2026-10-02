@@ -6,14 +6,13 @@ export const MAX_SETTLEMENT_USERS = 20;
 export const MAX_SETTLEMENT_DEBTS = 100;
 const MIN_SETTLEMENT_USERS = 2;
 
-export const SettlementSetup = Schema.Struct({
-  users: PotInputSchema.fields.users.pipe(
-    Schema.check(Schema.isMinLength(MIN_SETTLEMENT_USERS), Schema.isMaxLength(MAX_SETTLEMENT_USERS)),
-  ),
-  debts: PotInputSchema.fields.debts.pipe(
-    Schema.check(Schema.isMinLength(1), Schema.isMaxLength(MAX_SETTLEMENT_DEBTS)),
-  ),
-});
+const SettlementUsers = PotInputSchema.fields.users.pipe(
+  Schema.check(Schema.isMinLength(MIN_SETTLEMENT_USERS), Schema.isMaxLength(MAX_SETTLEMENT_USERS)),
+);
+const SettlementDebts = PotInputSchema.fields.debts.pipe(
+  Schema.check(Schema.isMinLength(1), Schema.isMaxLength(MAX_SETTLEMENT_DEBTS)),
+);
+export const SettlementSetup = Schema.Struct({ users: SettlementUsers, debts: SettlementDebts });
 export type SettlementSetupInput = typeof SettlementSetup.Type;
 
 export const SettlementId = Sats.pipe(Schema.check(Schema.isGreaterThan(0)));

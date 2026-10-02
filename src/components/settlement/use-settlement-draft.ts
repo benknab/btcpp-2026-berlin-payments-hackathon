@@ -10,6 +10,7 @@ import {
 import type { DraftDebt, DraftUser, SettlementDraft } from "@/lib/settlement-draft";
 import { Effect } from "effect";
 import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 export interface DraftPreview {
   readonly setup: SettlementSetupInput;
@@ -32,25 +33,13 @@ export interface DraftController {
   readonly handleDebtAdd: () => void;
 }
 
-export function useSettlementDraft(): DraftController {
-  const [draft, setDraft] = useState(initialSettlementDraft);
-  const [showErrors, setShowErrors] = useState(false);
-  const { addressPending, addressError, generateAddresses } = useParticipantAddresses(setDraft);
-  const result = Effect.runSync(Effect.result(prepareSettlementDraft(draft)));
-  const preview = result._tag === "Success" ? result.success : null;
+function draftEdits(
+  setDraft: Dispatch<SetStateAction<SettlementDraft>>,
+): Pick<
+  DraftController,
+  "handleUserChange" | "handleDebtChange" | "handleUserRemove" | "handleDebtRemove" | "handleDebtAdd"
+> {
   return {
-    draft,
-    showErrors,
-    addressPending,
-    addressError,
-    handleAddressRetry: (): void => {
-      generateAddresses(draft.users.filter((user) => user.arkAddress.trim() === "").map((user) => user.id));
-    },
-    preview,
-    handlePrepare: (): SettlementSetupInput | null => {
-      setShowErrors(true);
-      return preview?.setup ?? null;
-    },
     handleUserChange: (user): void => {
       setDraft((current) => ({
         ...current,
@@ -69,6 +58,38 @@ export function useSettlementDraft(): DraftController {
     handleDebtRemove: (id): void => {
       setDraft((current) => ({ ...current, debts: current.debts.filter((debt) => debt.id !== id) }));
     },
+    handleDebtAdd: (): void => {
+      setDraft((current) => ({
+        ...current,
+        debts: [
+          ...current.debts,
+          { id: crypto.randomUUID(), from: current.users[0]?.id ?? "", to: current.users[1]?.id ?? "", amount: "" },
+        ],
+      }));
+    },
+  };
+}
+
+export function useSettlementDraft(): DraftController {
+  const [draft, setDraft] = useState(initialSettlementDraft);
+  const [showErrors, setShowErrors] = useState(false);
+  const { addressPending, addressError, generateAddresses } = useParticipantAddresses(setDraft);
+  const result = Effect.runSync(Effect.result(prepareSettlementDraft(draft)));
+  const preview = result._tag === "Success" ? result.success : null;
+  return {
+    ...draftEdits(setDraft),
+    draft,
+    showErrors,
+    addressPending,
+    addressError,
+    handleAddressRetry: (): void => {
+      generateAddresses(draft.users.filter((user) => user.arkAddress.trim() === "").map((user) => user.id));
+    },
+    preview,
+    handlePrepare: (): SettlementSetupInput | null => {
+      setShowErrors(true);
+      return preview?.setup ?? null;
+    },
     handleUserAdd: (): void => {
       if (!canAddDraftUser(draft) || addressPending) {
         return;
@@ -79,20 +100,6 @@ export function useSettlementDraft(): DraftController {
         users: [...current.users, { id, name: "", arkAddress: "" }],
       }));
       generateAddresses([id]);
-    },
-    handleDebtAdd: (): void => {
-      setDraft((current) => ({
-        ...current,
-        debts: [
-          ...current.debts,
-          {
-            id: crypto.randomUUID(),
-            from: current.users[0]?.id ?? "",
-            to: current.users[1]?.id ?? "",
-            amount: "",
-          },
-        ],
-      }));
     },
   };
 }

@@ -14,6 +14,7 @@ const STARTUP_ATTEMPTS = 30;
 const STARTUP_DELAY_MS = 100;
 const DAEMON_TIMEOUT_MS = 3000;
 const startupRetry = { times: STARTUP_ATTEMPTS, schedule: Schedule.spaced(STARTUP_DELAY_MS) };
+const WalletInfo = Schema.Struct({ fingerprint: Schema.optional(Schema.NullOr(Schema.NonEmptyString)) });
 
 export interface PotWalletOperations {
   readonly open: (id: number, allowCreate: boolean) => Effect.Effect<BarkOperations, PotError, Scope.Scope>;
@@ -35,10 +36,7 @@ const daemonConfig = Effect.fn("potDaemonConfig")(function* daemonConfig(datadir
   return { basePath: `http://127.0.0.1:${port}`, token: Redacted.make(valid) } satisfies BarkConfig;
 });
 
-const initializeWallet = Effect.fn("initializePotWallet")(function* initializeWallet(
-  config: BarkConfig,
-  allowCreate: boolean,
-) {
+const walletInfo = Effect.fn("potWalletInfo")(function* walletInfo(config: BarkConfig) {
   const wallet = new WalletApi(
     new Configuration({ basePath: config.basePath, accessToken: Redacted.value(config.token) }),
   );
@@ -46,9 +44,16 @@ const initializeWallet = Effect.fn("initializePotWallet")(function* initializeWa
     () => wallet.walletExists({ signal: AbortSignal.timeout(DAEMON_TIMEOUT_MS) }),
     "Pot wallet is still starting",
   ).pipe(Effect.retry(startupRetry));
-  const valid = yield* Schema.decodeUnknownEffect(
-    Schema.Struct({ fingerprint: Schema.optional(Schema.NullOr(Schema.NonEmptyString)) }),
-  )(info).pipe(Effect.mapError((): PotError => new PotError({ message: "Pot wallet returned an invalid response" })));
+  return yield* Schema.decodeUnknownEffect(WalletInfo)(info).pipe(
+    Effect.mapError((): PotError => new PotError({ message: "Pot wallet returned an invalid response" })),
+  );
+});
+
+const initializeWallet = Effect.fn("initializePotWallet")(function* initializeWallet(
+  config: BarkConfig,
+  allowCreate: boolean,
+) {
+  const valid = yield* walletInfo(config);
   const bark = makeBark(config);
   if (valid.fingerprint === undefined || valid.fingerprint === null) {
     if (!allowCreate) {

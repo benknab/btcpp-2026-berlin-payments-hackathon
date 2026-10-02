@@ -52,12 +52,7 @@ const verifyRecipients = Effect.fn("verifyRecipients")(function* verifyRecipient
   }
 });
 
-export const simulate = Effect.fn("simulatePot")(function* simulate(options: Simulation) {
-  const database = yield* Database;
-  yield* migrate(database, { migrationsFolder: "./drizzle" });
-  let pot = yield* createPot(options.input);
-  // All payout and per-user deposit addresses exist before funding.
-  yield* report(pot);
+const fundPot = Effect.fn("fundDemoPot")(function* fundPot(options: Simulation, pot: Pot) {
   const payers = pot.participants.filter((participant): boolean => participant.payInSat > 0);
   if (
     payers.length * USER_FUNDING_SAT + POT_FEE_RESERVE_SAT > MAX_DEMO_FUNDING_SAT ||
@@ -77,10 +72,18 @@ export const simulate = Effect.fn("simulatePot")(function* simulate(options: Sim
     yield* options.funding.send(user.arkAddress, USER_FUNDING_SAT);
     yield* user.bark.sync();
     yield* user.bark.send(payer.depositAddress, payer.payInSat);
-    pot = yield* confirmPot(pot.id);
-    yield* report(pot);
+    yield* report(yield* confirmPot(pot.id));
   }
-  pot = yield* settlePot(pot.id);
+});
+
+export const simulate = Effect.fn("simulatePot")(function* simulate(options: Simulation) {
+  const database = yield* Database;
+  yield* migrate(database, { migrationsFolder: "./drizzle" });
+  const initial = yield* createPot(options.input);
+  // All payout and per-user deposit addresses exist before funding.
+  yield* report(initial);
+  yield* fundPot(options, initial);
+  const pot = yield* settlePot(initial.id);
   yield* verifyRecipients(pot, options.users);
   yield* report(pot);
   yield* io(() =>

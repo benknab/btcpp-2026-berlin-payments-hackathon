@@ -1,7 +1,8 @@
 import { ActionError } from "@/components/action-error";
+import { LabeledField } from "@/components/labeled-field";
+import { SectionCard } from "@/components/section-card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAction } from "@/components/use-action";
 import { CopyIcon } from "lucide-react";
@@ -21,29 +22,23 @@ export function GroupInvite({ inviteKey, origin }: { readonly inviteKey: string;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Invite participants</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="invite-link">Invitation link</FieldLabel>
-            <Input
-              id="invite-link"
-              value={url}
-              readOnly
-              onFocus={(event) => {
-                event.currentTarget.select();
-              }}
-            />
-          </Field>
-        </FieldGroup>
-        <Button variant="outline" className="self-start" onClick={copy} disabled={action.pending}>
-          <CopyIcon data-icon="inline-start" /> {copied ? "Link copied" : "Copy invitation"}
-        </Button>
-        <ActionError message={action.error} />
-      </CardContent>
-    </Card>
+    <SectionCard title="Invite participants" contentClassName="flex flex-col gap-4">
+      <FieldGroup>
+        <LabeledField id="invite-link" label="Invitation link">
+          <Input
+            id="invite-link"
+            value={url}
+            readOnly
+            onFocus={(event) => {
+              event.currentTarget.select();
+            }}
+          />
+        </LabeledField>
+      </FieldGroup>
+      <Button variant="outline" className="self-start" onClick={copy} disabled={action.pending}>
+        <CopyIcon data-icon="inline-start" /> {copied ? "Link copied" : "Copy invitation"}
+      </Button>
+      <ActionError message={action.error} />
+    </SectionCard>
   );
 }

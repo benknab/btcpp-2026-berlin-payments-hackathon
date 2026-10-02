@@ -1,14 +1,13 @@
 import { useAction } from "@/components/use-action";
+import { usePeopleInput } from "@/components/use-people-input";
+import type { PersonInput } from "@/components/use-people-input";
 import { NewGroup } from "@/domain/group-input";
 import { newGroup } from "@/server/groups";
 import { useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
-export interface PersonInput {
-  readonly id: number;
-  readonly name: string;
-}
+export type { PersonInput } from "@/components/use-people-input";
 
 interface GroupCreateState {
   readonly name: string;
@@ -29,20 +28,9 @@ export function useGroupCreate(): GroupCreateState {
   const action = useAction();
   const [name, setName] = useState("");
   const [organizerName, setOrganizerName] = useState("");
-  const [people, setPeople] = useState<readonly PersonInput[]>([{ id: 1, name: "" }]);
-  const nextId = useRef(1);
+  const { people, addPerson, changePerson, removePerson } = usePeopleInput();
   const [validation, setValidation] = useState<string | null>(null);
 
-  function addPerson(): void {
-    nextId.current += 1;
-    setPeople([...people, { id: nextId.current, name: "" }]);
-  }
-  function changePerson(id: number, value: string): void {
-    setPeople(people.map((person) => (person.id === id ? { ...person, name: value } : person)));
-  }
-  function removePerson(id: number): void {
-    setPeople(people.filter((person) => person.id !== id));
-  }
   function handleSubmit(event: { readonly preventDefault: () => void }): void {
     event.preventDefault();
     const data = {

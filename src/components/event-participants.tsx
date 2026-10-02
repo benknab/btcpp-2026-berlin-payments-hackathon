@@ -1,8 +1,8 @@
 import { EventPersonFields } from "@/components/event-person-fields";
 import { Button } from "@/components/ui/button";
-import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { MAX_PARTICIPANT_NAME, MAX_PARTICIPANTS } from "@/domain/group-input";
+import { FieldGroup, FieldLegend, FieldSet } from "@/components/ui/field";
+import { OrganizerNameField } from "@/components/organizer-name-field";
+import { MAX_PARTICIPANTS } from "@/domain/group-input";
 import { PlusIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -28,18 +28,7 @@ export function EventParticipants(): ReactNode {
     <FieldSet className="gap-6">
       <FieldLegend>Participants</FieldLegend>
       <FieldGroup className="gap-6">
-        <Field>
-          <FieldLabel htmlFor="your-name">You</FieldLabel>
-          <Input
-            id="your-name"
-            name="organizerName"
-            placeholder="Your name"
-            autoComplete="given-name"
-            className="h-12 px-4"
-            required
-            maxLength={MAX_PARTICIPANT_NAME}
-          />
-        </Field>
+        <OrganizerNameField />
         {people.map((id, index) => (
           <EventPersonFields
             key={id}

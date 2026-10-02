@@ -1,6 +1,6 @@
 import { ActionError } from "@/components/action-error";
+import { SectionCard } from "@/components/section-card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAction } from "@/components/use-action";
 import type { ParticipantData } from "@/db/groups";
 import { chooseParticipant } from "@/server/groups";
@@ -26,27 +26,22 @@ export function ParticipantChooser({ inviteKey, participants, onChosen }: Choose
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Select your name</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
-          {participants.map((participant) => (
-            <Button
-              key={participant.id}
-              variant="outline"
-              disabled={action.pending}
-              onClick={() => {
-                choose(participant.id);
-              }}
-            >
-              {participant.name}
-            </Button>
-          ))}
-        </div>
-        <ActionError message={action.error} />
-      </CardContent>
-    </Card>
+    <SectionCard title="Select your name" contentClassName="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        {participants.map((participant) => (
+          <Button
+            key={participant.id}
+            variant="outline"
+            disabled={action.pending}
+            onClick={() => {
+              choose(participant.id);
+            }}
+          >
+            {participant.name}
+          </Button>
+        ))}
+      </div>
+      <ActionError message={action.error} />
+    </SectionCard>
   );
 }

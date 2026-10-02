@@ -17,12 +17,13 @@ const OtherParticipants = Schema.Array(ParticipantName).pipe(
   Schema.check(Schema.isMinLength(1), Schema.isMaxLength(MAX_PARTICIPANTS - 1)),
 );
 export const EntityId = Schema.String.pipe(Schema.check(Schema.isUUID()));
+const ParticipantLnurls = Schema.Array(Schema.NullOr(Lnurl));
 
 export const NewGroup = Schema.Struct({
   name: GroupName,
   organizerName: ParticipantName,
   participantNames: OtherParticipants,
-  participantLnurls: Schema.optional(Schema.Array(Schema.NullOr(Lnurl))),
+  participantLnurls: Schema.optional(ParticipantLnurls),
 }).pipe(
   Schema.check(
     Schema.makeFilter((input) => {

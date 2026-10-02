@@ -86,6 +86,37 @@ const validateTotals = Effect.fn("validateTotals")(function* validateTotals(
   });
 });
 
+function matchesExpense(existing: Expense, valid: typeof NewExpense.Type, groupId: string): boolean {
+  return (
+    existing.groupId === groupId &&
+    existing.payerId === valid.payerId &&
+    existing.description === valid.description &&
+    existing.amountSats === valid.amountSats &&
+    existing.date === valid.date
+  );
+}
+
+const insertShares = Effect.fn("insertExpenseShares")(function* insertShares(
+  expenseId: string,
+  shares: readonly ExpenseShare[],
+) {
+  const database = yield* Database;
+  yield* database
+    .insert(expenseShares)
+    .values(shares.map((share) => ({ participantId: share.participantId, amountSats: share.amountSats, expenseId })));
+});
+
+const requireMatchingExpense = Effect.fn("requireMatchingExpense")(function* requireMatchingExpense(
+  existing: Expense,
+  valid: typeof NewExpense.Type,
+  groupId: string,
+) {
+  if (!matchesExpense(existing, valid, groupId)) {
+    return yield* new ExpenseError({ message: "This expense request was already used. Open a fresh expense form." });
+  }
+  return existing.id;
+});
+
 export const addExpense = Effect.fn("addExpense")(function* addExpense(
   input: typeof NewExpense.Type,
 ): Effect.fn.Return<string, ExpenseFailure, Database> {
@@ -97,18 +128,7 @@ export const addExpense = Effect.fn("addExpense")(function* addExpense(
       yield* requireParticipant(valid.inviteKey, valid.payerId);
       const [existing] = yield* database.select().from(expenses).where(eq(expenses.id, valid.expenseId));
       if (existing !== undefined) {
-        if (
-          existing.groupId === view.group.id &&
-          existing.payerId === valid.payerId &&
-          existing.description === valid.description &&
-          existing.amountSats === valid.amountSats &&
-          existing.date === valid.date
-        ) {
-          return existing.id;
-        }
-        return yield* new ExpenseError({
-          message: "This expense request was already used. Open a fresh expense form.",
-        });
+        return yield* requireMatchingExpense(existing, valid, view.group.id);
       }
       const shares = yield* splitEqually(
         valid.amountSats,
@@ -125,16 +145,31 @@ export const addExpense = Effect.fn("addExpense")(function* addExpense(
       };
       yield* validateTotals(valid.inviteKey, { ...expense, createdAt: "", shares });
       yield* database.insert(expenses).values(expense);
-      yield* database.insert(expenseShares).values(
-        shares.map((share) => ({
-          participantId: share.participantId,
-          amountSats: share.amountSats,
-          expenseId: expense.id,
-        })),
-      );
+      yield* insertShares(expense.id, shares);
       return expense.id;
     }),
   );
+});
+
+const persistReplacement = Effect.fn("persistExpenseReplacement")(function* persistReplacement(
+  replacement: ExpenseView,
+  version: number,
+) {
+  const database = yield* Database;
+  yield* database
+    .update(expenses)
+    .set({
+      payerId: replacement.payerId,
+      description: replacement.description,
+      amountSats: replacement.amountSats,
+      date: replacement.date,
+      version: replacement.version,
+    })
+    .where(
+      and(eq(expenses.id, replacement.id), eq(expenses.groupId, replacement.groupId), eq(expenses.version, version)),
+    );
+  yield* database.delete(expenseShares).where(eq(expenseShares.expenseId, replacement.id));
+  yield* insertShares(replacement.id, replacement.shares);
 });
 
 export const editExpense = Effect.fn("editExpense")(function* editExpense(
@@ -164,30 +199,7 @@ export const editExpense = Effect.fn("editExpense")(function* editExpense(
         shares,
       };
       yield* validateTotals(valid.inviteKey, replacement);
-      yield* database
-        .update(expenses)
-        .set({
-          payerId: replacement.payerId,
-          description: replacement.description,
-          amountSats: replacement.amountSats,
-          date: replacement.date,
-          version: replacement.version,
-        })
-        .where(
-          and(
-            eq(expenses.id, original.id),
-            eq(expenses.groupId, original.groupId),
-            eq(expenses.version, valid.version),
-          ),
-        );
-      yield* database.delete(expenseShares).where(eq(expenseShares.expenseId, original.id));
-      yield* database.insert(expenseShares).values(
-        shares.map((share) => ({
-          participantId: share.participantId,
-          amountSats: share.amountSats,
-          expenseId: original.id,
-        })),
-      );
+      yield* persistReplacement(replacement, valid.version);
       return original.id;
     }),
   );

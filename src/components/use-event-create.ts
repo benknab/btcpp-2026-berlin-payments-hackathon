@@ -16,6 +16,13 @@ function formText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function receivingAddressError(values: readonly string[]): string | null {
+  if (values.some((value) => value !== "" && !isLnurl(value))) {
+    return LNURL_ERROR;
+  }
+  return hasUniqueLnurls(values) ? null : DUPLICATE_LNURL_ERROR;
+}
+
 export function useEventCreate(): EventCreateState {
   const navigate = useNavigate();
   const action = useAction();
@@ -23,12 +30,9 @@ export function useEventCreate(): EventCreateState {
 
   function submit(form: Readonly<FormData>): void {
     const participantLnurls = form.getAll("participantLnurl").map((value: unknown) => formText(value));
-    if (participantLnurls.some((value) => value !== "" && !isLnurl(value))) {
-      setValidation(LNURL_ERROR);
-      return;
-    }
-    if (!hasUniqueLnurls(participantLnurls)) {
-      setValidation(DUPLICATE_LNURL_ERROR);
+    const addressError = receivingAddressError(participantLnurls);
+    if (addressError !== null) {
+      setValidation(addressError);
       return;
     }
     const input = {

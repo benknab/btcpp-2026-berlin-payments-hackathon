@@ -7,6 +7,31 @@ export const DUPLICATE_LNURL_ERROR = "Each participant needs a different LNURL o
 
 const LIGHTNING_ADDRESS = /^[a-z\d._+-]+@(?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+[a-z]{2,63}$/u;
 
+function lightningAddressEndpoint(candidate: string): string {
+  const separator = candidate.indexOf("@");
+  const username = candidate.slice(0, separator);
+  const domain = candidate.slice(separator + 1);
+  return new URL(`https://${domain}/.well-known/lnurlp/${encodeURIComponent(username)}`).href;
+}
+
+function encodedEndpoint(candidate: string): string | null {
+  const decoded = bech32.decodeToBytes(candidate, MAX_LNURL_LENGTH);
+  if (decoded.prefix !== "lnurl") {
+    return null;
+  }
+  const destination = new TextDecoder("utf-8", { fatal: true }).decode(decoded.bytes);
+  const url = new URL(destination);
+  const valid =
+    destination.startsWith("https://") &&
+    !/\s/u.test(destination) &&
+    url.protocol === "https:" &&
+    url.hostname.length > 0 &&
+    url.username === "" &&
+    url.password === "" &&
+    url.hash === "";
+  return valid ? url.href : null;
+}
+
 /** Resolves syntax locally without contacting the receiving service. */
 function lnurlEndpoint(value: string): string | null {
   if (value.length > MAX_LNURL_LENGTH || value !== value.trim()) {
@@ -14,27 +39,7 @@ function lnurlEndpoint(value: string): string | null {
   }
   const candidate = value.replace(/^lightning:/iu, "");
   try {
-    if (LIGHTNING_ADDRESS.test(candidate)) {
-      const separator = candidate.indexOf("@");
-      const username = candidate.slice(0, separator);
-      const domain = candidate.slice(separator + 1);
-      return new URL(`https://${domain}/.well-known/lnurlp/${encodeURIComponent(username)}`).href;
-    }
-    const decoded = bech32.decodeToBytes(candidate, MAX_LNURL_LENGTH);
-    if (decoded.prefix !== "lnurl") {
-      return null;
-    }
-    const destination = new TextDecoder("utf-8", { fatal: true }).decode(decoded.bytes);
-    const url = new URL(destination);
-    const valid =
-      destination.startsWith("https://") &&
-      !/\s/u.test(destination) &&
-      url.protocol === "https:" &&
-      url.hostname.length > 0 &&
-      url.username === "" &&
-      url.password === "" &&
-      url.hash === "";
-    return valid ? url.href : null;
+    return LIGHTNING_ADDRESS.test(candidate) ? lightningAddressEndpoint(candidate) : encodedEndpoint(candidate);
   } catch {
     return null;
   }

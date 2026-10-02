@@ -28,7 +28,7 @@ export interface Obligation {
   readonly receiveSat: number;
 }
 
-export const calculateObligations = Effect.fn("calculateObligations")(function* calculateObligations(input: PotInput) {
+const initialBalances = Effect.fn("initialPotBalances")(function* initialBalances(input: PotInput) {
   const balances = new Map(input.users.map((user): [string, number] => [user.id, 0]));
   const addresses = new Set(input.users.map((user): string => user.arkAddress));
   if (input.users.length === 0 || balances.size !== input.users.length || addresses.size !== input.users.length) {
@@ -36,19 +36,33 @@ export const calculateObligations = Effect.fn("calculateObligations")(function* 
       message: "Users must have unique IDs and payout addresses; at least one is required",
     });
   }
+  return balances;
+});
+
+const applyDebt = Effect.fn("applyPotDebt")(function* applyDebt(
+  balances: Readonly<Map<string, number>>,
+  debt: PotInput["debts"][number],
+) {
+  const from = balances.get(debt.from);
+  const to = balances.get(debt.to);
+  if (from === undefined || to === undefined || debt.from === debt.to) {
+    yield* new PotError({ message: "Debts must reference two different participants" });
+    return;
+  }
+  const debit = from - debt.amountSat;
+  const credit = to + debt.amountSat;
+  if (!Number.isSafeInteger(debit) || !Number.isSafeInteger(credit)) {
+    yield* new PotError({ message: "Debt totals exceed safe integer sats" });
+    return;
+  }
+  balances.set(debt.from, debit);
+  balances.set(debt.to, credit);
+});
+
+export const calculateObligations = Effect.fn("calculateObligations")(function* calculateObligations(input: PotInput) {
+  const balances = yield* initialBalances(input);
   for (const debt of input.debts) {
-    const from = balances.get(debt.from);
-    const to = balances.get(debt.to);
-    if (from === undefined || to === undefined || debt.from === debt.to) {
-      return yield* new PotError({ message: "Debts must reference two different participants" });
-    }
-    const debit = from - debt.amountSat;
-    const credit = to + debt.amountSat;
-    if (!Number.isSafeInteger(debit) || !Number.isSafeInteger(credit)) {
-      return yield* new PotError({ message: "Debt totals exceed safe integer sats" });
-    }
-    balances.set(debt.from, debit);
-    balances.set(debt.to, credit);
+    yield* applyDebt(balances, debt);
   }
   const obligations = Array.from(balances, ([userId, balance]: readonly [string, number]): Obligation => ({
     userId,

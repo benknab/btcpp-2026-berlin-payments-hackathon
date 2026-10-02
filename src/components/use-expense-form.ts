@@ -29,17 +29,21 @@ export interface ExpenseFormState {
   readonly handleSubmit: (event: { readonly preventDefault: () => void }) => void;
 }
 
-export function useExpenseForm(options: ExpenseFormOptions): ExpenseFormState {
-  const action = useAction();
-  const router = useRouter();
-  const navigate = useNavigate();
-  const [values, setValues] = useState<ExpenseFormValues>({
+function initialValues(options: ExpenseFormOptions): ExpenseFormValues {
+  return {
     id: options.id,
     payerId: options.payerId,
     date: options.date,
     description: options.existing?.description ?? "",
     amount: options.existing === null ? "" : String(options.existing.amountSats),
-  });
+  };
+}
+
+export function useExpenseForm(options: ExpenseFormOptions): ExpenseFormState {
+  const action = useAction();
+  const router = useRouter();
+  const navigate = useNavigate();
+  const [values, setValues] = useState(() => initialValues(options));
   const [validation, setValidation] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 

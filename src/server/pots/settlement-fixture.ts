@@ -103,8 +103,10 @@ export function withFixture(
       return { open: (id: number): Effect.Effect<BarkOperations, PotError> => value.open(id) };
     }),
   ).pipe(Layer.provide(controls));
+  const store = PotStoreLive.pipe(Layer.provide(database));
+  const services = Layer.mergeAll(database, controls, wallets, store);
   return Effect.gen(function* fixture() {
     yield* migrate(yield* Database, { migrationsFolder: "./drizzle" });
     yield* test();
-  }).pipe(Effect.provide(Layer.mergeAll(database, controls, wallets, PotStoreLive.pipe(Layer.provide(database)))));
+  }).pipe(Effect.provide(services));
 }

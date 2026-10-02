@@ -21,7 +21,15 @@ interface SettlementController {
   readonly handleReload: () => void;
 }
 
-export function useSettlement(initialPot: SettlementDocument): SettlementController {
+interface SettlementRequestState {
+  readonly pot: SettlementDocument;
+  readonly error: string | null;
+  readonly pending: PendingAction | null;
+  readonly needsRefresh: boolean;
+  readonly run: (action: PendingAction, request: () => Promise<SettlementResult>) => void;
+}
+
+function useSettlementRequest(initialPot: SettlementDocument): SettlementRequestState {
   const [pot, setPot] = useState(initialPot);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingAction | null>(null);
@@ -60,6 +68,12 @@ export function useSettlement(initialPot: SettlementDocument): SettlementControl
         setPending(null);
       });
   }
+
+  return { pot, error, pending, needsRefresh, run };
+}
+
+export function useSettlement(initialPot: SettlementDocument): SettlementController {
+  const { pot, error, pending, needsRefresh, run } = useSettlementRequest(initialPot);
 
   return {
     pot,

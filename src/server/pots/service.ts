@@ -1,6 +1,7 @@
 import { calculateObligations, PotError, PotInputSchema } from "@/lib/pot";
 import type { Pot, PotParticipant } from "@/lib/pot";
 import { Bark } from "@/server/bark/service";
+import type { BarkMovement } from "@/server/bark/service";
 import { Effect, Schema } from "effect";
 
 import { payoutMovement, updateParticipant, withReceipts } from "./receipts";
@@ -88,6 +89,12 @@ const confirmPayout = Effect.fn("confirmPayout")(function* confirmPayout(pot: Po
   );
 });
 
+function historyCursor(history: readonly BarkMovement[]): number {
+  let cursor = 0;
+  for (const movement of history) { cursor = Math.max(cursor, movement.id); }
+  return cursor;
+}
+
 const payParticipant = Effect.fn("payParticipant")(function* payParticipant(pot: Pot, participant: PotParticipant) {
   if (participant.payoutStatus === "sending") {
     return yield* confirmPayout(pot, participant);
@@ -95,10 +102,7 @@ const payParticipant = Effect.fn("payParticipant")(function* payParticipant(pot:
   const bark = yield* Bark;
   const store = yield* PotStore;
   const history = yield* bark.history();
-  let payoutHistoryCursor = 0;
-  for (const movement of history) {
-    payoutHistoryCursor = Math.max(payoutHistoryCursor, movement.id);
-  }
+  const payoutHistoryCursor = historyCursor(history);
   const sending = {
     ...participant,
     payoutStatus: "sending",
@@ -110,29 +114,33 @@ const payParticipant = Effect.fn("payParticipant")(function* payParticipant(pot:
   return yield* confirmPayout(saved, sending);
 });
 
-export const settlePot = Effect.fn("settlePot")(function* settlePot(id: string) {
-  let pot = yield* confirmPot(id);
-  if (pot.status === "settled") {
-    return pot;
-  }
-  if (pot.participants.some((participant): boolean => participant.receivedSat < participant.payInSat)) {
-    return yield* new PotError({ message: "Every participant must complete their own deposit before payouts" });
-  }
-  const bark = yield* Bark;
+const reconcilePayouts = Effect.fn("reconcilePayouts")(function* reconcilePayouts(initial: Pot) {
+  let pot = initial;
   // Reconcile uncertain attempts before checking the remaining balance (a previous send may have spent it).
   for (const participant of pot.participants) {
     if (participant.payoutStatus === "sending") {
       pot = yield* confirmPayout(pot, participant);
     }
   }
+  return pot;
+});
+
+const requirePayoutFunds = Effect.fn("requirePayoutFunds")(function* requirePayoutFunds(pot: Pot) {
+  const bark = yield* Bark;
   yield* bark.sync();
   const remaining = pot.participants.reduce(
     (sum, participant): number => sum + (participant.payoutStatus === "paid" ? 0 : participant.receiveSat),
     0,
   );
   if ((yield* bark.balance()) < remaining) {
-    return yield* new PotError({ message: "Pot has insufficient spendable funds for remaining payouts" });
+    yield* new PotError({ message: "Pot has insufficient spendable funds for remaining payouts" });
   }
+});
+
+const payRemainingParticipants = Effect.fn("payRemainingParticipants")(function* payRemainingParticipants(
+  initial: Pot,
+) {
+  let pot = initial;
   for (const participant of pot.participants) {
     if (participant.receiveSat > 0 && participant.payoutStatus !== "paid") {
       pot = yield* payParticipant(pot, participant);
@@ -140,4 +148,17 @@ export const settlePot = Effect.fn("settlePot")(function* settlePot(id: string) 
   }
   const store = yield* PotStore;
   return yield* store.save({ ...pot, status: "settled" });
+});
+
+export const settlePot = Effect.fn("settlePot")(function* settlePot(id: string) {
+  const confirmed = yield* confirmPot(id);
+  if (confirmed.status === "settled") {
+    return confirmed;
+  }
+  if (confirmed.participants.some((participant): boolean => participant.receivedSat < participant.payInSat)) {
+    return yield* new PotError({ message: "Every participant must complete their own deposit before payouts" });
+  }
+  const reconciled = yield* reconcilePayouts(confirmed);
+  yield* requirePayoutFunds(reconciled);
+  return yield* payRemainingParticipants(reconciled);
 });

@@ -25,19 +25,26 @@ const executePayment = Effect.fn("executeSettlementPayment")(function* executePa
   return yield* kind === "refresh" ? confirmPot(id) : settlePot(id);
 });
 
+const requirePaymentReady = Effect.fn("requirePaymentReady")(function* requirePaymentReady(
+  kind: "prepare" | "refresh" | "pay",
+  pot: SettlementDocument,
+) {
+  if (!pot.locked) {
+    yield* new PotError({ message: "Save the participants and debts before preparing deposits" });
+  }
+  if (kind !== "prepare" && pot.execution === null) {
+    yield* new PotError({ message: "Prepare this pot's deposits first" });
+  }
+});
+
 export const runSettlementAction = Effect.fn("runSettlementAction")(function* runSettlementAction(action: Action) {
   if (action.kind === "save") {
     return yield* saveSettlement(action.id, action.setup);
   }
   const pot = yield* loadSettlement(action.id);
-  if (!pot.locked) {
-    return yield* new PotError({ message: "Save the participants and debts before preparing deposits" });
-  }
+  yield* requirePaymentReady(action.kind, pot);
   if (action.kind === "prepare" && pot.execution !== null) {
     return pot;
-  }
-  if (action.kind !== "prepare" && pot.execution === null) {
-    return yield* new PotError({ message: "Prepare this pot's deposits first" });
   }
   const wallets = yield* PotWallet;
   const bark = yield* wallets.open(pot.id, pot.execution === null);

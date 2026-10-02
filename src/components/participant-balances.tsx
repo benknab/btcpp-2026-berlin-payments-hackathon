@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/section-card";
+import { SummaryItem } from "@/components/summary-item";
 import type { ParticipantData } from "@/db/groups";
 import type { ParticipantBalance } from "@/domain/accounting";
 import { formatSats } from "@/domain/money";
@@ -19,24 +20,14 @@ export function ParticipantBalances({
   readonly balances: readonly ParticipantBalance[];
 }): ReactNode {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Balances</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <dl className="flex flex-col gap-3 text-sm">
-          {participants.map((person) => (
-            <div key={person.id} className="flex flex-wrap justify-between gap-2">
-              <dt>{person.name}</dt>
-              <dd className="tabular-nums">
-                {describeBalance(
-                  balances.find((balance) => balance.participantId === person.id)?.expenseBalanceSats ?? 0,
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </CardContent>
-    </Card>
+    <SectionCard title="Balances">
+      <dl className="flex flex-col gap-3 text-sm">
+        {participants.map((person) => (
+          <SummaryItem key={person.id} label={person.name} className="flex flex-wrap justify-between gap-2">
+            {describeBalance(balances.find((balance) => balance.participantId === person.id)?.expenseBalanceSats ?? 0)}
+          </SummaryItem>
+        ))}
+      </dl>
+    </SectionCard>
   );
 }

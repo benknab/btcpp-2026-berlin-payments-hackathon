@@ -26,14 +26,19 @@ const Fixture = Schema.Struct({
   ),
 });
 
-const demo = Effect.gen(function* demo() {
+const loadFixture = Effect.fn("loadDemoFixture")(function* loadFixture() {
   const fixture = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(Fixture))(
     yield* io(() => readFile("dev/bark/pot.example.json", "utf8")),
   );
   if (fixture.users.length !== DEMO_USERS) {
-    yield* new DemoError({ message: "Demo supports exactly four users; adjust ports/budget before changing this" });
-    return;
+    return yield* new DemoError({
+      message: "Demo supports exactly four users; adjust ports/budget before changing this",
+    });
   }
+  return fixture;
+});
+
+const fundingWallet = Effect.fn("demoFundingWallet")(function* fundingWallet() {
   const fundingConfig = yield* walletConfig(
     process.env["BARK_FUNDING_DATADIR"] ?? path.join(homedir(), ".local", "share", "bark-hackathon-signet"),
     process.env["BARK_FUNDING_URL"] ?? "http://127.0.0.1:3031",
@@ -43,9 +48,14 @@ const demo = Effect.gen(function* demo() {
   yield* funding.fingerprint();
   yield* funding.sync();
   if ((yield* funding.balance()) < MAX_DEMO_FUNDING_SAT) {
-    yield* new DemoError({ message: "Shared signet wallet needs at least 26,000 spendable sats" });
-    return;
+    return yield* new DemoError({ message: "Shared signet wallet needs at least 26,000 spendable sats" });
   }
+  return funding;
+});
+
+const demo = Effect.gen(function* demo() {
+  const fixture = yield* loadFixture();
+  const funding = yield* fundingWallet();
   const directory = yield* makeDemoDirectory();
   yield* Effect.sync((): void => {
     process.stdout.write(`Wallets and durable pot state: ${directory}\n`);

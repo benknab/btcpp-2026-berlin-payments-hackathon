@@ -1,17 +1,10 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/section-card";
+import { PotListRow } from "@/components/settlement/pot-list-row";
+import { TableHeading } from "@/components/table-heading";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableHead } from "@/components/ui/table";
 import type { SettlementSummary } from "@/lib/settlement";
-import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-
-function potStage(pot: SettlementSummary): string {
-  if (pot.status === "settled") {
-    return "Complete";
-  }
-  return pot.locked ? "Debts saved" : "Set up debts";
-}
 
 export function PotList({ pots }: Readonly<{ pots: readonly SettlementSummary[] }>): ReactNode {
   if (pots.length === 0) {
@@ -24,43 +17,25 @@ export function PotList({ pots }: Readonly<{ pots: readonly SettlementSummary[] 
       </Empty>
     );
   }
+  const table = (
+    <Table>
+      <TableCaption>Pots are saved in SQLite and remain available after a reload.</TableCaption>
+      <TableHeading>
+        <TableHead>Pot</TableHead>
+        <TableHead>Status</TableHead>
+        <TableHead>Stage</TableHead>
+        <TableHead>Created</TableHead>
+      </TableHeading>
+      <TableBody>
+        {pots.map((pot) => (
+          <PotListRow key={pot.id} pot={pot} />
+        ))}
+      </TableBody>
+    </Table>
+  );
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Your pots</CardTitle>
-        <CardDescription>Open a pot to view its users, debts, and payment progress.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableCaption>Pots are saved in SQLite and remain available after a reload.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Pot</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Stage</TableHead>
-              <TableHead>Created</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pots.map((pot) => (
-              <TableRow key={pot.id}>
-                <TableCell>
-                  <Link to="/settle/$potId" params={{ potId: String(pot.id) }} className="underline underline-offset-4">
-                    Pot #{pot.id}
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={pot.status === "settled" ? "default" : "secondary"}>
-                    {pot.status === "settled" ? "Settled" : "Unsettled"}
-                  </Badge>
-                </TableCell>
-                <TableCell>{potStage(pot)}</TableCell>
-                <TableCell>{pot.createdAt}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <SectionCard title="Your pots" description="Open a pot to view its users, debts, and payment progress.">
+      {table}
+    </SectionCard>
   );
 }

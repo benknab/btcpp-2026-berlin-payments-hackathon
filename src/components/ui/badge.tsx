@@ -30,11 +30,12 @@ function Badge({
   render,
   ...props
 }: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>): React.ReactNode {
+  const classes = cn(badgeVariants({ variant }), className);
   return useRender({
     defaultTagName: "span",
     props: mergeProps<"span">(
       {
-        className: cn(badgeVariants({ variant }), className),
+        className: classes,
       },
       props,
     ),

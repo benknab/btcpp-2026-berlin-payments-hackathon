@@ -20,6 +20,24 @@ function decode(value: string): Effect.Effect<Pot, PotError> {
   );
 }
 
+const savePot = Effect.fn("savePotSnapshot")(function* savePot(pot: Pot) {
+  const database = yield* Database;
+  const next = { ...pot, revision: pot.revision + 1 };
+  return yield* database
+    .update(pots)
+    .set({ revision: next.revision, snapshot: JSON.stringify(next) })
+    .where(and(eq(pots.id, pot.id), eq(pots.revision, pot.revision)))
+    .returning({ id: pots.id })
+    .pipe(
+      Effect.mapError((): PotError => new PotError({ message: "Could not persist pot" })),
+      Effect.flatMap((rows: readonly { readonly id: string }[]) =>
+        rows.length === 1
+          ? Effect.succeed(next)
+          : Effect.fail(new PotError({ message: "Pot changed concurrently; reload before continuing" })),
+      ),
+    );
+});
+
 export const PotStoreLive = Layer.effect(
   PotStore,
   Effect.gen(function* makeStore() {
@@ -64,22 +82,7 @@ export const PotStoreLive = Layer.effect(
               rows[0] === undefined ? Effect.succeed(null) : decode(rows[0].snapshot),
             ),
           ),
-      save: (pot): Effect.Effect<Pot, PotError> => {
-        const next = { ...pot, revision: pot.revision + 1 };
-        return database
-          .update(pots)
-          .set({ revision: next.revision, snapshot: JSON.stringify(next) })
-          .where(and(eq(pots.id, pot.id), eq(pots.revision, pot.revision)))
-          .returning({ id: pots.id })
-          .pipe(
-            Effect.mapError((): PotError => new PotError({ message: "Could not persist pot" })),
-            Effect.flatMap((rows: readonly { readonly id: string }[]) =>
-              rows.length === 1
-                ? Effect.succeed(next)
-                : Effect.fail(new PotError({ message: "Pot changed concurrently; reload before continuing" })),
-            ),
-          );
-      },
+      save: (pot): Effect.Effect<Pot, PotError> => savePot(pot).pipe(Effect.provideService(Database, database)),
     };
   }),
 );

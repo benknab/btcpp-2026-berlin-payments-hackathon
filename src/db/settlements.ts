@@ -44,6 +44,17 @@ export const listSettlements = Effect.fn("listSettlements")(function* listSettle
   );
 });
 
+const loadExecution = Effect.fn("loadSettlementExecution")(function* loadExecution(id: number) {
+  const database = yield* Database;
+  const [snapshot] = yield* database
+    .select({ snapshot: pots.snapshot })
+    .from(pots)
+    .where(eq(pots.id, settlementPaymentId(id)));
+  return snapshot === undefined
+    ? null
+    : yield* Schema.decodeUnknownEffect(Schema.fromJsonString(PotSchema))(snapshot.snapshot);
+});
+
 export const loadSettlement = Effect.fn("loadSettlement")(function* loadSettlement(id: number) {
   yield* Schema.decodeUnknownEffect(SettlementId)(id);
   const database = yield* Database;
@@ -62,15 +73,7 @@ export const loadSettlement = Effect.fn("loadSettlement")(function* loadSettleme
     .from(settlementDebts)
     .where(eq(settlementDebts.potId, id))
     .orderBy(asc(settlementDebts.id));
-  const snapshots = yield* database
-    .select({ snapshot: pots.snapshot })
-    .from(pots)
-    .where(eq(pots.id, settlementPaymentId(id)));
-  const [snapshot] = snapshots;
-  const execution =
-    snapshot === undefined
-      ? null
-      : yield* Schema.decodeUnknownEffect(Schema.fromJsonString(PotSchema))(snapshot.snapshot);
+  const execution = yield* loadExecution(id);
   return {
     ...row,
     users,
