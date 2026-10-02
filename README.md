@@ -16,17 +16,19 @@ that browser is closed, and a recovery phrase can restore spendable Ark funds in
 
 ## How it works
 
-1. **Create an event.** The owner gets a Bark wallet in their browser. Save its recovery phrase to restore funds later.
-   Invite participants and have them choose their receiving destinations.
+1. **Create an event.** The browser uses `@secondts/bark/web` to generate a recovery phrase with `generateMnemonic()`,
+   create the owner's wallet with `Wallet.open()`, and get its Ark address with `newAddress()`. Keys stay in the
+   browser. Save the recovery phrase, invite participants, and choose receiving destinations.
 2. **Add expenses.** Record who paid and split costs equally, by exact amounts, by weights, or by percentages.
-3. **Settle up.** Start settlement to lock the balances. Participants who owe money pay the owner via Lightning
-   invoices. A server-side Barkd receiver uses Bark's receive-for-address flow to deliver contributions to the
-   owner's event wallet, even while the owner's browser is closed.
-4. **Pay participants.** The owner reopens the event, syncs their Bark wallet, funds any required payment fees,
-   and sends payouts from their browser to Lightning addresses, LNURL-pay, BOLT12 offers, or mainnet Ark addresses.
-
-The recovery phrase restores spendable Ark funds, not payment history or in-progress exits; it is not a complete
-wallet-data backup. See [wallet recovery and trust boundaries](dev/bark/BROWSER.md#recovery-and-trust).
+   Splitbark calculates everyone's balance; no payments happen yet.
+3. **Collect contributions.** Start settlement to lock the balances. The server uses `@secondts/barkd`'s
+   `LightningApi.generateInvoiceForAddress()` to create Lightning invoices targeting the owner's Ark address.
+   Participants who owe money pay their invoices. Barkd delivers the funds even while the owner's browser is closed;
+   `getReceiveStatus()` tracks delivery.
+4. **Pay participants.** The owner reopens the event and calls `sync()` on their browser wallet. Splitbark estimates
+   fees with `estimateLightningSendFee()` or `estimateArkoorPaymentFee()` and requests any required fee deposit.
+   The wallet pays Lightning addresses/LNURL-pay via `payLightningInvoice()` after resolving an invoice,
+   BOLT12 offers via `payLightningOffer()`, and Ark addresses via `sendArkoorPayment()`.
 
 Created and joined events appear under **Your events** on the home page. This browser stores only their invitation
 IDs in local storage; event names are fetched from the server. Clearing browser storage clears this list.
