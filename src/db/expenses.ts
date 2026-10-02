@@ -117,6 +117,14 @@ const requireMatchingExpense = Effect.fn("requireMatchingExpense")(function* req
   return existing.id;
 });
 
+const insertExpense = Effect.fn("insertExpenseWithShares")(function* insertExpense(
+  expense: Omit<ExpenseView, "createdAt">,
+) {
+  const database = yield* Database;
+  yield* database.insert(expenses).values(expense);
+  yield* insertShares(expense.id, expense.shares);
+});
+
 export const addExpense = Effect.fn("addExpense")(function* addExpense(
   input: typeof NewExpense.Type,
 ): Effect.fn.Return<string, ExpenseFailure, Database> {
@@ -144,8 +152,7 @@ export const addExpense = Effect.fn("addExpense")(function* addExpense(
         version: 1,
       };
       yield* validateTotals(valid.inviteKey, { ...expense, createdAt: "", shares });
-      yield* database.insert(expenses).values(expense);
-      yield* insertShares(expense.id, shares);
+      yield* insertExpense({ ...expense, shares });
       return expense.id;
     }),
   );

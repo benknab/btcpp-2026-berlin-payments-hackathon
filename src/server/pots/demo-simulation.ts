@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { Database } from "@/db/database";
 import { PotError } from "@/lib/pot";
-import type { Pot, PotInput } from "@/lib/pot";
+import type { Pot, PotInput, PotParticipant } from "@/lib/pot";
 import type { BarkOperations } from "@/server/bark/service";
 import { migrate } from "drizzle-orm/effect-libsql/migrator";
 import { Effect } from "effect";
@@ -52,6 +52,17 @@ const verifyRecipients = Effect.fn("verifyRecipients")(function* verifyRecipient
   }
 });
 
+const fundPayer = Effect.fn("fundDemoPayer")(function* fundPayer(options: Simulation, payer: PotParticipant) {
+  const user = options.users.find((candidate): boolean => candidate.id === payer.userId);
+  if (user === undefined) {
+    yield* new DemoError({ message: "Missing demo wallet" });
+    return;
+  }
+  yield* options.funding.send(user.arkAddress, USER_FUNDING_SAT);
+  yield* user.bark.sync();
+  yield* user.bark.send(payer.depositAddress, payer.payInSat);
+});
+
 const fundPot = Effect.fn("fundDemoPot")(function* fundPot(options: Simulation, pot: Pot) {
   const payers = pot.participants.filter((participant): boolean => participant.payInSat > 0);
   if (
@@ -64,14 +75,7 @@ const fundPot = Effect.fn("fundDemoPot")(function* fundPot(options: Simulation, 
   // Separate reserve is not credited to any participant's contribution.
   yield* options.funding.send(yield* options.potBark.address(), POT_FEE_RESERVE_SAT);
   for (const payer of payers) {
-    const user = options.users.find((candidate): boolean => candidate.id === payer.userId);
-    if (user === undefined) {
-      yield* new DemoError({ message: "Missing demo wallet" });
-      return;
-    }
-    yield* options.funding.send(user.arkAddress, USER_FUNDING_SAT);
-    yield* user.bark.sync();
-    yield* user.bark.send(payer.depositAddress, payer.payInSat);
+    yield* fundPayer(options, payer);
     yield* report(yield* confirmPot(pot.id));
   }
 });

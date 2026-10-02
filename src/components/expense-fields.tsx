@@ -1,10 +1,10 @@
+import { ExpenseAmountField } from "@/components/expense-amount-field";
+import { ExpensePayerField } from "@/components/expense-payer-field";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { ExpenseFormState } from "@/components/use-expense-form";
 import type { ParticipantData } from "@/db/groups";
 import { MAX_DESCRIPTION } from "@/domain/expense-input";
-import { MAX_SATS } from "@/domain/money";
 import type { ReactNode } from "react";
 
 export function ExpenseFields({
@@ -16,25 +16,7 @@ export function ExpenseFields({
 }): ReactNode {
   return (
     <FieldGroup>
-      <Field data-disabled={form.pending}>
-        <FieldLabel htmlFor="expense-payer">Who paid?</FieldLabel>
-        <NativeSelect
-          id="expense-payer"
-          value={form.values.payerId}
-          disabled={form.pending}
-          required
-          className="w-full"
-          onChange={(event) => {
-            form.change("payerId", event.target.value);
-          }}
-        >
-          {participants.map((person) => (
-            <NativeSelectOption key={person.id} value={person.id}>
-              {person.name}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-      </Field>
+      <ExpensePayerField form={form} participants={participants} />
       <Field data-disabled={form.pending}>
         <FieldLabel htmlFor="expense-description">Description</FieldLabel>
         <Input
@@ -49,24 +31,7 @@ export function ExpenseFields({
           }}
         />
       </Field>
-      <Field data-disabled={form.pending}>
-        <FieldLabel htmlFor="expense-amount">Amount (sats)</FieldLabel>
-        <Input
-          id="expense-amount"
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={MAX_SATS}
-          step={1}
-          placeholder="12000"
-          value={form.values.amount}
-          required
-          disabled={form.pending}
-          onChange={(event) => {
-            form.change("amount", event.target.value);
-          }}
-        />
-      </Field>
+      <ExpenseAmountField form={form} />
       <Field data-disabled={form.pending}>
         <FieldLabel htmlFor="expense-date">Date</FieldLabel>
         <Input

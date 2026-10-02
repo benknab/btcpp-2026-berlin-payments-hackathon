@@ -62,7 +62,9 @@ function createSignetWallet(wallet: Readonly<WalletApi>): Effect.Effect<void, Ba
 }
 
 function walletDetails(wallet: Readonly<WalletApi>): Effect.Effect<unknown, BarkError> {
-  return request("wallet", (signal: Readonly<AbortSignal>): ReturnType<WalletApi["walletExists"]> => wallet.walletExists({ signal }));
+  return request("wallet", (signal: Readonly<AbortSignal>): ReturnType<WalletApi["walletExists"]> =>
+    wallet.walletExists({ signal }),
+  );
 }
 
 export function makeBark(config: BarkConfig): BarkOperations {
@@ -88,7 +90,8 @@ export function makeBark(config: BarkConfig): BarkOperations {
       request("history", (signal: Readonly<AbortSignal>): ReturnType<HistoryApi["list"]> =>
         historyApi.list({}, { signal }),
       ).pipe(Effect.flatMap((value: unknown) => decode("history", Schema.Array(BarkMovementSchema), value))),
-    sync: (): Effect.Effect<void, BarkError> => request("sync", (signal: Readonly<AbortSignal>): Promise<void> => wallet.sync({ signal })),
+    sync: (): Effect.Effect<void, BarkError> =>
+      request("sync", (signal: Readonly<AbortSignal>): Promise<void> => wallet.sync({ signal })),
     ready: (): Effect.Effect<void, BarkError> => walletDetails(wallet).pipe(Effect.asVoid),
     fingerprint: (): Effect.Effect<string, BarkError> =>
       ensureSignet(wallet).pipe(

@@ -91,7 +91,9 @@ const confirmPayout = Effect.fn("confirmPayout")(function* confirmPayout(pot: Po
 
 function historyCursor(history: readonly BarkMovement[]): number {
   let cursor = 0;
-  for (const movement of history) { cursor = Math.max(cursor, movement.id); }
+  for (const movement of history) {
+    cursor = Math.max(cursor, movement.id);
+  }
   return cursor;
 }
 

@@ -1,9 +1,7 @@
 import { ActionError } from "@/components/action-error";
-import { LabeledField } from "@/components/labeled-field";
+import { ReadOnlyField } from "@/components/read-only-field";
 import { SectionCard } from "@/components/section-card";
 import { Button } from "@/components/ui/button";
-import { FieldGroup } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { useAction } from "@/components/use-action";
 import { CopyIcon } from "lucide-react";
 import { useState } from "react";
@@ -23,18 +21,7 @@ export function GroupInvite({ inviteKey, origin }: { readonly inviteKey: string;
 
   return (
     <SectionCard title="Invite participants" contentClassName="flex flex-col gap-4">
-      <FieldGroup>
-        <LabeledField id="invite-link" label="Invitation link">
-          <Input
-            id="invite-link"
-            value={url}
-            readOnly
-            onFocus={(event) => {
-              event.currentTarget.select();
-            }}
-          />
-        </LabeledField>
-      </FieldGroup>
+      <ReadOnlyField id="invite-link" label="Invitation link" value={url} selectOnFocus />
       <Button variant="outline" className="self-start" onClick={copy} disabled={action.pending}>
         <CopyIcon data-icon="inline-start" /> {copied ? "Link copied" : "Copy invitation"}
       </Button>

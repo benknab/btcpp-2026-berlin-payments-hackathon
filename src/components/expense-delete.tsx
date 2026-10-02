@@ -37,6 +37,23 @@ export function ExpenseDelete({
       await router.invalidate();
     }, "Could not delete this expense. Refresh if it changed or settlement started.");
   }
+  const confirmation = (
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Delete {expense.description}?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This removes the expense and its shares from everyone’s balance. It cannot be undone.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <ActionError message={action.error} />
+      <AlertDialogFooter>
+        <AlertDialogCancel disabled={action.pending}>Keep expense</AlertDialogCancel>
+        <AlertDialogAction variant="destructive" disabled={action.pending} onClick={handleDelete}>
+          {action.pending ? "Deleting…" : "Delete expense"}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  );
   return (
     <AlertDialog
       open={open}
@@ -47,21 +64,7 @@ export function ExpenseDelete({
       }}
     >
       <AlertDialogTrigger render={<Button variant="destructive" />}>Delete expense</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete {expense.description}?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This removes the expense and its shares from everyone’s balance. It cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <ActionError message={action.error} />
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={action.pending}>Keep expense</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" disabled={action.pending} onClick={handleDelete}>
-            {action.pending ? "Deleting…" : "Delete expense"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+      {confirmation}
     </AlertDialog>
   );
 }

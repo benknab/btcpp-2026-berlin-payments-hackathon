@@ -1,8 +1,8 @@
 import { ActionError } from "@/components/action-error";
+import { GroupNameField } from "@/components/group-name-field";
 import { GroupPeopleFields } from "@/components/group-people-fields";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { GroupNameField } from "@/components/group-name-field";
 import { useGroupCreate } from "@/components/use-group-create";
 import type { ReactNode } from "react";
 
@@ -11,7 +11,13 @@ export function GroupCreateForm(): ReactNode {
   return (
     <form onSubmit={form.handleSubmit} className="flex flex-col gap-6">
       <FieldGroup>
-        <GroupNameField name={form.name} pending={form.pending} onChange={form.setName} />
+        <GroupNameField
+          name={form.name}
+          pending={form.pending}
+          onChange={(value) => {
+            form.setName(value);
+          }}
+        />
         <GroupPeopleFields
           organizerName={form.organizerName}
           people={form.people}

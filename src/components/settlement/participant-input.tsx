@@ -1,3 +1,4 @@
+import { ParticipantNameField } from "@/components/settlement/participant-name-field";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -28,19 +29,7 @@ export function ParticipantInput({
   const invalidAddress = showErrors && !Schema.is(SignetAddress)(user.arkAddress.trim());
   return (
     <FieldGroup className="rounded-lg border p-4">
-      <Field data-invalid={invalidName} data-disabled={pending}>
-        <FieldLabel htmlFor={`${user.id}-name`}>Participant name</FieldLabel>
-        <Input
-          id={`${user.id}-name`}
-          value={user.name}
-          required
-          disabled={pending}
-          aria-invalid={invalidName}
-          onChange={(event): void => {
-            onChange({ ...user, name: event.target.value });
-          }}
-        />
-      </Field>
+      <ParticipantNameField user={user} pending={pending} invalid={invalidName} onChange={onChange} />
       <Field data-invalid={invalidAddress} data-disabled={pending}>
         <FieldLabel htmlFor={`${user.id}-address`}>Payout address for {user.name || "participant"}</FieldLabel>
         <Input

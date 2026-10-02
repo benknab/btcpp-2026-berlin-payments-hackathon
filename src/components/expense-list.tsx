@@ -1,9 +1,9 @@
+import { EmptyState } from "@/components/empty-state";
+import { ExpenseListItem } from "@/components/expense-list-item";
+import { SectionCard } from "@/components/section-card";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import type { ExpenseView } from "@/db/expenses";
 import type { ParticipantData } from "@/db/groups";
-import { formatSats } from "@/domain/money";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
@@ -21,51 +21,31 @@ export function ExpenseList({
   readonly locked: boolean;
 }): ReactNode {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Expenses</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {entries.length === 0 ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>No expenses</EmptyTitle>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <ul className="flex flex-col divide-y">
-            {entries.map((expense) => (
-              <li key={expense.id}>
-                <Link
-                  to="/groups/$inviteKey/expenses/$expenseId"
-                  params={{ inviteKey, expenseId: expense.id }}
-                  className="flex flex-col gap-1 rounded-md py-4 outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <p className="text-sm font-medium">
-                    {participants.find((person) => person.id === expense.payerId)?.name ?? "Participant"} paid{" "}
-                    {formatSats(expense.amountSats)} for {expense.description}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {expense.date} · Split between {expense.shares.length} people · Your share:{" "}
-                    {formatSats(
-                      expense.shares.find((share) => share.participantId === selectedParticipantId)?.amountSats ?? 0,
-                    )}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-        {locked ? null : (
-          <Link
-            to="/groups/$inviteKey/expenses/new"
-            params={{ inviteKey }}
-            className={buttonVariants({ className: "self-start" })}
-          >
-            Add expense
-          </Link>
-        )}
-      </CardContent>
-    </Card>
+    <SectionCard title="Expenses" contentClassName="flex flex-col gap-4">
+      {entries.length === 0 ? (
+        <EmptyState title="No expenses" />
+      ) : (
+        <ul className="flex flex-col divide-y">
+          {entries.map((expense) => (
+            <ExpenseListItem
+              key={expense.id}
+              inviteKey={inviteKey}
+              expense={expense}
+              participants={participants}
+              selectedParticipantId={selectedParticipantId}
+            />
+          ))}
+        </ul>
+      )}
+      {locked ? null : (
+        <Link
+          to="/groups/$inviteKey/expenses/new"
+          params={{ inviteKey }}
+          className={buttonVariants({ className: "self-start" })}
+        >
+          Add expense
+        </Link>
+      )}
+    </SectionCard>
   );
 }

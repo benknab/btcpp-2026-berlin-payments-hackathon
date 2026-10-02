@@ -18,25 +18,27 @@ function GroupLayout(): ReactNode {
   const { inviteKey } = Route.useParams();
   const [choosing, setChoosing] = useState(false);
   const selected = view.participants.find((participant) => participant.id === view.selectedParticipantId);
+  const identity =
+    selected === undefined ? null : (
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">{selected.name}</p>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setChoosing(true);
+          }}
+        >
+          Switch person
+        </Button>
+      </div>
+    );
 
   return (
     <PageShell>
       <section className="flex flex-col gap-3">
         <h1 className="text-3xl font-semibold tracking-tight text-balance">{view.group.name}</h1>
-        {selected !== undefined && (
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-muted-foreground">{selected.name}</p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setChoosing(true);
-              }}
-            >
-              Switch person
-            </Button>
-          </div>
-        )}
+        {identity}
       </section>
       {selected === undefined || choosing ? (
         <ParticipantChooser

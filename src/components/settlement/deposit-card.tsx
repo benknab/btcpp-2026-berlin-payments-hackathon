@@ -1,9 +1,7 @@
-import { LabeledField } from "@/components/labeled-field";
+import { ReadOnlyField } from "@/components/read-only-field";
 import { SectionCard } from "@/components/section-card";
 import { CopyAddress } from "@/components/settlement/copy-address";
 import { Badge } from "@/components/ui/badge";
-import { FieldGroup } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import type { PotParticipant } from "@/lib/pot";
 import type { ReactNode } from "react";
 
@@ -18,15 +16,13 @@ export function DepositCard({ participant }: Readonly<{ participant: PotParticip
       action={<Badge variant={paid ? "default" : "outline"}>{paid ? "Paid in full" : "Awaiting deposit"}</Badge>}
       footer={<CopyAddress address={participant.depositAddress} />}
     >
-      <FieldGroup>
-        <LabeledField
-          id={`deposit-${participant.userId}`}
-          label={`Pot deposit address for ${participant.name}`}
-          description="Send only signet Ark sats to this address, not to a participant’s payout address. Click “Check deposits” after paying."
-        >
-          <Input id={`deposit-${participant.userId}`} value={participant.depositAddress} readOnly spellCheck={false} />
-        </LabeledField>
-      </FieldGroup>
+      <ReadOnlyField
+        id={`deposit-${participant.userId}`}
+        label={`Pot deposit address for ${participant.name}`}
+        value={participant.depositAddress}
+        spellCheck={false}
+        description="Send only signet Ark sats to this address, not to a participant’s payout address. Click “Check deposits” after paying."
+      />
     </SectionCard>
   );
 }

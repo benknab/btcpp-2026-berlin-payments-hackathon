@@ -1,7 +1,7 @@
 import { EventPersonFields } from "@/components/event-person-fields";
+import { OrganizerNameField } from "@/components/organizer-name-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldLegend, FieldSet } from "@/components/ui/field";
-import { OrganizerNameField } from "@/components/organizer-name-field";
 import { MAX_PARTICIPANTS } from "@/domain/group-input";
 import { PlusIcon } from "lucide-react";
 import { useRef, useState } from "react";

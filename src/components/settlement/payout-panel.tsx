@@ -1,8 +1,8 @@
 import { SectionCard } from "@/components/section-card";
 import { PayoutDestinations } from "@/components/settlement/payout-destinations";
+import { PayoutReview } from "@/components/settlement/payout-review";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import type { Pot } from "@/lib/pot";
 import { potFullyFunded, payoutFundingMessage } from "@/lib/settlement";
@@ -29,15 +29,7 @@ export function PayoutPanel({ pot, pending, needsRefresh, onRefresh, onPay }: Pa
     <FieldGroup>
       <PayoutDestinations pot={pot} />
       {settled ? null : (
-        <Field orientation="horizontal" data-disabled={!fullyFunded || pending || needsRefresh}>
-          <Checkbox
-            id="review-payouts"
-            checked={reviewed}
-            onCheckedChange={setReviewed}
-            disabled={!fullyFunded || pending || needsRefresh}
-          />
-          <FieldLabel htmlFor="review-payouts">I have reviewed the payout amounts and addresses.</FieldLabel>
-        </Field>
+        <PayoutReview reviewed={reviewed} onChange={setReviewed} disabled={!fullyFunded || pending || needsRefresh} />
       )}
       <p className="text-sm text-muted-foreground" aria-live="polite">
         {payoutFundingMessage(pot, needsRefresh)}

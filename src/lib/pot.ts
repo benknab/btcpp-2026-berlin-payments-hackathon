@@ -39,30 +39,29 @@ const initialBalances = Effect.fn("initialPotBalances")(function* initialBalance
   return balances;
 });
 
-const applyDebt = Effect.fn("applyPotDebt")(function* applyDebt(
-  balances: Readonly<Map<string, number>>,
+const debtBalances = Effect.fn("potDebtBalances")(function* debtBalances(
+  balances: Readonly<ReadonlyMap<string, number>>,
   debt: PotInput["debts"][number],
 ) {
   const from = balances.get(debt.from);
   const to = balances.get(debt.to);
   if (from === undefined || to === undefined || debt.from === debt.to) {
-    yield* new PotError({ message: "Debts must reference two different participants" });
-    return;
+    return yield* new PotError({ message: "Debts must reference two different participants" });
   }
   const debit = from - debt.amountSat;
   const credit = to + debt.amountSat;
   if (!Number.isSafeInteger(debit) || !Number.isSafeInteger(credit)) {
-    yield* new PotError({ message: "Debt totals exceed safe integer sats" });
-    return;
+    return yield* new PotError({ message: "Debt totals exceed safe integer sats" });
   }
-  balances.set(debt.from, debit);
-  balances.set(debt.to, credit);
+  return { debit, credit };
 });
 
 export const calculateObligations = Effect.fn("calculateObligations")(function* calculateObligations(input: PotInput) {
   const balances = yield* initialBalances(input);
   for (const debt of input.debts) {
-    yield* applyDebt(balances, debt);
+    const { debit, credit } = yield* debtBalances(balances, debt);
+    balances.set(debt.from, debit);
+    balances.set(debt.to, credit);
   }
   const obligations = Array.from(balances, ([userId, balance]: readonly [string, number]): Obligation => ({
     userId,
