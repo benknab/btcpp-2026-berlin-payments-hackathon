@@ -1,4 +1,12 @@
 const messages = {
+  lnurlAddressInvalid: "Invalid Lightning receiving address.",
+  lnurlHttpsRequired: "The receiving service must use HTTPS.",
+  lnurlUnavailable: "The receiving service is unavailable. Retry or change the receiving address.",
+  lnurlResponseInvalid: "The receiving service returned an invalid response. No payment was started.",
+  lnurlAmountUnsupported: "The receiving service does not support this payout amount. Change the receiving address.",
+  lnurlInvoiceInvalid: "The receiving service returned an invalid mainnet invoice. No payment was started.",
+  lnurlInvoiceAmount: "The receiving invoice amount does not match the payout. No payment was started.",
+  lnurlInvoiceExpired: "The receiving service returned an expired invoice. No payment was started. Retry.",
   bolt12NotStarted: "The BOLT12 payment did not start. Retry or change the receiving address.",
   bolt12InvoiceTimeout:
     "Bark timed out fetching the BOLT12 invoice. No payment was started. Retry or change the receiving address.",

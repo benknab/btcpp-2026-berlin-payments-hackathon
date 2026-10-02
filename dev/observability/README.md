@@ -60,7 +60,8 @@ can lose the last batch. HMR disposes the old runtime and flushes its exporters.
 4. **Fees:** `payout.balance.checked` records `requiredSats` and `spendableSats`. A shortfall needs a fee reserve.
 5. **LNURL:** `lnurl.http` records only the host, `lnurl.http.response` the HTTP status, and `lnurl.limits` the
    service's millisatoshi limits. No response plus `TypeError` commonly means network/CORS; inspect the browser's
-   Network panel. `lnurl.invoice.validated` confirms amount, expiry, and metadata hash validation.
+   Network panel. `lnurl.invoice.validate` identifies invoice validation failures; `lnurl.invoice.validated` confirms
+   mainnet network, amount, and expiry validation. Metadata/description hash equality is not required by current LUD-06.
 6. **Payout:** `payout.claimed` distinguishes a new send from reconciliation; `wallet.lightning.send` or
    `wallet.lightning.reconcile` reports the wallet result. `payout.proof.verified` and `payout.confirmed` record
    completion. Native Ark/BOLT12 sends use `wallet.native.send/reconcile`.

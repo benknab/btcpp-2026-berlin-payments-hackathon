@@ -1,6 +1,6 @@
-import { parseMainnetInvoice } from "@/domain/bolt11";
 import { lnurlEndpoint } from "@/domain/lnurl";
-import { hex } from "@scure/base";
+import { validateLnurlInvoice } from "@/domain/lnurl-pay";
+import { PaymentError } from "@/domain/payment-error";
 import { Schema } from "effect";
 
 import type { BrowserTrace } from "./telemetry";
@@ -16,10 +16,18 @@ const PayRequest = Schema.Struct({
 });
 const InvoiceResponse = Schema.Struct({ pr: Schema.String });
 
+function decodeResponse<Value>(schema: Schema.ConstraintDecoder<Value>, value: unknown): Value {
+  try {
+    return Schema.decodeUnknownSync(schema)(value);
+  } catch {
+    throw new PaymentError("lnurlResponseInvalid");
+  }
+}
+
 async function getJson(url: string, trace: BrowserTrace): Promise<unknown> {
   const endpoint = new URL(url);
   if (endpoint.protocol !== "https:" || endpoint.username !== "" || endpoint.password !== "" || endpoint.hash !== "") {
-    throw new Error("The receiving service must use HTTPS.");
+    throw new PaymentError("lnurlHttpsRequired");
   }
   const response = await trace.step("lnurl.http", { host: endpoint.hostname }, () =>
     fetch(endpoint, {
@@ -30,28 +38,23 @@ async function getJson(url: string, trace: BrowserTrace): Promise<unknown> {
   );
   await trace.log("lnurl.http.response", { host: endpoint.hostname, httpStatus: response.status });
   if (!response.ok) {
-    throw new Error("The receiving service is unavailable.");
+    throw new PaymentError("lnurlUnavailable");
   }
   return response.json();
-}
-
-async function metadataHash(metadata: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(metadata));
-  return hex.encode(new Uint8Array(digest));
 }
 
 async function receivingService(lnurl: string, trace: BrowserTrace): Promise<typeof PayRequest.Type> {
   const endpoint = lnurlEndpoint(lnurl);
   if (endpoint === null) {
-    throw new Error("Invalid receiving address.");
+    throw new PaymentError("lnurlAddressInvalid");
   }
-  return Schema.decodeUnknownSync(PayRequest)(await getJson(endpoint, trace));
+  return decodeResponse(PayRequest, await getJson(endpoint, trace));
 }
 
 function callbackUrl(request: typeof PayRequest.Type, amountSats: number): string {
   const amount = BigInt(amountSats) * BigInt(MSATS_PER_SAT);
   if (amount < BigInt(request.minSendable) || amount > BigInt(request.maxSendable)) {
-    throw new Error("The receiving service does not support this payout amount.");
+    throw new PaymentError("lnurlAmountUnsupported");
   }
   const callback = new URL(request.callback);
   callback.searchParams.set("amount", amount.toString());
@@ -65,15 +68,11 @@ export async function resolvePayoutInvoice(lnurl: string, amountSats: number, tr
     minSendableMsat: request.minSendable,
     maxSendableMsat: request.maxSendable,
   });
-  const response = Schema.decodeUnknownSync(InvoiceResponse)(await getJson(callbackUrl(request, amountSats), trace));
-  const details = parseMainnetInvoice(response.pr);
-  if (
-    details.amountSats !== amountSats ||
-    details.expiresAt <= Date.now() ||
-    details.descriptionHash !== (await metadataHash(request.metadata))
-  ) {
-    throw new Error("The receiving service returned mismatched or expired invoice details.");
-  }
+  const response = decodeResponse(InvoiceResponse, await getJson(callbackUrl(request, amountSats), trace));
+  const now = Date.now();
+  const details = await trace.step("lnurl.invoice.validate", { amountSats }, () =>
+    Promise.resolve(validateLnurlInvoice(response.pr, amountSats, now)),
+  );
   await trace.log("lnurl.invoice.validated", {
     paymentHash: details.paymentHash,
     amountSats,

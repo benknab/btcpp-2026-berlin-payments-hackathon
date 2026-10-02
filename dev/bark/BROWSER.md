@@ -85,7 +85,7 @@ transfer the organizer cookie or the browser-owned wallet.
    the organizer covers receive/send fees. The browser estimates send fees and checks spendable funds before sending.
    Use a small reserve that covers the server's current fee estimate; very small payments may be below server minimums.
 9. Select **Pay creditors / reconcile**. The browser resolves each creditor's LNURL, checks the mainnet invoice's
-   amount, expiry, and metadata hash, persists the attempt, and pays creditors sequentially.
+   network, amount, and expiry, persists the attempt, and pays creditors sequentially.
 10. The backend verifies each payment preimage and marks the event settled once all creditors are paid.
     Retrying reconciles an existing in-flight attempt without sending a second payment.
 11. In **Event wallet · mainnet**, set **Owner wallet**, then select **Withdraw max**. The organizer's receiving
@@ -96,6 +96,12 @@ transfer the organizer cookie or the browser-owned wallet.
     of sending again. A BOLT12 request proven not to have started is released for an explicit retry.
 
 Lightning invoices must begin with `lnbc`; Ark destinations must begin with `ark1` on Second's mainnet server.
+LNURL-pay follows the current [LUD-06](https://github.com/lnurl/luds/blob/luds/06.md): the invoice must match the
+requested amount, but its description hash need not match the service's metadata. The former hash-binding requirement
+was removed from the specification; requiring it blocked Primal's otherwise valid 333-sat invoice. Invoices are obtained
+from the receiving service over HTTPS; amount, mainnet network, and expiry are checked before preparing a payment,
+and Bark verifies the invoice signature when paying. Invalid service responses or invoices show specific fixed errors
+without exposing response bodies, invoices, or secrets. Retrying invoice preparation does not bypass payout reconciliation.
 Signet invoices and addresses are rejected. Existing signet events are not converted: `mainnet.db`,
 `bark:mainnet:event-wallet:<uuid>` localStorage keys, and `bark-mainnet-event-<uuid>` IndexedDB databases are separate.
 Do not clear the organizer's site data. Changing the app's origin (including port) changes which browser wallet storage it sees.
