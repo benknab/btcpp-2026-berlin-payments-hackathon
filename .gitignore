@@ -5,6 +5,7 @@ dist/
 .vite/
 .vite-plus/
 coverage/
+tmp/
 .env
 .env.*
 !.env.example
