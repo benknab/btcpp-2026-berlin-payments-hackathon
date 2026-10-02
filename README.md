@@ -241,6 +241,20 @@ Open <http://localhost:3100> to create a group. Input is validated with Effect S
 native Effects. SQLite works locally without a separate database server. Server functions keep database code and
 credentials out of the browser bundle.
 
+## Docker deployment
+
+Run the production app and Barkd together, with automatic mainnet receiver creation, migrations, and private credentials:
+
+```sh
+docker compose up --detach --build --wait --wait-timeout 180
+docker compose exec app grep '^APP_AUTH_' /data/runtime.env
+```
+
+Open <http://localhost:3100> with the generated login. The entire deployment is password-protected because the
+standalone settlement workspace is not safe for untrusted users. No manual Bark `.env` setup is required.
+The persistent volume contains the full receiver/pot wallet data and application database; never delete it.
+See [deployment instructions](deploy/README.md) for HTTPS, reverse proxies, backups, recovery, and security boundaries.
+
 ## Database
 
 - Local SQLite: `DATABASE_URL=file:mainnet.db` (the default, even without `.env`).
