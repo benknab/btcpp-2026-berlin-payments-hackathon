@@ -34,4 +34,32 @@ describe("group validation", () => {
       );
     }),
   );
+
+  it.effect("accepts optional receiving details while preserving their participant positions", () =>
+    Effect.gen(function* verifyReceivingDetails() {
+      expect.hasAssertions();
+      const input = {
+        name: "Dinner",
+        organizerName: "Alice",
+        participantNames: ["Bob", "Carol"],
+        participantLnurls: [null, "carol@wallet.com"],
+      };
+      expect(yield* Schema.decodeUnknownEffect(NewGroup)(input)).toStrictEqual(input);
+    }),
+  );
+
+  it.effect.each([
+    { participantLnurls: ["invalid"] },
+    { participantLnurls: [""] },
+    { participantLnurls: [] },
+    { participantLnurls: [null, "carol@wallet.com"] },
+  ])(
+    "rejects invalid or misaligned receiving details %j",
+    (receivingDetails: { readonly participantLnurls: readonly (string | null)[] }) =>
+      Effect.gen(function* verifyInvalidReceivingDetails() {
+        expect.hasAssertions();
+        const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], ...receivingDetails };
+        expect((yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input)))._tag).toBe("SchemaError");
+      }),
+  );
 });

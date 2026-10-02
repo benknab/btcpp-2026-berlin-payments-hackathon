@@ -9,7 +9,7 @@ import { Database } from "./database";
 import { groups, participants } from "./group-schema";
 
 export type GroupData = Pick<typeof groups.$inferSelect, "id" | "name" | "status" | "createdAt">;
-export type ParticipantData = Pick<typeof participants.$inferSelect, "id" | "name" | "position">;
+export type ParticipantData = Pick<typeof participants.$inferSelect, "id" | "name" | "position" | "lnurl">;
 export interface GroupView {
   readonly group: GroupData;
   readonly participants: readonly ParticipantData[];
@@ -50,6 +50,7 @@ export const createGroup = Effect.fn("createGroup")(function* createGroup(
           groupId,
           name,
           nameKey: name.toLocaleLowerCase("en-US"),
+          lnurl: position === 0 ? null : (valid.participantLnurls?.[position - 1] ?? null),
           position,
         })),
       );
@@ -71,7 +72,12 @@ export const getGroup = Effect.fn("getGroup")(function* getGroup(
     return yield* new GroupError({ message: "This group invitation is not available." });
   }
   const members = yield* database
-    .select({ id: participants.id, name: participants.name, position: participants.position })
+    .select({
+      id: participants.id,
+      name: participants.name,
+      position: participants.position,
+      lnurl: participants.lnurl,
+    })
     .from(participants)
     .where(eq(participants.groupId, group.id))
     .orderBy(asc(participants.position));

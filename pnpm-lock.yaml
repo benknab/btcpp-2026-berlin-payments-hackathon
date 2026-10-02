@@ -185,6 +185,9 @@ importers:
       '@libsql/client':
         specifier: 0.18.0
         version: 0.18.0
+      '@scure/base':
+        specifier: 2.4.0
+        version: 2.4.0
       '@secondts/barkd':
         specifier: 0.7.2
         version: 0.7.2
@@ -1247,6 +1250,9 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
+  '@scure/base@2.4.0':
+    resolution: {integrity: sha512-thZ1TuJwFwBblOhgsjDKvvGirBxNp+wSvY/DR6tJBJOTDhdAAcHJ8Vbr2eFnqaxeca4+t0i9KBf+uHYGWwZORg==}
 
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
@@ -4586,6 +4592,8 @@ snapshots:
       '@redis/client': 6.3.0
 
   '@rolldown/pluginutils@1.0.1': {}
+
+  '@scure/base@2.4.0': {}
 
   '@sec-ant/readable-stream@0.4.1': {}
 

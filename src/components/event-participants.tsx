@@ -1,9 +1,9 @@
+import { EventPersonFields } from "@/components/event-person-fields";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { MAX_PARTICIPANT_NAME, MAX_PARTICIPANTS } from "@/domain/group-input";
-import { PlusIcon, XIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -18,6 +18,10 @@ export function EventParticipants(): ReactNode {
     const id = nextId.current;
     nextId.current += 1;
     setPeople((current) => [...current, id]);
+  }
+
+  function removePerson(id: number): void {
+    setPeople((current) => current.filter((person) => person !== id));
   }
 
   return (
@@ -37,34 +41,13 @@ export function EventParticipants(): ReactNode {
           />
         </Field>
         {people.map((id, index) => (
-          <Field key={id}>
-            <FieldLabel htmlFor={`person-${id}`}>Person {index + FIRST_GUEST_NUMBER}</FieldLabel>
-            <InputGroup className="h-12">
-              <InputGroupInput
-                id={`person-${id}`}
-                name="participantName"
-                placeholder="Name"
-                className="h-full px-4"
-                required
-                maxLength={MAX_PARTICIPANT_NAME}
-              />
-              {index > 0 && (
-                <InputGroupAddon align="inline-end" className="h-full py-0 pr-0 has-[>button]:mr-0">
-                  <InputGroupButton
-                    variant="secondary"
-                    size="icon-sm"
-                    className="h-full w-12 rounded-l-none border-l border-input"
-                    aria-label={`Remove person ${index + FIRST_GUEST_NUMBER}`}
-                    onClick={() => {
-                      setPeople((current) => current.filter((person) => person !== id));
-                    }}
-                  >
-                    <XIcon />
-                  </InputGroupButton>
-                </InputGroupAddon>
-              )}
-            </InputGroup>
-          </Field>
+          <EventPersonFields
+            key={id}
+            id={id}
+            number={index + FIRST_GUEST_NUMBER}
+            removable={index > 0}
+            onRemove={removePerson}
+          />
         ))}
       </FieldGroup>
       <Button

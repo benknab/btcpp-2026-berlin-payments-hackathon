@@ -1,5 +1,7 @@
 import { Schema } from "effect";
 
+import { Lnurl } from "./lnurl";
+
 export const MAX_GROUP_NAME = 100;
 export const MAX_PARTICIPANT_NAME = 40;
 export const MAX_PARTICIPANTS = 20;
@@ -20,12 +22,19 @@ export const NewGroup = Schema.Struct({
   name: GroupName,
   organizerName: ParticipantName,
   participantNames: OtherParticipants,
+  participantLnurls: Schema.optional(Schema.Array(Schema.NullOr(Lnurl))),
 }).pipe(
   Schema.check(
     Schema.makeFilter((input) => {
       const names = [input.organizerName, ...input.participantNames].map((name) => name.toLocaleLowerCase("en-US"));
       return new Set(names).size === names.length || "Each participant needs a different name.";
     }),
+    Schema.makeFilter(
+      (input) =>
+        input.participantLnurls === undefined ||
+        input.participantLnurls.length === input.participantNames.length ||
+        "Receiving addresses must match the participants.",
+    ),
   ),
 );
 

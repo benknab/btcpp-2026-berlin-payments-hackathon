@@ -1,3 +1,4 @@
+import type { NewGroup } from "@/domain/group-input";
 import * as LibsqlClient from "@effect/sql-libsql/LibsqlClient";
 import { describe, expect, it } from "@effect/vitest";
 import { migrate } from "drizzle-orm/effect-libsql/migrator";
@@ -23,6 +24,7 @@ describe("groups and invitation access", () => {
       const shared = yield* getGroup(created.inviteKey);
       const organizer = yield* getGroup(created.inviteKey, created.organizerToken);
       expect(shared.participants.map((participant) => participant.name)).toStrictEqual(["Alice", "Bob", "Carol"]);
+      expect(shared.participants.map((participant) => participant.lnurl)).toStrictEqual([null, null, null]);
       expect(shared.isOrganizer).toBe(false);
       expect(organizer.isOrganizer).toBe(true);
       expect(shared.group).not.toHaveProperty("organizerTokenHash");
@@ -49,21 +51,39 @@ describe("groups and invitation access", () => {
     }).pipe(Effect.provide(TestDatabase)),
   );
 
-  it.effect("rejects invalid event creation without persisting an event or participants", () =>
+  it.effect.each([
+    { name: "Dinner", organizerName: "Alice", participantNames: ["alice"] },
+    { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], participantLnurls: ["invalid"] },
+    { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], participantLnurls: [] },
+  ])("rejects invalid event creation without persisting an event or participants %j", (input: typeof NewGroup.Type) =>
     Effect.gen(function* verifyInvalidCreation() {
       expect.hasAssertions();
       const database = yield* Database;
       yield* migrate(database, { migrationsFolder: "./drizzle" });
-      const result = yield* Effect.flip(
-        createGroup({
-          name: "Dinner",
-          organizerName: "Alice",
-          participantNames: ["alice"],
-        }),
-      );
+      const result = yield* Effect.flip(createGroup(input));
       expect(result._tag).toBe("SchemaError");
       expect(yield* database.select().from(groups)).toStrictEqual([]);
       expect(yield* database.select().from(participants)).toStrictEqual([]);
+    }).pipe(Effect.provide(TestDatabase)),
+  );
+
+  it.effect("persists each person's optional receiving details and returns them on reload", () =>
+    Effect.gen(function* verifyReceivingDetails() {
+      expect.hasAssertions();
+      const database = yield* Database;
+      yield* migrate(database, { migrationsFolder: "./drizzle" });
+      const created = yield* createGroup({
+        name: "Dinner",
+        organizerName: "Alice",
+        participantNames: ["Bob", "Carol"],
+        participantLnurls: [null, "carol@wallet.com"],
+      });
+      const reloaded = yield* getGroup(created.inviteKey);
+      expect(reloaded.participants.map(({ name, lnurl }) => ({ name, lnurl }))).toStrictEqual([
+        { name: "Alice", lnurl: null },
+        { name: "Bob", lnurl: null },
+        { name: "Carol", lnurl: "carol@wallet.com" },
+      ]);
     }).pipe(Effect.provide(TestDatabase)),
   );
 });

@@ -27,6 +27,7 @@ export const participants = sqliteTable(
       .references(() => groups.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     nameKey: text("name_key").notNull(),
+    lnurl: text("lnurl"),
     position: integer("position").notNull(),
   },
   () => [uniqueIndex("participant_group_name").on(sql`"group_id"`, sql`"name_key"`)],
