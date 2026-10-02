@@ -1,11 +1,9 @@
 import { ActionError } from "@/components/action-error";
 import { EventPayments } from "@/components/event-payments";
-import { ParticipantBalances } from "@/components/participant-balances";
-import { buttonVariants } from "@/components/ui/button";
+import { EventSettlementSettings } from "@/components/event-settlement-settings";
 import { useLiveOverview } from "@/components/use-live-overview";
 import { eventPage } from "@/server/event-page";
-import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
-import { ArrowLeftIcon } from "lucide-react";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/groups/$inviteKey/settlement")({
@@ -21,21 +19,13 @@ function EventSettlement(): ReactNode {
   const refreshError = useLiveOverview(view.group.status !== "settled");
   return (
     <>
-      <Link
-        to="/groups/$inviteKey"
-        params={{ inviteKey }}
-        className={buttonVariants({ variant: "ghost", className: "self-start" })}
-      >
-        <ArrowLeftIcon data-icon="inline-start" />
-        Back to overview
-      </Link>
-      <ParticipantBalances
-        participants={view.participants}
-        balances={page.overview.balances}
-        status={view.group.status}
-      />
       <ActionError message={refreshError} />
-      <EventPayments inviteKey={inviteKey} view={view} page={page} />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <EventPayments inviteKey={inviteKey} view={view} page={page} />
+        </div>
+        <EventSettlementSettings inviteKey={inviteKey} view={view} page={page} />
+      </div>
     </>
   );
 }

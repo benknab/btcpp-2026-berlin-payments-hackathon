@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 export function EventDetailsFields(): ReactNode {
   return (
-    <FieldGroup className="gap-8">
+    <FieldGroup className="gap-6">
       <Field>
         <FieldLabel htmlFor="event-name">Event name</FieldLabel>
         <Input

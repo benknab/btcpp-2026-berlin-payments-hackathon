@@ -1,5 +1,6 @@
 import { ExpenseCustomSplit } from "@/components/expense-custom-split";
 import { ExpenseSplitChoice } from "@/components/expense-split-choice";
+import { ExpenseSplitPeople } from "@/components/expense-split-people";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLegend, FieldSet } from "@/components/ui/field";
 import type { ExpenseSplitState } from "@/components/use-expense-split";
 import type { ParticipantData } from "@/db/groups";
@@ -21,7 +22,11 @@ export function ExpenseSplitter({
       <FieldLegend>How to split?</FieldLegend>
       <FieldGroup>
         <ExpenseSplitChoice split={split} disabled={disabled} />
-        {split.draft.custom && <ExpenseCustomSplit split={split} participants={participants} disabled={disabled} />}
+        {split.draft.custom ? (
+          <ExpenseCustomSplit split={split} participants={participants} disabled={disabled} />
+        ) : (
+          <ExpenseSplitPeople split={split} participants={participants} disabled={disabled} previewOnly />
+        )}
         <Field id="split-error" data-invalid={showError && split.error !== null}>
           {showError && split.error !== null ? <FieldError>{split.error}</FieldError> : null}
           {split.error === null && (

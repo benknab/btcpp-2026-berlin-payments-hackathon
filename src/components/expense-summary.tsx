@@ -1,69 +1,47 @@
-import { SectionCard } from "@/components/section-card";
-import { SummaryItem } from "@/components/summary-item";
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GroupOverview } from "@/db/balances";
 import { formatSats } from "@/domain/money";
-import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export function ExpenseSummary({
   overview,
-  inviteKey,
-  locked,
+  selectedParticipantId,
 }: {
   readonly overview: GroupOverview;
-  readonly inviteKey: string;
-  readonly locked: boolean;
+  readonly selectedParticipantId: string | null;
 }): ReactNode {
-  const recipients = overview.balances.filter((balance) => balance.settlementSats > 0);
-  const remaining = recipients.reduce((total, balance) => total + balance.settlementSats, 0);
+  const balance = overview.balances.find((entry) => entry.participantId === selectedParticipantId)?.settlementSats ?? 0;
+  let balanceLabel = "Your balance";
+  if (balance !== 0) {
+    balanceLabel = balance > 0 ? "You get back" : "You owe";
+  }
   return (
-    <SectionCard
-      title="Overview"
-      contentClassName="flex flex-col gap-4"
-      action={
-        <Badge variant="secondary">
-          {`${overview.entries.length} ${overview.entries.length === 1 ? "expense" : "expenses"}`}
-        </Badge>
-      }
-      footerClassName="flex flex-wrap gap-2"
-      footer={
-        <>
-          <Link
-            to="/groups/$inviteKey/expenses"
-            params={{ inviteKey }}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            View expenses
-          </Link>
-          <Link
-            to="/groups/$inviteKey/settlement"
-            params={{ inviteKey }}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            View settlement
-          </Link>
-          {!locked && (
-            <Link to="/groups/$inviteKey/expenses/new" params={{ inviteKey }} className={buttonVariants()}>
-              Add expense
-            </Link>
-          )}
-        </>
-      }
-    >
-      <dl className="flex flex-col gap-3 text-sm" aria-live="polite">
-        <SummaryItem label="Total spent" className="flex justify-between gap-4" labelClassName="text-muted-foreground">
-          {formatSats(overview.totalSats)}
-        </SummaryItem>
-        <SummaryItem
-          label="Active settlement"
-          className="flex flex-wrap justify-between gap-2"
-          labelClassName="text-muted-foreground"
-        >
-          {`${recipients.length} ${recipients.length === 1 ? "payout" : "payouts"} · ${formatSats(remaining)}`}
-        </SummaryItem>
-      </dl>
-    </SectionCard>
+    <Card className="[--card-spacing:--spacing(6)]">
+      <CardHeader className="sr-only">
+        <CardTitle>
+          <h2>Event summary</h2>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <dl className="grid grid-cols-2 gap-6 sm:grid-cols-3" aria-live="polite">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <dt className="text-muted-foreground">Total spent</dt>
+            <dd className="text-2xl font-semibold tracking-tight break-words tabular-nums">
+              {formatSats(overview.totalSats)}
+            </dd>
+          </div>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <dt className="text-muted-foreground">Expenses</dt>
+            <dd className="text-2xl font-semibold tracking-tight tabular-nums">{overview.entries.length}</dd>
+          </div>
+          <div className="col-span-2 flex min-w-0 flex-col gap-1.5 sm:col-span-1">
+            <dt className="text-muted-foreground">{balanceLabel}</dt>
+            <dd className="text-2xl font-semibold tracking-tight break-words tabular-nums">
+              {formatSats(Math.abs(balance))}
+            </dd>
+          </div>
+        </dl>
+      </CardContent>
+    </Card>
   );
 }

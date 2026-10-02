@@ -1,12 +1,12 @@
 import { EmptyState } from "@/components/empty-state";
 import { ExpenseListItem } from "@/components/expense-list-item";
+import { ExpenseSearch } from "@/components/expense-search";
 import { SectionCard } from "@/components/section-card";
 import { buttonVariants } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import type { ExpenseView } from "@/db/expenses";
 import type { ParticipantData } from "@/db/groups";
 import { Link } from "@tanstack/react-router";
+import { PlusIcon, ReceiptTextIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -37,29 +37,15 @@ export function ExpenseList({
       action={
         !locked && (
           <Link to="/groups/$inviteKey/expenses/new" params={{ inviteKey }} className={buttonVariants()}>
+            <PlusIcon data-icon="inline-start" aria-hidden="true" />
             Add expense
           </Link>
         )
       }
     >
-      {entries.length > 0 && (
-        <Field>
-          <FieldLabel htmlFor="expense-search" className="sr-only">
-            Search expenses
-          </FieldLabel>
-          <Input
-            id="expense-search"
-            type="search"
-            placeholder="Search expenses"
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-            }}
-          />
-        </Field>
-      )}
+      {entries.length > 0 && <ExpenseSearch query={query} onChange={setQuery} />}
       {matches.length === 0 ? (
-        <EmptyState title={entries.length === 0 ? "No expenses" : "No matching expenses"} />
+        <EmptyState title={entries.length === 0 ? "No expenses yet" : "No matching expenses"} icon={ReceiptTextIcon} />
       ) : (
         <ul className="flex flex-col divide-y">
           {matches.map((expense) => (

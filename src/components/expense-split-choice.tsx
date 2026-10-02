@@ -1,6 +1,6 @@
-import { Field, FieldLabel } from "@/components/ui/field";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { ExpenseSplitState } from "@/components/use-expense-split";
+import { SlidersHorizontalIcon, UsersIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function ExpenseSplitChoice({
@@ -11,21 +11,27 @@ export function ExpenseSplitChoice({
   readonly disabled: boolean;
 }): ReactNode {
   return (
-    <RadioGroup
-      value={split.draft.custom ? "custom" : "everyone"}
+    <ToggleGroup
+      value={[split.draft.custom ? "custom" : "everyone"]}
       disabled={disabled}
+      variant="outline"
+      size="lg"
+      className="w-full flex-col items-stretch sm:flex-row"
+      aria-label="Split method"
       onValueChange={(value) => {
-        split.customize(value === "custom");
+        if (value.length > 0) {
+          split.customize(value[0] === "custom");
+        }
       }}
     >
-      <Field orientation="horizontal" data-disabled={disabled}>
-        <RadioGroupItem id="split-everyone" value="everyone" />
-        <FieldLabel htmlFor="split-everyone">Split equally between everyone</FieldLabel>
-      </Field>
-      <Field orientation="horizontal" data-disabled={disabled}>
-        <RadioGroupItem id="split-custom" value="custom" />
-        <FieldLabel htmlFor="split-custom">Split differently</FieldLabel>
-      </Field>
-    </RadioGroup>
+      <ToggleGroupItem value="everyone" className="w-full sm:w-auto sm:flex-1">
+        <UsersIcon data-icon="inline-start" aria-hidden="true" />
+        Everyone equally
+      </ToggleGroupItem>
+      <ToggleGroupItem value="custom" className="w-full sm:w-auto sm:flex-1">
+        <SlidersHorizontalIcon data-icon="inline-start" aria-hidden="true" />
+        Custom split
+      </ToggleGroupItem>
+    </ToggleGroup>
   );
 }

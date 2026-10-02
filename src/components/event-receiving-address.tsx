@@ -27,7 +27,7 @@ export function EventReceivingAddress({
   }
   return (
     <FieldGroup className="gap-2">
-      <LabeledField id={`receiving-${participant.id}`} label={`${participant.name} · receiving address`}>
+      <LabeledField id={`receiving-${participant.id}`} label={participant.name}>
         <Input
           id={`receiving-${participant.id}`}
           required

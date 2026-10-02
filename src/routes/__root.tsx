@@ -12,7 +12,10 @@ export const Route = createRootRoute({
       { title: "Splitbark" },
       { name: "description", content: "Kittysplit + Bark" },
     ],
-    links: [{ rel: "stylesheet", href: stylesheet }],
+    links: [
+      { rel: "stylesheet", href: stylesheet },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+    ],
   }),
   component: Root,
   notFoundComponent: (): ReactNode => (

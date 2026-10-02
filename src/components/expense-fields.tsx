@@ -16,7 +16,6 @@ export function ExpenseFields({
 }): ReactNode {
   return (
     <FieldGroup>
-      <ExpensePayerField form={form} participants={participants} />
       <Field data-disabled={form.pending}>
         <FieldLabel htmlFor="expense-description">Description</FieldLabel>
         <Input
@@ -31,8 +30,11 @@ export function ExpenseFields({
           }}
         />
       </Field>
-      <ExpenseAmountField form={form} />
-      <Field data-disabled={form.pending}>
+      <FieldGroup className="gap-5 sm:grid sm:grid-cols-2">
+        <ExpenseAmountField form={form} />
+        <ExpensePayerField form={form} participants={participants} />
+      </FieldGroup>
+      <Field data-disabled={form.pending} className="sm:max-w-[calc(50%-0.625rem)]">
         <FieldLabel htmlFor="expense-date">Date</FieldLabel>
         <Input
           id="expense-date"

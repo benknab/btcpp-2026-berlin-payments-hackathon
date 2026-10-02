@@ -10,30 +10,39 @@ export function ExpenseSplitPerson({
   split,
   person,
   disabled,
+  previewOnly = false,
 }: {
   readonly split: ExpenseSplitState;
   readonly person: ParticipantData;
   readonly disabled: boolean;
+  readonly previewOnly?: boolean;
 }): ReactNode {
-  const { mode, selected } = split.draft;
+  const { selected } = split.draft;
+  const mode = previewOnly ? "equal" : split.draft.mode;
   const included = selected.includes(person.id);
   const share = split.preview.find((entry) => entry.participantId === person.id);
   const unit = { equal: "sats", amount: "sats", shares: "shares", percent: "%" }[mode];
   const invalid = included && mode !== "equal" && split.error !== null;
   return (
     <Field orientation="horizontal" className="flex-wrap p-4" data-disabled={disabled} data-invalid={invalid}>
-      <Checkbox
-        id={`split-person-${person.id}`}
-        checked={included}
-        disabled={disabled}
-        onCheckedChange={(checked) => {
-          split.select(person.id, checked);
-        }}
-      />
-      <FieldLabel htmlFor={`split-person-${person.id}`} className="min-w-0 flex-1 break-words">
-        {person.name}
-      </FieldLabel>
-      {mode !== "equal" && (
+      {!previewOnly && (
+        <Checkbox
+          id={`split-person-${person.id}`}
+          checked={included}
+          disabled={disabled}
+          onCheckedChange={(checked) => {
+            split.select(person.id, checked);
+          }}
+        />
+      )}
+      {previewOnly ? (
+        <span className="min-w-0 flex-1 font-medium break-words">{person.name}</span>
+      ) : (
+        <FieldLabel htmlFor={`split-person-${person.id}`} className="min-w-0 flex-1 break-words">
+          {person.name}
+        </FieldLabel>
+      )}
+      {!previewOnly && mode !== "equal" && (
         <div className="flex items-center gap-2">
           <Input
             aria-label={`${person.name}: ${unit}`}
@@ -54,7 +63,7 @@ export function ExpenseSplitPerson({
         </div>
       )}
       <span className="min-w-20 text-right text-sm text-muted-foreground tabular-nums">
-        {included && split.error !== null ? "—" : formatSats(share?.amountSats ?? 0)}
+        {(included || previewOnly) && split.error !== null ? "—" : formatSats(share?.amountSats ?? 0)}
       </span>
     </Field>
   );

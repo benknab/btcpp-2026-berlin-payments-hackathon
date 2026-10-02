@@ -8,7 +8,6 @@ import { ContributionQr } from "./contribution-qr";
 import { SectionCard } from "./section-card";
 import { Button } from "./ui/button";
 import { useEventFeeReserve } from "./use-event-fee-reserve";
-import { WalletTopUp } from "./wallet-top-up";
 
 export function EventFeeReserve({
   inviteKey,
@@ -29,7 +28,6 @@ export function EventFeeReserve({
       <p>Deposited: {formatSats(deliveredFeeReserve(page.invoices))}</p>
       {page.settlement !== null && requiredSats !== null && <p>Estimated fees: {formatSats(requiredSats)}</p>}
       {active !== undefined && <p>Deposit: {formatSats(active.amountSats)}</p>}
-      {page.settlement === null && active === undefined && <WalletTopUp inviteKey={inviteKey} />}
       {(page.settlement !== null || active !== undefined) && (
         <Button variant="outline" disabled={action.pending} onClick={page.settlement === null ? check : prepare}>
           {action.pending ? "Checking…" : prepareLabel}
