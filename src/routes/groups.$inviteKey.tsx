@@ -23,13 +23,9 @@ function GroupLayout(): ReactNode {
     <PageShell>
       <section className="flex flex-col gap-3">
         <h1 className="text-3xl font-semibold tracking-tight text-balance">{view.group.name}</h1>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-muted-foreground">
-            {selected === undefined
-              ? "Your people. One shared tab."
-              : `Hi ${selected.name}. ${view.isOrganizer ? "You’re the organizer." : "Welcome to the group."}`}
-          </p>
-          {selected === undefined ? null : (
+        {selected !== undefined && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">{selected.name}</p>
             <Button
               variant="ghost"
               size="sm"
@@ -39,13 +35,12 @@ function GroupLayout(): ReactNode {
             >
               Switch person
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </section>
       {selected === undefined || choosing ? (
         <ParticipantChooser
           inviteKey={inviteKey}
-          groupName={view.group.name}
           participants={view.participants}
           onChosen={() => {
             setChoosing(false);

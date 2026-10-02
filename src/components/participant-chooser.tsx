@@ -1,6 +1,6 @@
 import { ActionError } from "@/components/action-error";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAction } from "@/components/use-action";
 import type { ParticipantData } from "@/db/groups";
 import { chooseParticipant } from "@/server/groups";
@@ -9,12 +9,11 @@ import type { ReactNode } from "react";
 
 interface ChooserProps {
   readonly inviteKey: string;
-  readonly groupName: string;
   readonly participants: readonly ParticipantData[];
   readonly onChosen: () => void;
 }
 
-export function ParticipantChooser({ inviteKey, groupName, participants, onChosen }: ChooserProps): ReactNode {
+export function ParticipantChooser({ inviteKey, participants, onChosen }: ChooserProps): ReactNode {
   const action = useAction();
   const router = useRouter();
 
@@ -29,8 +28,7 @@ export function ParticipantChooser({ inviteKey, groupName, participants, onChose
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Who are you?</CardTitle>
-        <CardDescription>You’re invited to {groupName}. Choose your name to see your share.</CardDescription>
+        <CardTitle>Select your name</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2">
@@ -47,7 +45,6 @@ export function ParticipantChooser({ inviteKey, groupName, participants, onChose
             </Button>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">This selects your view, not a verified payment identity.</p>
         <ActionError message={action.error} />
       </CardContent>
     </Card>

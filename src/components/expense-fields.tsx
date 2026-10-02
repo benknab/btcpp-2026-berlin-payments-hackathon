@@ -1,4 +1,4 @@
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { ExpenseFormState } from "@/components/use-expense-form";
@@ -34,13 +34,12 @@ export function ExpenseFields({
             </NativeSelectOption>
           ))}
         </NativeSelect>
-        <FieldDescription>The person who paid out of pocket, not from the pot.</FieldDescription>
       </Field>
       <Field data-disabled={form.pending}>
-        <FieldLabel htmlFor="expense-description">What for?</FieldLabel>
+        <FieldLabel htmlFor="expense-description">Description</FieldLabel>
         <Input
           id="expense-description"
-          placeholder="Dinner with friends"
+          placeholder="Dinner"
           value={form.values.description}
           required
           maxLength={MAX_DESCRIPTION}
@@ -51,7 +50,7 @@ export function ExpenseFields({
         />
       </Field>
       <Field data-disabled={form.pending}>
-        <FieldLabel htmlFor="expense-amount">How much? (sats)</FieldLabel>
+        <FieldLabel htmlFor="expense-amount">Amount (sats)</FieldLabel>
         <Input
           id="expense-amount"
           type="number"
@@ -67,10 +66,9 @@ export function ExpenseFields({
             form.change("amount", event.target.value);
           }}
         />
-        <FieldDescription>Whole sats only. No conversion or exchange rates.</FieldDescription>
       </Field>
       <Field data-disabled={form.pending}>
-        <FieldLabel htmlFor="expense-date">When?</FieldLabel>
+        <FieldLabel htmlFor="expense-date">Date</FieldLabel>
         <Input
           id="expense-date"
           type="date"

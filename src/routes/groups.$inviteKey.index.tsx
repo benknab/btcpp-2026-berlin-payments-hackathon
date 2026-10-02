@@ -2,7 +2,6 @@ import { ExpenseList } from "@/components/expense-list";
 import { ExpenseSummary } from "@/components/expense-summary";
 import { GroupInvite } from "@/components/group-invite";
 import { ParticipantBalances } from "@/components/participant-balances";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { groupOverview } from "@/server/balances";
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import type { ReactNode } from "react";
@@ -29,13 +28,6 @@ function GroupHome(): ReactNode {
       />
       <ParticipantBalances participants={view.participants} balances={overview.balances} />
       <GroupInvite inviteKey={inviteKey} origin={view.origin} />
-      <Alert>
-        <AlertTitle>Payments aren’t connected to this group yet</AlertTitle>
-        <AlertDescription>
-          Expense tracking works here. The separate Bark signet settlement workspace is available from the home page,
-          but group funding and payouts still need to be integrated.
-        </AlertDescription>
-      </Alert>
     </>
   );
 }

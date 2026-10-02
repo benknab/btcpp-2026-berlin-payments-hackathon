@@ -2,7 +2,7 @@ import { ActionError } from "@/components/action-error";
 import { ExpenseFields } from "@/components/expense-fields";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldLegend, FieldSet } from "@/components/ui/field";
 import { useExpenseForm } from "@/components/use-expense-form";
 import type { ExpenseFormOptions } from "@/components/use-expense-form";
@@ -25,11 +25,6 @@ export function ExpenseForm({
     <Card>
       <CardHeader>
         <CardTitle>{options.existing === null ? "Add an expense" : "Edit expense"}</CardTitle>
-        <CardDescription>
-          {options.existing === null
-            ? "Paid for something? Put it on the shared tab."
-            : "Correct the details. Everyone’s balance updates together."}
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit} className="flex flex-col gap-6">
@@ -39,8 +34,7 @@ export function ExpenseForm({
             <p className="text-sm text-muted-foreground">
               {options.existing === null
                 ? `Split equally between all ${participants.length} participants.`
-                : `Split equally between the original ${options.existing.shares.length} participants.`}{" "}
-              Every sat is accounted for.
+                : `Split equally between the original ${options.existing.shares.length} participants.`}
             </p>
             <ActionError message={form.error} />
             {form.success === null ? null : (
@@ -60,7 +54,7 @@ export function ExpenseForm({
                 params={{ inviteKey: options.inviteKey }}
                 className={buttonVariants({ variant: "outline" })}
               >
-                Back to group
+                Back to event
               </Link>
             </div>
           </FieldSet>

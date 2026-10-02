@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ParticipantData } from "@/db/groups";
 import type { ParticipantBalance } from "@/domain/accounting";
 import { formatSats } from "@/domain/money";
@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 function describeBalance(amount: number): string {
   if (amount === 0) {
-    return "All square";
+    return formatSats(0);
   }
   return amount > 0 ? `Owed ${formatSats(amount)}` : `Owes ${formatSats(Math.abs(amount))}`;
 }
@@ -21,8 +21,7 @@ export function ParticipantBalances({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Everyone’s share</CardTitle>
-        <CardDescription>Expense balances before contributions and fees.</CardDescription>
+        <CardTitle>Balances</CardTitle>
       </CardHeader>
       <CardContent>
         <dl className="flex flex-col gap-3 text-sm">

@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import type { ExpenseView } from "@/db/expenses";
 import type { ParticipantData } from "@/db/groups";
 import { formatSats } from "@/domain/money";
@@ -24,16 +24,12 @@ export function ExpenseList({
     <Card>
       <CardHeader>
         <CardTitle>Expenses</CardTitle>
-        <CardDescription>
-          {entries.length} shared {entries.length === 1 ? "expense" : "expenses"}. Paid out of pocket.
-        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {entries.length === 0 ? (
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>Your group is ready</EmptyTitle>
-              <EmptyDescription>Add the first expense to start splitting.</EmptyDescription>
+              <EmptyTitle>No expenses</EmptyTitle>
             </EmptyHeader>
           </Empty>
         ) : (
