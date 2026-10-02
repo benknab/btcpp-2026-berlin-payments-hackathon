@@ -1,3 +1,4 @@
+import { SignetAddress } from "@/lib/pot";
 import { Schema } from "effect";
 
 import { DUPLICATE_LNURL_ERROR, hasUniqueLnurls, Lnurl } from "./lnurl";
@@ -39,6 +40,11 @@ export const NewGroup = Schema.Struct({
     Schema.makeFilter((input) => hasUniqueLnurls(input.participantLnurls ?? []) || DUPLICATE_LNURL_ERROR),
   ),
 );
+
+// Adding a field preserves all participant-name and receiving-address checks.
+export const CreateGroupRequest = NewGroup.mapFields(() => ({ ...NewGroup.fields, arkAddress: SignetAddress }), {
+  unsafePreserveChecks: true,
+});
 
 export const InviteKey = Schema.String.pipe(Schema.check(Schema.isPattern(/^[a-f\d]{64}$/u)));
 export const GroupRequest = Schema.Struct({ inviteKey: InviteKey });

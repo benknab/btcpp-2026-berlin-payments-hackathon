@@ -2,7 +2,7 @@ import { describe, expect, it } from "@effect/vitest";
 import { bech32 } from "@scure/base";
 import { Effect, Schema } from "effect";
 
-import { GroupRequest, MAX_PARTICIPANTS, NewGroup } from "./group-input";
+import { CreateGroupRequest, GroupRequest, MAX_PARTICIPANTS, NewGroup } from "./group-input";
 
 const BOB_LNURL = bech32.encodeFromBytes(
   "lnurl",
@@ -10,6 +10,27 @@ const BOB_LNURL = bech32.encodeFromBytes(
 );
 
 describe("group validation", () => {
+  it.effect.each([undefined, null, "", "ark1ace", "not-an-address"])(
+    "requires a signet pot address for event creation: %j",
+    (arkAddress: unknown) =>
+      Effect.gen(function* verifyWalletAddress() {
+        expect.hasAssertions();
+        const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], arkAddress };
+        expect((yield* Effect.flip(Schema.decodeUnknownEffect(CreateGroupRequest)(input)))._tag).toBe("SchemaError");
+      }),
+  );
+
+  it.effect("preserves participant validation when adding the pot address", () =>
+    Effect.gen(function* verifyRequest() {
+      expect.hasAssertions();
+      const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], arkAddress: "tark1ace" };
+      expect(yield* Schema.decodeUnknownEffect(CreateGroupRequest)(input)).toStrictEqual(input);
+      expect(
+        (yield* Effect.flip(Schema.decodeUnknownEffect(CreateGroupRequest)({ ...input, participantNames: ["alice"] })))
+          ._tag,
+      ).toBe("SchemaError");
+    }),
+  );
   it.effect("accepts a group without an email or account", () =>
     Effect.gen(function* verifyGroup() {
       expect.hasAssertions();

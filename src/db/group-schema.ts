@@ -6,6 +6,7 @@ export const groups = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    arkAddress: text("ark_address"),
     inviteTokenHash: text("invite_token_hash").notNull().unique(),
     organizerTokenHash: text("organizer_token_hash").notNull(),
     status: text("status", { enum: ["open", "settling", "settled"] })

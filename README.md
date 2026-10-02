@@ -58,8 +58,21 @@ cannot receive the test payouts.
 
 **Current status:** group creation, invitations, equal expense splitting, expense management, and personal balance
 overviews are implemented. A separate, **server-custodied** Bark signet settlement workspace is available at `/settle`.
-Group funding and settlement are **not connected to the expense flow yet**. The browser-owned pot, Lightning
-collection on behalf of its owner, and Lightning-address payouts above are the V1 target, not the current implementation.
+Event creation generates a dedicated signet wallet using `@secondts/bark/web` and saves its public address in
+`groups.ark_address`. Group funding and settlement are **not connected to the expense flow yet**.
+Lightning collection on behalf of the owner and Lightning-address payouts remain the V1 target.
+
+### Browser event wallets
+
+- Use HTTPS or localhost. The SDK loads lazily when creating an event; it does not execute during SSR.
+- Each event has its own IndexedDB wallet (`bark-event-<uuid>`). Its mnemonic and public address are kept in this
+  browser's localStorage under `bark:event-wallet:<uuid>`. Only the public address is sent to the backend.
+- Wallet creation and local persistence must succeed before the event is saved. Retrying within the form reuses
+  the wallet. Existing events retain a nullable address; no replacement wallet is generated for them.
+- Browser storage is currently unencrypted. Clearing site data loses access. The mnemonic alone is not a full
+  Bark backup: wallet-data export/recovery is still required before using this beyond signet demos.
+- The pinned `@secondts/bark@0.25.0` uses `Wallet.open("Signet", mnemonic, config, undefined, args)` with
+  `createIfNotExists`; its published types supersede older named-argument examples in the web guide.
 
 See [the Person A / Person B implementation plan](IMPLEMENTATION_PLAN.md) for the earlier work split and 23-hour delivery
 schedule. The V1 scope above supersedes conflicting settlement assumptions in that plan.

@@ -188,6 +188,9 @@ importers:
       '@scure/base':
         specifier: 2.4.0
         version: 2.4.0
+      '@secondts/bark':
+        specifier: 0.25.0
+        version: 0.25.0
       '@secondts/barkd':
         specifier: 0.7.2
         version: 0.7.2
@@ -1256,6 +1259,9 @@ packages:
 
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
+
+  '@secondts/bark@0.25.0':
+    resolution: {integrity: sha512-QYc3pMUCxVmfbVJHZeIBPOFPwNE4nowaK//G/2IL38+/Xt/iTqeTDyvF6/OQyNDTY/e/kr0bXFnAKZwH7IjU4g==}
 
   '@secondts/barkd@0.7.2':
     resolution: {integrity: sha512-lA7+/jha5geWlNyGvR5i5T3GxrTG0bk469y3dk5jECmoQYD6Z/mh++r/ps3GOYjkEJByNqiQVyCDyNKy2AXgbA==}
@@ -4596,6 +4602,8 @@ snapshots:
   '@scure/base@2.4.0': {}
 
   '@sec-ant/readable-stream@0.4.1': {}
+
+  '@secondts/bark@0.25.0': {}
 
   '@secondts/barkd@0.7.2': {}
 

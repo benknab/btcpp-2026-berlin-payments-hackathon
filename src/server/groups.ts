@@ -1,7 +1,7 @@
 import { DatabaseLive } from "@/db/database";
 import { createGroup, getGroup, requireParticipant } from "@/db/groups";
 import type { GroupView } from "@/db/groups";
-import { GroupRequest, NewGroup, ParticipantRequest } from "@/domain/group-input";
+import { CreateGroupRequest, GroupRequest, ParticipantRequest } from "@/domain/group-input";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestUrl } from "@tanstack/react-start/server";
 import { Effect, Schema } from "effect";
@@ -14,13 +14,15 @@ export interface GroupPageData extends GroupView {
 }
 
 export const newGroup = createServerFn({ method: "POST" })
-  .validator(Schema.decodeUnknownSync(NewGroup))
-  .handler(async ({ data }: { readonly data: typeof NewGroup.Type }): Promise<{ readonly inviteKey: string }> => {
-    const created = await Effect.runPromise(createGroup(data).pipe(Effect.provide(DatabaseLive)));
-    saveOrganizerToken(created.groupId, created.organizerToken);
-    saveParticipantId(created.groupId, created.organizerId);
-    return { inviteKey: created.inviteKey };
-  });
+  .validator(Schema.decodeUnknownSync(CreateGroupRequest))
+  .handler(
+    async ({ data }: { readonly data: typeof CreateGroupRequest.Type }): Promise<{ readonly inviteKey: string }> => {
+      const created = await Effect.runPromise(createGroup(data).pipe(Effect.provide(DatabaseLive)));
+      saveOrganizerToken(created.groupId, created.organizerToken);
+      saveParticipantId(created.groupId, created.organizerId);
+      return { inviteKey: created.inviteKey };
+    },
+  );
 
 export const groupPage = createServerFn({ method: "GET" })
   .validator(Schema.decodeUnknownSync(GroupRequest))

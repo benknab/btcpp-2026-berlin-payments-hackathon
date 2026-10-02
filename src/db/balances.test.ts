@@ -15,7 +15,12 @@ describe("group overview", () => {
       expect.hasAssertions();
       const database = yield* Database;
       yield* migrate(database, { migrationsFolder: "./drizzle" });
-      const group = yield* createGroup({ name: "Berlin", organizerName: "Alice", participantNames: ["Bob", "Carol"] });
+      const group = yield* createGroup({
+        name: "Berlin",
+        organizerName: "Alice",
+        participantNames: ["Bob", "Carol"],
+        arkAddress: "tark1ace",
+      });
       const input = {
         inviteKey: group.inviteKey,
         expenseId: "00000000-0000-4000-8000-000000000001",

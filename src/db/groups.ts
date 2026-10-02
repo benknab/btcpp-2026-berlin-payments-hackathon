@@ -1,4 +1,4 @@
-import { NewGroup } from "@/domain/group-input";
+import { CreateGroupRequest } from "@/domain/group-input";
 import { hashToken, newId, newToken, verifiesToken } from "@/server/group-tokens";
 import { asc, eq } from "drizzle-orm";
 import type { EffectDrizzleQueryError } from "drizzle-orm/effect-core/errors";
@@ -8,7 +8,7 @@ import type { SqlError } from "effect/sql";
 import { Database } from "./database";
 import { groups, participants } from "./group-schema";
 
-export type GroupData = Pick<typeof groups.$inferSelect, "id" | "name" | "status" | "createdAt">;
+export type GroupData = Pick<typeof groups.$inferSelect, "id" | "name" | "arkAddress" | "status" | "createdAt">;
 export type ParticipantData = Pick<typeof participants.$inferSelect, "id" | "name" | "position" | "lnurl">;
 export interface GroupView {
   readonly group: GroupData;
@@ -19,7 +19,7 @@ export type GroupDatabaseError = EffectDrizzleQueryError | SqlError.SqlError;
 export class GroupError extends Data.TaggedError("GroupError")<{ readonly message: string }> {}
 
 export const createGroup = Effect.fn("createGroup")(function* createGroup(
-  input: typeof NewGroup.Type,
+  input: typeof CreateGroupRequest.Type,
 ): Effect.fn.Return<
   {
     readonly inviteKey: string;
@@ -30,7 +30,7 @@ export const createGroup = Effect.fn("createGroup")(function* createGroup(
   GroupDatabaseError | Schema.SchemaError,
   Database
 > {
-  const valid = yield* Schema.decodeUnknownEffect(NewGroup)(input);
+  const valid = yield* Schema.decodeUnknownEffect(CreateGroupRequest)(input);
   const database = yield* Database;
   const groupId = newId();
   const organizerId = newId();
@@ -41,6 +41,7 @@ export const createGroup = Effect.fn("createGroup")(function* createGroup(
       yield* database.insert(groups).values({
         id: groupId,
         name: valid.name,
+        arkAddress: valid.arkAddress,
         inviteTokenHash: hashToken(inviteKey),
         organizerTokenHash: hashToken(organizerToken),
       });
@@ -82,7 +83,13 @@ export const getGroup = Effect.fn("getGroup")(function* getGroup(
     .where(eq(participants.groupId, group.id))
     .orderBy(asc(participants.position));
   return {
-    group: { id: group.id, name: group.name, status: group.status, createdAt: group.createdAt },
+    group: {
+      id: group.id,
+      name: group.name,
+      arkAddress: group.arkAddress,
+      status: group.status,
+      createdAt: group.createdAt,
+    },
     participants: members,
     isOrganizer: verifiesToken(organizerToken, group.organizerTokenHash),
   };

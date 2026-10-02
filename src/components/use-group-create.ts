@@ -1,4 +1,5 @@
 import { useAction } from "@/components/use-action";
+import { useEventWallet } from "@/components/use-event-wallet";
 import { usePeopleInput } from "@/components/use-people-input";
 import type { PersonInput } from "@/components/use-people-input";
 import { NewGroup } from "@/domain/group-input";
@@ -26,6 +27,7 @@ interface GroupCreateState {
 export function useGroupCreate(): GroupCreateState {
   const navigate = useNavigate();
   const action = useAction();
+  const createWallet = useEventWallet();
   const [name, setName] = useState("");
   const [organizerName, setOrganizerName] = useState("");
   const { people, addPerson, changePerson, removePerson } = usePeopleInput();
@@ -44,7 +46,8 @@ export function useGroupCreate(): GroupCreateState {
     }
     setValidation(null);
     action.run(async (): Promise<void> => {
-      const created = await newGroup({ data });
+      const arkAddress = await createWallet();
+      const created = await newGroup({ data: { ...data, arkAddress } });
       await navigate({ to: "/groups/$inviteKey", params: { inviteKey: created.inviteKey } });
     }, "Could not create the group. Check your connection and try again.");
   }

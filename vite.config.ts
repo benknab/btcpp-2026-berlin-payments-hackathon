@@ -6,6 +6,7 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
   plugins: [tailwindcss(), tanstackStart(), react()],
   resolve: { tsconfigPaths: true },
+  optimizeDeps: { include: ["@secondts/bark/web"] },
   server: { port: 3100, strictPort: true },
   lint: {
     options: { typeAware: true, typeCheck: true },

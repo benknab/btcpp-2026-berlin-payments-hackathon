@@ -1,4 +1,5 @@
 import { useAction } from "@/components/use-action";
+import { useEventWallet } from "@/components/use-event-wallet";
 import { NewGroup } from "@/domain/group-input";
 import { DUPLICATE_LNURL_ERROR, hasUniqueLnurls, isLnurl, LNURL_ERROR } from "@/domain/lnurl";
 import { newGroup } from "@/server/groups";
@@ -26,13 +27,14 @@ function receivingAddressError(values: readonly string[]): string | null {
 export function useEventCreate(): EventCreateState {
   const navigate = useNavigate();
   const action = useAction();
+  const createWallet = useEventWallet();
   const [validation, setValidation] = useState<string | null>(null);
 
   function submit(form: Readonly<FormData>): void {
     const participantLnurls = form.getAll("participantLnurl").map((value: unknown) => formText(value));
     const addressError = receivingAddressError(participantLnurls);
+    setValidation(addressError);
     if (addressError !== null) {
-      setValidation(addressError);
       return;
     }
     const input = {
@@ -45,9 +47,9 @@ export function useEventCreate(): EventCreateState {
       setValidation("Enter an event name and a different name for each participant.");
       return;
     }
-    setValidation(null);
     action.run(async (): Promise<void> => {
-      const created = await newGroup({ data: input });
+      const arkAddress = await createWallet();
+      const created = await newGroup({ data: { ...input, arkAddress } });
       await navigate({ to: "/groups/$inviteKey", params: { inviteKey: created.inviteKey } });
     }, "Could not create the event. Try again.");
   }
