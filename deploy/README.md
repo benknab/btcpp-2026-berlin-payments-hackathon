@@ -95,14 +95,14 @@ repository's ignored `.env` to:
 ```dotenv
 APP_BIND_IP=100.64.252.97
 APP_PORT=3101
-PUBLIC_ORIGIN=https://payments.hospitablealpaca.com
+PUBLIC_ORIGIN=https://splitbark.hospitablealpaca.com
 ```
 
 Run `docker compose up --detach --build --wait --wait-timeout 180` from this repository. On `homeserver-proxy`
 (`100.114.136.58`), add this site block to the existing Caddyfile:
 
 ```caddyfile
-payments.hospitablealpaca.com {
+splitbark.hospitablealpaca.com {
     reverse_proxy 100.64.252.97:3101
 }
 ```
