@@ -2,6 +2,7 @@ import { formatSats } from "@/domain/money";
 import type { ReactNode } from "react";
 
 import { ActionError } from "./action-error";
+import { OwnerWalletAccess } from "./owner-wallet-access";
 import { SectionCard } from "./section-card";
 import { Button } from "./ui/button";
 import { useWalletBalance } from "./use-wallet-balance";
@@ -9,6 +10,7 @@ import { WalletTopUp } from "./wallet-top-up";
 import { WalletWithdrawal } from "./wallet-withdrawal";
 
 interface EventWalletCardProps {
+  readonly groupId: string;
   readonly inviteKey: string;
   readonly arkAddress: string;
   readonly isOrganizer: boolean;
@@ -17,6 +19,7 @@ interface EventWalletCardProps {
 }
 
 export function EventWalletCard({
+  groupId,
   inviteKey,
   arkAddress,
   isOrganizer,
@@ -27,6 +30,15 @@ export function EventWalletCard({
   return (
     <SectionCard title="Event wallet · mainnet" contentClassName="flex flex-col gap-3">
       <code className="text-xs break-all">{arkAddress}</code>
+      <OwnerWalletAccess
+        groupId={groupId}
+        inviteKey={inviteKey}
+        arkAddress={arkAddress}
+        isOrganizer={isOrganizer}
+        onRecovered={() => {
+          wallet.sync();
+        }}
+      />
       {isOrganizer && (
         <Button
           variant="outline"

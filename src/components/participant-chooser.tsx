@@ -10,10 +10,9 @@ import type { ReactNode } from "react";
 interface ChooserProps {
   readonly inviteKey: string;
   readonly participants: readonly ParticipantData[];
-  readonly onChosen: () => void;
 }
 
-export function ParticipantChooser({ inviteKey, participants, onChosen }: ChooserProps): ReactNode {
+export function ParticipantChooser({ inviteKey, participants }: ChooserProps): ReactNode {
   const action = useAction();
   const router = useRouter();
 
@@ -21,7 +20,6 @@ export function ParticipantChooser({ inviteKey, participants, onChosen }: Choose
     action.run(async (): Promise<void> => {
       await chooseParticipant({ data: { inviteKey, participantId } });
       await router.invalidate();
-      onChosen();
     }, "Could not select your name. Try again.");
   }
 

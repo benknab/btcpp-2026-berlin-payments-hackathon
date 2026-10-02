@@ -71,7 +71,7 @@ const existingBrowserSettlement = Effect.fn("existingBrowserSettlement")(functio
 ) {
   const existing = yield* loadEventSettlement(inviteKey);
   if (existing === null) {
-    return yield* new GroupError({ message: "This event uses managed settlement." });
+    return yield* new GroupError({ message: "This event has no browser settlement checkpoint." });
   }
   return existing;
 });

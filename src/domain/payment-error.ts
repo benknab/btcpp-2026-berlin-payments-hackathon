@@ -1,6 +1,7 @@
 const messages = {
   ownerReserveRequired: "The owner must deposit the estimated fee reserve before paying creditors.",
   payoutBalanceLow: "Top up the event wallet to cover payouts and estimated fees.",
+  walletRecoveryIncomplete: "Wallet recovery is incomplete. Check your connection and try again.",
   lnurlAddressInvalid: "Invalid Lightning receiving address.",
   lnurlHttpsRequired: "The receiving service must use HTTPS.",
   lnurlUnavailable: "The receiving service is unavailable. Retry or change the receiving address.",

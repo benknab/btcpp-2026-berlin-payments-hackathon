@@ -63,8 +63,11 @@ and **Coffee and snacks: 1,500 sats paid by Bob**, each split equally between al
 select their own name, and save their destination before continuing. The LNURL services must accept
 500-sat payments and support browser CORS. Net settlement does not require creditors to contribute too.
 
-The owner must return in the browser profile and origin that created the event: the invitation link alone does not
-transfer the organizer cookie or the browser-owned wallet.
+The invitation link alone does not transfer the owner cookie or browser wallet. Record the **Recovery phrase** under
+**View settlement → Event wallet · mainnet**. In another browser, open the invitation, select your name, open
+**View settlement**, and select **I'm the owner** in that wallet section to restore using the phrase. The phrase stays
+in the browser; the app reissues owner access without a wallet-ownership proof. Recovery requires the Ark server and
+does not restore payment history or in-progress exits.
 
 1. Run `pnpm db:migrate` for the additive invoice-purpose migration (no reset). Open the app over localhost or HTTPS
    and create a new event with the owner's receiving destination. Each event gets a separate mainnet browser wallet.

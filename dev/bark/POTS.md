@@ -131,22 +131,8 @@ can create a pot and trigger funded payouts. Do not expose this testing interfac
 
 ## Boundaries
 
-### Group-linked flow
-
-Groups use this same net-debt engine at `/groups/<invite>/settlement`, with a dedicated backend-managed wallet per
-group ID under the same `BARK_POTS_DATADIR` root. Each participant provides their own address
-using an organizer-issued private link. The organizer closes the group with a current server-generated preview;
-the immutable setup, group lock, and wallet reservation are persisted before pot creation. Failed initialization
-can be resumed using the original wallet and frozen setup.
-
-Private participant links later display their own deposit QR or payout status. QR payloads are raw Ark mainnet addresses;
-the user enters the displayed remaining sats manually. Only the group organizer can reconcile deposits or authorize
-payouts. Standalone pots use distinct numeric wallet directories; group pots use UUID directories. Wallet insertion
-also rechecks fingerprint reservations in a transaction. Preserve each pot's original wallet directory with the database.
-
-The lightweight organizer/participant capabilities do not make the standalone workspace safe for public hosting.
-See [the shared implementation plan](../../IMPLEMENTATION_PLAN.md) and the README for the integrated demo checklist.
-The historical live run below verified Ben's original demo, not the newly integrated group UI.
+This guide covers only standalone pots and the CLI demo. Events use [browser-owned wallets](BROWSER.md), not this
+server-custodied flow. Managed event settlement and its private participant links have been removed.
 
 This is a **server-custodied hackathon prototype**, not trustless escrow or a production payment system. Keep each
 pot wallet exclusive to this flow: no external sends, deletes, restores, or competing wallet copies. Payout history

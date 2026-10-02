@@ -98,10 +98,9 @@ reserve requirement applies before new payouts, not before reconciling an alread
 fees require no reserve. Leftover reserves remain withdrawable after settlement; a deposit does not guarantee
 receiver availability or resolve uncertain payment outcomes.
 
-The **Managed settlement** page at `/groups/<inviteKey>/managed-settlement` also supports private participant Bark-address
-links, debtor QR codes, deposit progress, and organizer-authorized payouts through a server-held wallet. An event
-uses the flow in which it is first locked; the other flow cannot lock or pay it afterward. Managed group payments
-have offline integration coverage and still need a live mainnet rehearsal.
+Events use only browser-owned wallet settlement. Managed event settlement and private participant links have been
+removed, including their server endpoints and database tables. Run `pnpm db:migrate` to drop `group_settlements` and
+`participant_payments`. Existing managed settlements are not supported or converted; use new events for the browser flow.
 
 ### Browser event wallets
 
@@ -110,8 +109,18 @@ have offline integration coverage and still need a live mainnet rehearsal.
   browser's localStorage under `bark:mainnet:event-wallet:<uuid>`. Only the public address is sent to the backend.
 - Wallet creation and local persistence must succeed before the event is saved. Retrying within the form reuses
   the wallet. Existing events retain a nullable address; no replacement wallet is generated for them.
-- Browser storage is currently unencrypted. Clearing site data loses access. The mnemonic alone is not a full
-  Bark backup: wallet-data export/recovery is still outstanding. Keep testing to small amounts.
+- Browser storage is currently unencrypted. Owners can select **Recovery phrase** in **Event wallet · mainnet** on the
+  **View settlement** page to record their mnemonic. After clearing site data or switching browsers, open the same event
+  link, select your name, open **View settlement**, select **I'm the owner** in the wallet section, and enter that event
+  wallet's phrase. An owner whose cookie remains but wallet storage is missing can use **Recovery phrase**
+  to open the restore form. The phrase stays in the browser and is never sent to our backend.
+- Mnemonic recovery uses the Ark server's recovery mailbox and requires that server's cooperation. It restores
+  spendable Ark funds, not payment history or in-progress exits. Failed or incomplete recovery does not grant owner access.
+  Full wallet-data backups remain outstanding. Do not retry uncertain payouts just because a restored wallet lacks history.
+- Owner-cookie recovery is deliberately self-declared: the backend accepts the event link without a wallet-ownership
+  proof, issues a new owner cookie, and invalidates earlier owner cookies. Anyone with the link can claim app owner
+  permissions, but spending the original wallet still requires its keys. No address-to-phrase ownership check is performed;
+  enter the correct event phrase. This is a trusted, small-amount prototype, not production authentication.
 - The pinned `@secondts/bark@0.25.0` uses `Wallet.open("Bitcoin", mnemonic, config, undefined, args)` with
   `createIfNotExists`; its published types supersede older named-argument examples in the web guide.
 
@@ -215,30 +224,18 @@ The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns partici
 and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local mainnet settlement
 UI: create and list standalone pots at `/settle`, save participants and debts, then open `/settle/<id>` to prepare
 deposits. The backend manages a separate mainnet wallet for each pot. No operator code is required; keep the app local
-because standalone settlement actions are unauthenticated. Linked group pots use separate wallets and can only be
-operated through the group's organizer-authorized endpoints.
+because standalone settlement actions are unauthenticated.
 
-### Group settlement demo
+### Event settlement demo
 
-1. Create a group and share its bookkeeping invitation. Record expenses with the actual payer and equal shares.
-2. Open **Review settlement & personal addresses**. Generate each participant's private setup link and send it only
-   to that person, including yourself. Each participant pastes their own `bark address` result.
-3. Click **Refresh status** to load newly saved addresses. Review amounts/destinations, then **Close group** and confirm.
-4. Debtors reopen their private link (or choose themselves on the shared group page) to see their deposit QR and amount.
-   The QR contains only the Bark address: enter the displayed remaining sats in the wallet. It is not a Lightning invoice.
-5. The organizer clicks **Check deposits**, then confirms **Pay creditors** once every debtor is funded.
-6. Read confirmed payout movement references. If a response is lost, refresh and **Reconcile and finish payouts**;
-   never send manually or reset a `sending` payout.
+1. Create an event, save its **Recovery phrase** under **View settlement → Event wallet · mainnet**, and share the invitation.
+2. Record expenses. In **View settlement**, save receiving addresses and select **Start settlement**.
+3. Debtors select their share and pay the Lightning invoice. The receiver delivers funds while the owner is offline.
+4. The owner selects **Sync wallet**, funds a separate fee reserve, and selects **Pay creditors / reconcile**.
+5. After settlement, use **Withdraw max** for any remainder. Never resend an uncertain payment manually.
 
-Configure `BARK_POTS_DATADIR` and the backend-managed Bark daemon as described in [the pot guide](dev/bark/POTS.md).
-Each group gets its own isolated mainnet wallet. All-square groups need no wallet or participant addresses.
-Closing cannot be undone; initialization failures keep the group locked and offer **Resume pot setup** with the same
-wallet. Keep organizer cookies and private links: account recovery is not implemented. The trusted organizer issues
-bearer links; these provide lightweight access, not proof of identity or ownership of the receiving wallet.
-
-This is a small-amount custodial mainnet demo: overpayment refunds, fee allocation, and production access controls are not
-implemented. The unauthenticated standalone workspace means the whole app must remain local/trusted, even though
-group payment actions require organizer authority.
+See [the browser-wallet demo](dev/bark/BROWSER.md) for setup and the full flow. Mnemonic recovery and self-declared owner
+access are described above. The unauthenticated standalone workspace means the whole app must remain local/trusted.
 
 ## Start
 

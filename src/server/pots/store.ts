@@ -1,5 +1,5 @@
 import { Database } from "@/db/database";
-import { groupSettlements, pots } from "@/db/schema";
+import { pots } from "@/db/schema";
 import { PotSchema, PotError } from "@/lib/pot";
 import type { Pot } from "@/lib/pot";
 import { and, eq } from "drizzle-orm";
@@ -40,30 +40,20 @@ const savePot = Effect.fn("savePotSnapshot")(function* savePot(pot: Pot) {
 
 const insertPot = Effect.fn("insertPotSnapshot")(function* insertPot(pot: Pot) {
   const database = yield* Database;
-  return yield* database
-    .transaction(() =>
-      Effect.gen(function* reserveAndInsert() {
-        const [reservation] = yield* database
-          .select({ groupId: groupSettlements.groupId })
-          .from(groupSettlements)
-          .where(eq(groupSettlements.walletFingerprint, pot.walletFingerprint));
-        if (reservation !== undefined && reservation.groupId !== pot.id) {
-          return yield* new PotError({ message: "This wallet is reserved for a different group." });
-        }
-        yield* database.insert(pots).values({
-          id: pot.id,
-          walletFingerprint: pot.walletFingerprint,
-          revision: pot.revision,
-          snapshot: JSON.stringify(pot),
-        });
-        return pot;
-      }),
-    )
+  yield* database
+    .insert(pots)
+    .values({
+      id: pot.id,
+      walletFingerprint: pot.walletFingerprint,
+      revision: pot.revision,
+      snapshot: JSON.stringify(pot),
+    })
     .pipe(
       Effect.mapError(
         (): PotError => new PotError({ message: "Pot ID or wallet already used, or database unavailable" }),
       ),
     );
+  return pot;
 });
 
 export const PotStoreLive = Layer.effect(

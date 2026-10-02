@@ -1,6 +1,7 @@
 import { DatabaseLive } from "@/db/database";
 import { createGroup, getGroup, requireParticipant } from "@/db/groups";
 import type { GroupView } from "@/db/groups";
+import { recoverOwner } from "@/db/owner-recovery";
 import { CreateGroupRequest, GroupRequest, ParticipantRequest } from "@/domain/group-input";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestUrl } from "@tanstack/react-start/server";
@@ -51,4 +52,16 @@ export const chooseParticipant = createServerFn({ method: "POST" })
       requireParticipant(data.inviteKey, data.participantId).pipe(Effect.provide(DatabaseLive)),
     );
     saveParticipantId(view.group.id, data.participantId);
+  });
+
+// The mnemonic never leaves the browser. This is deliberately not proof of wallet ownership.
+export const recoverEventOwner = createServerFn({ method: "POST" })
+  .validator(Schema.decodeUnknownSync(GroupRequest))
+  .handler(async ({ data }: { readonly data: typeof GroupRequest.Type }): Promise<void> => {
+    const recovered = await runServer(
+      "event.owner.recover",
+      recoverOwner(data.inviteKey).pipe(Effect.provide(DatabaseLive)),
+    );
+    saveOrganizerToken(recovered.groupId, recovered.organizerToken);
+    saveParticipantId(recovered.groupId, recovered.organizerId);
   });

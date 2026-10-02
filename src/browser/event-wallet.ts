@@ -1,3 +1,4 @@
+import { PaymentError } from "@/domain/payment-error";
 import init, { generateMnemonic, Wallet } from "@secondts/bark/web";
 import type { Config } from "@secondts/bark/web";
 import wasmUrl from "@secondts/bark/web/bark_ffi_wasm_bg.wasm?url";
@@ -67,4 +68,32 @@ export function openEventWallet(arkAddress: string): Promise<Wallet> {
     return Promise.reject(new Error("This event's wallet is not stored in this browser."));
   }
   return openWallet(record, false);
+}
+
+function recoveryRecord(id: string, arkAddress: string, phrase: string): EventWalletRecord {
+  const mnemonic = phrase.trim().toLowerCase().split(/\s+/u).join(" ");
+  const existing = findWallet(arkAddress) ?? readWallet(id);
+  return {
+    mnemonic,
+    arkAddress,
+    dbName:
+      existing?.mnemonic === mnemonic && existing.arkAddress === arkAddress
+        ? existing.dbName
+        : `bark-mainnet-event-${id}-restored-${crypto.randomUUID()}`,
+  };
+}
+
+export async function restoreEventWallet(id: string, arkAddress: string, phrase: string): Promise<void> {
+  const record = recoveryRecord(id, arkAddress, phrase);
+  const wallet = await openWallet(record, true);
+  try {
+    const recovery = wallet.recoveryStatus();
+    if (recovery.type === "failed" || (recovery.type === "completed" && !recovery.report.isComplete)) {
+      throw new PaymentError("walletRecoveryIncomplete");
+    }
+    await wallet.sync();
+    saveWallet(id, record);
+  } finally {
+    wallet.free();
+  }
 }

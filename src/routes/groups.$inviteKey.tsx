@@ -2,10 +2,8 @@ import { EventReceivingAddress } from "@/components/event-receiving-address";
 import { GroupUnavailable } from "@/components/group-unavailable";
 import { PageShell } from "@/components/page-shell";
 import { ParticipantChooser } from "@/components/participant-chooser";
-import { Button } from "@/components/ui/button";
 import { groupPage } from "@/server/groups";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { useState } from "react";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/groups/$inviteKey")({
@@ -17,38 +15,16 @@ export const Route = createFileRoute("/groups/$inviteKey")({
 function GroupLayout(): ReactNode {
   const view = Route.useLoaderData();
   const { inviteKey } = Route.useParams();
-  const [choosing, setChoosing] = useState(false);
   const selected = view.participants.find((participant) => participant.id === view.selectedParticipantId);
-  const identity =
-    selected === undefined ? null : (
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">{selected.name}</p>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setChoosing(true);
-          }}
-        >
-          Switch person
-        </Button>
-      </div>
-    );
 
   return (
     <PageShell>
       <section className="flex flex-col gap-3">
         <h1 className="text-3xl font-semibold tracking-tight text-balance">{view.group.name}</h1>
-        {identity}
+        {selected !== undefined && <p className="text-sm text-muted-foreground">{selected.name}</p>}
       </section>
-      {selected === undefined || choosing ? (
-        <ParticipantChooser
-          inviteKey={inviteKey}
-          participants={view.participants}
-          onChosen={() => {
-            setChoosing(false);
-          }}
-        />
+      {selected === undefined ? (
+        <ParticipantChooser inviteKey={inviteKey} participants={view.participants} />
       ) : (
         <>
           {view.group.arkAddress !== null &&

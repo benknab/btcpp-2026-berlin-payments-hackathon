@@ -44,6 +44,7 @@ export function EventPayments({
       )}
       {view.group.arkAddress !== null && (
         <EventWalletCard
+          groupId={view.group.id}
           inviteKey={inviteKey}
           arkAddress={view.group.arkAddress}
           isOrganizer={view.isOrganizer}
