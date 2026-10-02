@@ -16,6 +16,7 @@ import { Route as ParticipantsAccessKeyRouteImport } from './routes/participants
 import { Route as SettleIndexRouteImport } from './routes/settle.index'
 import { Route as SettlePotIdRouteImport } from './routes/settle.$potId'
 import { Route as GroupsInviteKeyIndexRouteImport } from './routes/groups.$inviteKey.index'
+import { Route as GroupsInviteKeyManagedSettlementRouteImport } from './routes/groups.$inviteKey.managed-settlement'
 import { Route as GroupsInviteKeySettlementRouteImport } from './routes/groups.$inviteKey.settlement'
 import { Route as GroupsInviteKeyExpensesIndexRouteImport } from './routes/groups.$inviteKey.expenses.index'
 import { Route as GroupsInviteKeyExpensesExpenseIdRouteImport } from './routes/groups.$inviteKey.expenses.$expenseId'
@@ -57,6 +58,12 @@ const GroupsInviteKeyIndexRoute = GroupsInviteKeyIndexRouteImport.update({
   path: '/',
   getParentRoute: () => GroupsInviteKeyRoute,
 } as any)
+const GroupsInviteKeyManagedSettlementRoute =
+  GroupsInviteKeyManagedSettlementRouteImport.update({
+    id: '/managed-settlement',
+    path: '/managed-settlement',
+    getParentRoute: () => GroupsInviteKeyRoute,
+  } as any)
 const GroupsInviteKeySettlementRoute =
   GroupsInviteKeySettlementRouteImport.update({
     id: '/settlement',
@@ -95,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/participants/$accessKey': typeof ParticipantsAccessKeyRoute
   '/settle/$potId': typeof SettlePotIdRoute
   '/settle/': typeof SettleIndexRoute
+  '/groups/$inviteKey/managed-settlement': typeof GroupsInviteKeyManagedSettlementRoute
   '/groups/$inviteKey/settlement': typeof GroupsInviteKeySettlementRoute
   '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -107,6 +115,7 @@ export interface FileRoutesByTo {
   '/participants/$accessKey': typeof ParticipantsAccessKeyRoute
   '/settle/$potId': typeof SettlePotIdRoute
   '/settle': typeof SettleIndexRoute
+  '/groups/$inviteKey/managed-settlement': typeof GroupsInviteKeyManagedSettlementRoute
   '/groups/$inviteKey/settlement': typeof GroupsInviteKeySettlementRoute
   '/groups/$inviteKey': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -122,6 +131,7 @@ export interface FileRoutesById {
   '/participants/$accessKey': typeof ParticipantsAccessKeyRoute
   '/settle/$potId': typeof SettlePotIdRoute
   '/settle/': typeof SettleIndexRoute
+  '/groups/$inviteKey/managed-settlement': typeof GroupsInviteKeyManagedSettlementRoute
   '/groups/$inviteKey/settlement': typeof GroupsInviteKeySettlementRoute
   '/groups/$inviteKey/': typeof GroupsInviteKeyIndexRoute
   '/groups/$inviteKey/expenses/$expenseId': typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/participants/$accessKey'
     | '/settle/$potId'
     | '/settle/'
+    | '/groups/$inviteKey/managed-settlement'
     | '/groups/$inviteKey/settlement'
     | '/groups/$inviteKey/'
     | '/groups/$inviteKey/expenses/$expenseId'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/participants/$accessKey'
     | '/settle/$potId'
     | '/settle'
+    | '/groups/$inviteKey/managed-settlement'
     | '/groups/$inviteKey/settlement'
     | '/groups/$inviteKey'
     | '/groups/$inviteKey/expenses/$expenseId'
@@ -164,6 +176,7 @@ export interface FileRouteTypes {
     | '/participants/$accessKey'
     | '/settle/$potId'
     | '/settle/'
+    | '/groups/$inviteKey/managed-settlement'
     | '/groups/$inviteKey/settlement'
     | '/groups/$inviteKey/'
     | '/groups/$inviteKey/expenses/$expenseId'
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/groups/$inviteKey/'
       preLoaderRoute: typeof GroupsInviteKeyIndexRouteImport
+      parentRoute: typeof GroupsInviteKeyRoute
+    }
+    '/groups/$inviteKey/managed-settlement': {
+      id: '/groups/$inviteKey/managed-settlement'
+      path: '/managed-settlement'
+      fullPath: '/groups/$inviteKey/managed-settlement'
+      preLoaderRoute: typeof GroupsInviteKeyManagedSettlementRouteImport
       parentRoute: typeof GroupsInviteKeyRoute
     }
     '/groups/$inviteKey/settlement': {
@@ -297,6 +317,7 @@ const GroupsInviteKeyExpensesExpenseIdRouteWithChildren =
   )
 
 interface GroupsInviteKeyRouteChildren {
+  GroupsInviteKeyManagedSettlementRoute: typeof GroupsInviteKeyManagedSettlementRoute
   GroupsInviteKeySettlementRoute: typeof GroupsInviteKeySettlementRoute
   GroupsInviteKeyIndexRoute: typeof GroupsInviteKeyIndexRoute
   GroupsInviteKeyExpensesExpenseIdRoute: typeof GroupsInviteKeyExpensesExpenseIdRouteWithChildren
@@ -305,6 +326,7 @@ interface GroupsInviteKeyRouteChildren {
 }
 
 const GroupsInviteKeyRouteChildren: GroupsInviteKeyRouteChildren = {
+  GroupsInviteKeyManagedSettlementRoute: GroupsInviteKeyManagedSettlementRoute,
   GroupsInviteKeySettlementRoute: GroupsInviteKeySettlementRoute,
   GroupsInviteKeyIndexRoute: GroupsInviteKeyIndexRoute,
   GroupsInviteKeyExpensesExpenseIdRoute:

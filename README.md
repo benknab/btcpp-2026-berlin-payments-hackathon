@@ -57,7 +57,8 @@ delivery → owner reopens → Lightning payout. Use compatible signet recipient
 cannot receive the test payouts.
 
 **Current status:** event creation, invitations, expense management, and personal balance overviews are implemented.
-The event overview shows costs and remaining pot payouts; **View expenses** opens the searchable expense list.
+The event overview shows total spent and a compact remaining-payout tally. **View expenses** opens the searchable
+expense list; **View settlement** opens detailed balances, receiving addresses, funding/payout controls, and the event wallet.
 Add/edit expenses support equal splits (everyone or selected people), exact sats, weighted shares, and percentages.
 Weights and percentages support two decimal places; percentages must total 100 and exact amounts must match the total.
 Proportional splits allocate whole sats by largest remainder, with participant IDs breaking ties. Split settings persist
@@ -82,7 +83,7 @@ not independent backend verification. The legacy `lnurl` field stores all receiv
 Live signet Ark/BOLT12 payouts still need rehearsal; local backend tests cover preparation, authorization, amount and
 destination matching, proof checks, and interrupted-attempt reconciliation.
 
-The **Managed settlement** page at `/groups/<inviteKey>/settlement` also supports private participant Bark-address
+The **Managed settlement** page at `/groups/<inviteKey>/managed-settlement` also supports private participant Bark-address
 links, debtor QR codes, deposit progress, and organizer-authorized payouts through a server-held wallet. An event
 uses the flow in which it is first locked; the other flow cannot lock or pay it afterward. Managed group payments
 have offline integration coverage and still need a live signet rehearsal.

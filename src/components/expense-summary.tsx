@@ -9,18 +9,15 @@ import type { ReactNode } from "react";
 
 export function ExpenseSummary({
   overview,
-  selectedParticipantId,
   inviteKey,
   locked,
 }: {
   readonly overview: GroupOverview;
-  readonly selectedParticipantId: string | null;
   readonly inviteKey: string;
   readonly locked: boolean;
 }): ReactNode {
-  const personal = overview.balances.find((balance) => balance.participantId === selectedParticipantId);
-  const net = personal?.settlementSats ?? 0;
-  const balanceLabel = net >= 0 ? "You receive from the pot" : "You contribute to the pot";
+  const recipients = overview.balances.filter((balance) => balance.settlementSats > 0);
+  const remaining = recipients.reduce((total, balance) => total + balance.settlementSats, 0);
   return (
     <SectionCard
       title="Overview"
@@ -30,7 +27,7 @@ export function ExpenseSummary({
           {`${overview.entries.length} ${overview.entries.length === 1 ? "expense" : "expenses"}`}
         </Badge>
       }
-      footerClassName="flex flex-wrap justify-end gap-2"
+      footerClassName="flex flex-wrap gap-2"
       footer={
         <>
           <Link
@@ -40,6 +37,13 @@ export function ExpenseSummary({
           >
             View expenses
           </Link>
+          <Link
+            to="/groups/$inviteKey/settlement"
+            params={{ inviteKey }}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            View settlement
+          </Link>
           {!locked && (
             <Link to="/groups/$inviteKey/expenses/new" params={{ inviteKey }} className={buttonVariants()}>
               Add expense
@@ -48,18 +52,16 @@ export function ExpenseSummary({
         </>
       }
     >
-      <dl className="flex flex-col gap-3 text-sm">
-        <SummaryItem label="Event cost" className="flex justify-between gap-4" labelClassName="text-muted-foreground">
+      <dl className="flex flex-col gap-3 text-sm" aria-live="polite">
+        <SummaryItem label="Total spent" className="flex justify-between gap-4" labelClassName="text-muted-foreground">
           {formatSats(overview.totalSats)}
         </SummaryItem>
-        <SummaryItem label="Your share" className="flex justify-between gap-4" labelClassName="text-muted-foreground">
-          {formatSats(personal?.shareSats ?? 0)}
-        </SummaryItem>
-        <SummaryItem label="You paid" className="flex justify-between gap-4" labelClassName="text-muted-foreground">
-          {formatSats(personal?.paidSats ?? 0)}
-        </SummaryItem>
-        <SummaryItem label={net === 0 ? "Balance" : balanceLabel} className="flex justify-between gap-4 font-medium">
-          {formatSats(Math.abs(net))}
+        <SummaryItem
+          label="Active settlement"
+          className="flex flex-wrap justify-between gap-2"
+          labelClassName="text-muted-foreground"
+        >
+          {`${recipients.length} ${recipients.length === 1 ? "payout" : "payouts"} · ${formatSats(remaining)}`}
         </SummaryItem>
       </dl>
     </SectionCard>
