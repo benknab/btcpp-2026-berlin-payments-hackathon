@@ -1,5 +1,5 @@
 import { withdrawWalletMax } from "@/browser/wallet-withdrawal";
-import { readWithdrawal } from "@/browser/withdrawal-storage";
+import { readWithdrawal, WITHDRAWAL_CHANGED } from "@/browser/withdrawal-storage";
 import type { WalletWithdrawal } from "@/domain/withdrawal";
 import { useEffect, useState } from "react";
 
@@ -24,21 +24,28 @@ export function useWalletWithdrawal(input: {
   const action = useAction();
   useEffect(() => {
     let active = true;
-    Promise.resolve()
-      .then(() => readWithdrawal(input.arkAddress))
-      .then((record) => {
-        if (active) {
-          setWithdrawal(record);
-          setStorageError(null);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setStorageError("Could not read withdrawal history.");
-        }
-      });
+    function refresh(): void {
+      Promise.resolve()
+        .then(() => readWithdrawal(input.arkAddress))
+        .then((record) => {
+          if (active) {
+            setWithdrawal(record);
+            setStorageError(null);
+          }
+        })
+        .catch(() => {
+          if (active) {
+            setStorageError("Could not read withdrawal history.");
+          }
+        });
+    }
+    refresh();
+    globalThis.addEventListener("storage", refresh);
+    globalThis.addEventListener(WITHDRAWAL_CHANGED, refresh);
     return (): void => {
       active = false;
+      globalThis.removeEventListener("storage", refresh);
+      globalThis.removeEventListener(WITHDRAWAL_CHANGED, refresh);
     };
   }, [input.arkAddress]);
   function withdraw(): void {

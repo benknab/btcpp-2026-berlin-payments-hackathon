@@ -3,11 +3,10 @@ import type { WalletWithdrawal } from "@/domain/withdrawal";
 import { authorizeWithdrawal } from "@/server/wallet-withdrawal";
 import type { Wallet } from "@secondts/bark/web";
 
-import { unstartedBolt12Error } from "./payout-recovery";
 import type { BrowserTrace } from "./telemetry";
 import { withEventWallet } from "./with-event-wallet";
 import { prepareWithdrawal } from "./withdrawal-prepare";
-import { reconcileWithdrawal, releaseUnstartedWithdrawal } from "./withdrawal-reconcile";
+import { reconcileWithdrawal, releaseUnsuccessfulWithdrawal, withdrawalFailure } from "./withdrawal-reconcile";
 import { readWithdrawal, saveWithdrawal } from "./withdrawal-storage";
 
 async function sendWithdrawal(wallet: Readonly<Wallet>, withdrawal: WalletWithdrawal): Promise<void> {
@@ -31,10 +30,9 @@ async function finishWithdrawal(
       reconcileWithdrawal(wallet, withdrawal),
     );
   } catch (error) {
-    if (await releaseUnstartedWithdrawal(wallet, arkAddress, withdrawal)) {
-      throw unstartedBolt12Error(error);
-    }
-    throw error;
+    const released = await releaseUnsuccessfulWithdrawal(wallet, arkAddress, withdrawal);
+    await trace.log("wallet.withdrawal.recovery", { withdrawalId: withdrawal.id, outcome: released ?? "unresolved" });
+    throw withdrawalFailure(error, released);
   }
   const completed = { ...withdrawal, status: "paid" } as const;
   saveWithdrawal(arkAddress, completed);
@@ -72,10 +70,9 @@ export function withdrawWalletMax(
         () => sendWithdrawal(wallet, withdrawal),
       );
     } catch (error) {
-      if (await releaseUnstartedWithdrawal(wallet, arkAddress, withdrawal)) {
-        throw unstartedBolt12Error(error);
-      }
-      throw new PaymentError("withdrawalPending");
+      const released = await releaseUnsuccessfulWithdrawal(wallet, arkAddress, withdrawal);
+      await trace.log("wallet.withdrawal.recovery", { withdrawalId: withdrawal.id, outcome: released ?? "unresolved" });
+      throw withdrawalFailure(error, released);
     }
     return finishWithdrawal(wallet, arkAddress, withdrawal, trace);
   });
