@@ -21,7 +21,12 @@ export function WalletWithdrawal(props: {
   const disabled = action.pending || reconciling || !props.settled;
   return (
     <FieldGroup className="gap-3">
-      <LabeledField id="withdrawal-destination" label="Owner wallet" disabled={disabled}>
+      <LabeledField
+        id="withdrawal-destination"
+        label="Owner wallet"
+        disabled={disabled}
+        description="Remaining balance minus fees."
+      >
         <Input
           id="withdrawal-destination"
           value={reconciling ? action.withdrawal.destination : action.destination}

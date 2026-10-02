@@ -88,6 +88,12 @@ transfer the organizer cookie or the browser-owned wallet.
    amount, expiry, and metadata hash, persists the attempt, and pays creditors sequentially.
 10. The backend verifies each payment preimage and marks the event settled once all creditors are paid.
     Retrying reconciles an existing in-flight attempt without sending a second payment.
+11. In **Event wallet · mainnet**, set **Owner wallet**, then select **Withdraw max**. The organizer's receiving
+    address is prefilled; Lightning addresses/LNURLs, BOLT12 offers, and mainnet Ark addresses are supported.
+    The browser syncs and computes the maximum spendable amount after the current send fee. Settlement must be
+    complete, with no unresolved or excess contributions. Receiver limits still apply.
+    An interrupted withdrawal is persisted in this browser; **Reconcile withdrawal** checks that attempt instead
+    of sending again. A BOLT12 request proven not to have started is released for an explicit retry.
 
 Lightning invoices must begin with `lnbc`; Ark destinations must begin with `ark1` on Second's mainnet server.
 Signet invoices and addresses are rejected. Existing signet events are not converted: `mainnet.db`,
@@ -97,9 +103,11 @@ Do not clear the organizer's site data. Changing the app's origin (including por
 ## Persistence
 
 - `groups.ark_address`: public receiving address (nullable for pre-wallet events).
-- `event_settlements`: immutable participant amounts and receiving destinations.
+- `event_settlements`: immutable participant amounts; receiving destinations remain editable until payout starts.
 - `event_invoices`: every contribution invoice, payment hash, expiry, status, and delivered amount.
 - `event_payouts`: creditor invoices and prepared/sending/paid/expired attempt states, with one active attempt per creditor.
+- `bark:mainnet:wallet-withdrawal:<ark-address>`: localStorage journal of the latest leftover withdrawal, persisted
+  before sending and retained across reloads. Wallet history remains the source of truth for completed transfers.
 
 The UI refreshes payment status on request. Barkd processes and delivers receipts independently of the UI.
 Browser-storage encryption and complete wallet backup/import are still outstanding; keep this test to small amounts.
@@ -114,7 +122,7 @@ Automatic LNURL resolution on mainnet still needs a funded rehearsal with a serv
 
 An interrupted attempt that never reached Bark remains `sending` and requires manual investigation. The app does
 not automatically replace uncertain payments. Excess contributions block completion; automated refunds are not yet
-implemented. Unused fee reserves stay in the owner's wallet. Keep the receiving daemon and wallet data available
+implemented. Unused fee reserves can be withdrawn after settlement. Keep the receiving daemon and wallet data available
 to reconcile late payments.
 
 Reconciliation reopens a settled event when it discovers a late delivery. Displayed balances include delivered
