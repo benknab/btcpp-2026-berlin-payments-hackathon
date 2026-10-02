@@ -15,6 +15,9 @@ Shared expenses with Bitcoin settlement, built for the
 
 Receiving destinations can be Lightning addresses/LNURL-pay, mainnet Ark addresses, or BOLT12 offers.
 
+Created and joined events appear under **Your events** on the home page. This browser stores only their invitation
+IDs in local storage; event names are fetched from the server. Clearing browser storage clears this list.
+
 ## Run locally
 
 Use Node 22.23.1 or a supported newer version and pnpm 12.8.1.
