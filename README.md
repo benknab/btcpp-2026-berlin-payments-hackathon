@@ -7,13 +7,17 @@ Shared expenses with Bitcoin settlement, built for the
 
 ## How it works
 
-1. Create an event and invite participants.
-2. Record expenses with equal, exact, weighted, or percentage splits.
-3. Start settlement to lock the balances. Participants who owe money pay a Lightning invoice.
-4. Contributions arrive in the owner's event wallet, even while their browser is closed.
-5. The owner funds payment fees and pays participants from their browser wallet.
+1. **Create an event.** The owner gets a Bark wallet in their browser. Save its recovery phrase to restore funds later.
+   Invite participants and have them choose their receiving destinations.
+2. **Add expenses.** Record who paid and split costs equally, by exact amounts, by weights, or by percentages.
+3. **Settle up.** Start settlement to lock the balances. Participants who owe money pay the owner via Lightning
+   invoices. A server-side Barkd receiver uses Bark's receive-for-address flow to deliver contributions to the
+   owner's event wallet, even while the owner's browser is closed.
+4. **Pay participants.** The owner reopens the event, syncs their Bark wallet, funds any required payment fees,
+   and sends payouts from their browser to Lightning addresses, LNURL-pay, BOLT12 offers, or mainnet Ark addresses.
 
-Receiving destinations can be Lightning addresses/LNURL-pay, mainnet Ark addresses, or BOLT12 offers.
+The recovery phrase restores spendable Ark funds, not payment history or in-progress exits; it is not a complete
+wallet-data backup. See [wallet recovery and trust boundaries](dev/bark/BROWSER.md#recovery-and-trust).
 
 Created and joined events appear under **Your events** on the home page. This browser stores only their invitation
 IDs in local storage; event names are fetched from the server. Clearing browser storage clears this list.
