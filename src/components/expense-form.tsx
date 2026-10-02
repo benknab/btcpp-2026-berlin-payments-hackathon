@@ -16,7 +16,7 @@ export function ExpenseForm({
 }): ReactNode {
   const form = useExpenseForm(options, participants);
   return (
-    <SectionCard title={options.existing === null ? "Add an expense" : "Edit expense"}>
+    <SectionCard title={options.existing === null ? "Add expense" : "Edit expense"} className="w-full max-w-2xl">
       <form onSubmit={form.handleSubmit} className="flex flex-col gap-6">
         <ExpenseFormDetails options={options} form={form} participants={participants} locked={locked} />
         {locked ? (

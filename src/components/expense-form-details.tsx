@@ -1,12 +1,12 @@
 import { ActionError } from "@/components/action-error";
 import { ExpenseFields } from "@/components/expense-fields";
+import { ExpenseFormActions } from "@/components/expense-form-actions";
 import { ExpenseSplitter } from "@/components/expense-splitter";
 import { MessageAlert } from "@/components/message-alert";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldLegend, FieldSet } from "@/components/ui/field";
+import { Separator } from "@/components/ui/separator";
 import type { ExpenseFormOptions, ExpenseFormState } from "@/components/use-expense-form";
 import type { ParticipantData } from "@/db/groups";
-import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 interface ExpenseFormDetailsProps {
@@ -17,11 +17,11 @@ interface ExpenseFormDetailsProps {
 }
 
 export function ExpenseFormDetails({ options, form, participants, locked }: ExpenseFormDetailsProps): ReactNode {
-  const submitLabel = options.existing === null ? "Add expense" : "Save changes";
   return (
     <FieldSet disabled={locked}>
       <FieldLegend className="sr-only">Expense details</FieldLegend>
       <ExpenseFields form={form} participants={participants} />
+      <Separator />
       <ExpenseSplitter
         split={form.split}
         participants={participants}
@@ -34,18 +34,12 @@ export function ExpenseFormDetails({ options, form, participants, locked }: Expe
           <output>{form.success}</output>
         </MessageAlert>
       )}
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={locked || form.pending || form.split.error !== null}>
-          {form.pending ? "Saving…" : submitLabel}
-        </Button>
-        <Link
-          to="/groups/$inviteKey"
-          params={{ inviteKey: options.inviteKey }}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          Back to event
-        </Link>
-      </div>
+      <ExpenseFormActions
+        inviteKey={options.inviteKey}
+        pending={form.pending}
+        disabled={locked || form.pending || form.split.error !== null}
+        editing={options.existing !== null}
+      />
     </FieldSet>
   );
 }

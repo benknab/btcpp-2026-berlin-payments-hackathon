@@ -1,8 +1,6 @@
 import { ExpenseList } from "@/components/expense-list";
-import { buttonVariants } from "@/components/ui/button";
 import { groupExpenses } from "@/server/expenses";
-import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
-import { ArrowLeftIcon } from "lucide-react";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/groups/$inviteKey/expenses/")({
@@ -16,22 +14,12 @@ function ExpensesPage(): ReactNode {
   const entries = Route.useLoaderData();
   const view = groupRoute.useLoaderData();
   return (
-    <>
-      <Link
-        to="/groups/$inviteKey"
-        params={{ inviteKey }}
-        className={buttonVariants({ variant: "ghost", className: "self-start" })}
-      >
-        <ArrowLeftIcon data-icon="inline-start" />
-        Back to overview
-      </Link>
-      <ExpenseList
-        inviteKey={inviteKey}
-        entries={entries}
-        participants={view.participants}
-        selectedParticipantId={view.selectedParticipantId}
-        locked={view.group.status !== "open"}
-      />
-    </>
+    <ExpenseList
+      inviteKey={inviteKey}
+      entries={entries}
+      participants={view.participants}
+      selectedParticipantId={view.selectedParticipantId}
+      locked={view.group.status !== "open"}
+    />
   );
 }

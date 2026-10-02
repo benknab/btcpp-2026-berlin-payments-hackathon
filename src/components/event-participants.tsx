@@ -26,26 +26,27 @@ export function EventParticipants(): ReactNode {
   }
 
   return (
-    <FieldSet className="gap-6">
+    <FieldSet className="gap-4">
       <FieldLegend>Participants</FieldLegend>
-      <FieldGroup className="gap-6">
+      <FieldGroup className="gap-4">
         <OrganizerNameField />
         <ReceivingAddressField id="organizer-lnurl" name="organizerLnurl" required />
-        {people.map((id, index) => (
-          <EventPersonFields
-            key={id}
-            id={id}
-            number={index + FIRST_GUEST_NUMBER}
-            removable={index > 0}
-            onRemove={removePerson}
-          />
-        ))}
+        <FieldGroup className="gap-4 sm:grid sm:grid-cols-2">
+          {people.map((id, index) => (
+            <EventPersonFields
+              key={id}
+              id={id}
+              number={index + FIRST_GUEST_NUMBER}
+              removable={index > 0}
+              onRemove={removePerson}
+            />
+          ))}
+        </FieldGroup>
       </FieldGroup>
       <Button
         type="button"
-        variant="secondary"
-        size="lg"
-        className="h-12 self-start px-5"
+        variant="outline"
+        className="self-start"
         onClick={addPerson}
         disabled={people.length >= MAX_PARTICIPANTS - 1}
       >
