@@ -142,7 +142,7 @@ export default defineConfig({
         },
       },
       {
-        files: ["src/server/**/*.ts"],
+        files: ["src/server/**/*.ts", "scripts/**/*.ts"],
         rules: { "import/no-nodejs-modules": "off" },
       },
     ],

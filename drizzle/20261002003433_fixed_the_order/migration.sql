@@ -1,1 +1,0 @@
-ALTER TABLE `groups` ADD `ark_address` text;

@@ -100,7 +100,12 @@ export function withFixture(
     PotWallet,
     Effect.gen(function* walletLayer() {
       const value = yield* TestWallets;
-      return { open: (id: number): Effect.Effect<BarkOperations, PotError> => value.open(id) };
+      return {
+        open: (id: number | string): Effect.Effect<BarkOperations, PotError> =>
+          typeof id === "number"
+            ? value.open(id)
+            : Effect.fail(new PotError({ message: "Standalone pots require a numeric ID" })),
+      };
     }),
   ).pipe(Layer.provide(controls));
   const store = PotStoreLive.pipe(Layer.provide(database));

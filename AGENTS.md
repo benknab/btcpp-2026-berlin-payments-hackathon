@@ -63,6 +63,12 @@ Advertised total prize value: **37.15M sats**, including tickets, subscriptions,
 - Keep database access and credentials server-only. Import server implementations through TanStack Start server functions.
 - Commit generated Drizzle migrations and `src/routeTree.gen.ts`; do not edit generated files manually.
 
+## Development database resets
+
+This is a non-production prototype. If migrations or database changes are hard to reconcile without data loss,
+prefer a full development database reset and a freshly generated migration baseline over complex data-preservation
+work. Resets are permitted during this phase. Document the reset command and any baseline change.
+
 ## Bark
 
 - Use [Second's Bark signet guide](https://second.tech/docs/getting-started/bark-cli/signet) as the source of truth for Bark-related work.

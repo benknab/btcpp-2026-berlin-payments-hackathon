@@ -5,6 +5,7 @@ export { groups, participants } from "./group-schema";
 export { eventSettlements } from "./event-settlement-schema";
 export { eventInvoices, eventPayouts } from "./event-payment-schema";
 export { expenses, expenseShares } from "./expense-schema";
+export { groupSettlements, participantPayments } from "./group-payment-schema";
 export { settlementPots, settlementUsers, settlementDebts } from "./settlement-schema";
 
 export const notes = sqliteTable("notes", {

@@ -17,7 +17,7 @@ const startupRetry = { times: STARTUP_ATTEMPTS, schedule: Schedule.spaced(STARTU
 const WalletInfo = Schema.Struct({ fingerprint: Schema.optional(Schema.NullOr(Schema.NonEmptyString)) });
 
 export interface PotWalletOperations {
-  readonly open: (id: number, allowCreate: boolean) => Effect.Effect<BarkOperations, PotError, Scope.Scope>;
+  readonly open: (id: number | string, allowCreate: boolean) => Effect.Effect<BarkOperations, PotError, Scope.Scope>;
 }
 export class PotWallet extends Context.Service<PotWallet, PotWalletOperations>()("payments/PotWallet") {}
 
@@ -81,7 +81,7 @@ const initializeWallet = Effect.fn("initializePotWallet")(function* initializeWa
   return bark;
 });
 
-const openWallet = Effect.fn("openPotWallet")(function* openWallet(id: number, allowCreate: boolean) {
+const openWallet = Effect.fn("openPotWallet")(function* openWallet(id: number | string, allowCreate: boolean) {
   const { datadir, port } = yield* prepareWalletDirectory(id);
   const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
   yield* spawner

@@ -3,8 +3,9 @@ import { ExpenseList } from "@/components/expense-list";
 import { ExpenseSummary } from "@/components/expense-summary";
 import { GroupInvite } from "@/components/group-invite";
 import { ParticipantBalances } from "@/components/participant-balances";
+import { buttonVariants } from "@/components/ui/button";
 import { eventPage } from "@/server/event-page";
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/groups/$inviteKey/")({
@@ -30,6 +31,15 @@ function GroupHome(): ReactNode {
       />
       <ParticipantBalances participants={view.participants} balances={overview.balances} />
       <EventPayments inviteKey={inviteKey} view={view} page={page} />
+      {page.settlement === null && (
+        <Link
+          to="/groups/$inviteKey/settlement"
+          params={{ inviteKey }}
+          className={buttonVariants({ variant: "outline" })}
+        >
+          Managed settlement
+        </Link>
+      )}
       <GroupInvite inviteKey={inviteKey} origin={view.origin} />
     </>
   );

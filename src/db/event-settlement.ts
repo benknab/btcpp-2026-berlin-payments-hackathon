@@ -91,6 +91,16 @@ const beginSettlement = Effect.fn("beginEventSettlement")(function* beginSettlem
   }
 });
 
+const existingBrowserSettlement = Effect.fn("existingBrowserSettlement")(function* existingBrowserSettlement(
+  inviteKey: string,
+) {
+  const existing = yield* loadEventSettlement(inviteKey);
+  if (existing === null) {
+    return yield* new GroupError({ message: "This event uses managed settlement." });
+  }
+  return existing;
+});
+
 export const lockEventSettlement = Effect.fn("lockEventSettlement")(function* lockEventSettlement(
   inviteKey: string,
   token?: string,
@@ -103,7 +113,7 @@ export const lockEventSettlement = Effect.fn("lockEventSettlement")(function* lo
         return yield* new GroupError({ message: "This event has no browser wallet." });
       }
       if (view.group.status !== "open") {
-        return yield* loadEventSettlement(inviteKey);
+        return yield* existingBrowserSettlement(inviteKey);
       }
       yield* beginSettlement(view.group.id);
       const members = yield* prepareMembers(inviteKey);

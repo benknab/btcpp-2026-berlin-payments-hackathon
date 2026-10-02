@@ -1,13 +1,15 @@
 import { calculateBalances } from "@/domain/accounting";
 import type { AccountingError, ParticipantBalance } from "@/domain/accounting";
-import { applySettlementPayments } from "@/domain/settlement-balances";
+import { applyManagedPayments, applySettlementPayments } from "@/domain/settlement-balances";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+import type { Schema } from "effect";
 
 import { Database } from "./database";
 import { eventInvoices, eventPayouts } from "./event-payment-schema";
 import { listExpenses } from "./expenses";
 import type { ExpenseView } from "./expenses";
+import { readGroupPot } from "./group-payment-access";
 import { getGroup } from "./groups";
 import type { GroupDatabaseError, GroupError } from "./groups";
 
@@ -19,7 +21,7 @@ export interface GroupOverview {
 
 export const getOverview = Effect.fn("getOverview")(function* getOverview(
   inviteKey: string,
-): Effect.fn.Return<GroupOverview, GroupDatabaseError | GroupError | AccountingError, Database> {
+): Effect.fn.Return<GroupOverview, GroupDatabaseError | GroupError | AccountingError | Schema.SchemaError, Database> {
   const database = yield* Database;
   return yield* database.transaction(() =>
     Effect.gen(function* readOverview() {
@@ -32,10 +34,14 @@ export const getOverview = Effect.fn("getOverview")(function* getOverview(
       });
       const invoices = yield* database.select().from(eventInvoices).where(eq(eventInvoices.groupId, view.group.id));
       const payouts = yield* database.select().from(eventPayouts).where(eq(eventPayouts.groupId, view.group.id));
+      const managed = yield* readGroupPot(view.group.id);
       return {
         entries,
         totalSats: entries.reduce((total, expense) => total + expense.amountSats, 0),
-        balances: applySettlementPayments(balances, invoices, payouts),
+        balances:
+          managed === null
+            ? applySettlementPayments(balances, invoices, payouts)
+            : applyManagedPayments(balances, managed),
       };
     }),
   );

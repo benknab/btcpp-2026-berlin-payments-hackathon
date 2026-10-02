@@ -1,163 +1,135 @@
 # Implementation plan: Person A + Person B
 
-## Goal
+## Agreed V1: settle net debts at the end
 
-A Kittysplit-style group expense app that settles actual Bitcoin through Bark on signet.
-Participants contribute to a shared pot, record expenses they paid **out of pocket**, and receive their final balances
-from the pot. This is a server-custodied hackathon prototype, not production custody or trustless escrow.
+Person A owns the group/expense experience; **Ben (Person B)** owns the Bark payment engine.
+We now align with Ben's existing net-debt pot. This **replaces the earlier pre-funded trip-pot/refund proposal**.
 
-The user is **Person A**. The coworker is **Person B**.
+1. Create a group, invite participants, and record expenses paid **out of pocket**.
+2. Calculate each person's net balance like Kittysplit: **paid − expense share**.
+3. Each participant supplies their own Bark signet receive address using a private personal link—no account/password.
+4. The organizer reviews and closes the group. Expenses and destinations become immutable.
+5. Net debtors get a QR for their assigned pot address and their exact amount owed.
+6. The organizer checks deposits. Every debtor must complete their own payment; pending transfers do not count.
+7. Once funded, the organizer explicitly authorizes payouts to net creditors.
+
+Example: Alice paid 9,000 sats, Bob 6,000, Carol zero. Each owes a 5,000-sat share. Carol deposits 5,000 sats;
+Alice receives 4,000 and Bob 1,000. Deposits settle these debts; they are **not** additional accounting credits.
+
+The QR encodes the raw `tark1…` Bark address, not an invoice or an invented URI. The wallet user must enter the
+displayed remaining amount. V1 is signet Ark only, not a Lightning/on-chain QR flow.
 
 ## Current state
 
-- **A: implemented** group creation, invitation links, participant selection, equal expense splitting, persisted split
-  snapshots, expense creation/editing/deletion, and personalized balance overviews.
-- **B: implemented independently** the Bark signet adapter, persisted net-debt pots, receipt reconciliation, guarded
-  payouts, an offline test suite, and the standalone `/settle` interface. See [Bark pot documentation](dev/bark/POTS.md).
-- **Merged:** both flows coexist; the home page links to the settlement workspace. Shared shadcn components and generated
-  routes have been reconciled. Both sets of migrations are preserved.
-- **Not connected yet:** a group has no linked Bark pot, confirmed contributions, verified payout destinations, or
-  group-bound settlement action. The expense overview is accounting, not a payment authorization.
-
-## First integration decision: the money model
-
-The original shared-pot model and the current standalone settlement backend are **not yet the same model**:
-
-| Model             | Funding                                                                                        | Payouts                                                                                    |
-| ----------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Our target        | Participants contribute before/during the event; contributions count toward their own balances | Contribution + out-of-pocket expenses paid − expense share, subject to agreed fee handling |
-| Current `/settle` | Net debtors contribute the exact amount needed after expenses are finished                     | Net creditors receive the amount they are owed                                             |
-
-**Do not silently substitute one model for the other.** A and B should agree on the bridge before implementing funding
-UI. For the original goal, B needs to support contribution credits and refunding remaining participant funds, not just
-netting debts. The existing backend deliberately leaves excess deposits in the pot; that is not the same as refunding
-unused trip contributions.
-
-Example, ignoring fees: Alice, Bob, and Carol contribute 10,000 sats each. Alice pays 12,000 sats for dinner. Each owes
-a 4,000-sat share. The target payouts are Alice 18,000, Bob 6,000, Carol 6,000, totaling the 30,000-sat pot.
-A negative final balance requires a top-up before settlement. Decide explicitly how the fee reserve is funded and
-allocated before promising final payout amounts.
-
-## V1 scope
-
-- One organizer; shared-link bookkeeping; no mandatory account.
-- Whole integer sats and equal splitting; deterministic rounding conserves every sat.
-- Participant names and a mobile-first, single-column interface inspired by Kittysplit, not its branding.
-- Expenses paid out of pocket, with their participant shares snapshotted at creation.
-- Signet only, isolated pot wallet, confirmed deposits, and explicit organizer-authorized settlement.
-- No fiat conversion, unequal splits, receipts, comments, production authentication, or mainnet funds.
-
-Choosing a name is **personalization only**, not proof of identity. Invitation links must never authorize wallet
-spending or changes to another participant's payout destination. The standalone `/settle` testing workspace has no
-operator access code and must remain local. Its backend-managed pots are separate from group organizer authorization.
+- **A1–A6 complete:** group creation, invitations, participant selection, equal splitting with deterministic rounding,
+  persistent expense share snapshots, transactional expense CRUD, and personalized balance overviews.
+- **A7–A8 implemented:** private address setup, group-bound previews, close/resume confirmation, personal deposit QR,
+  confirmed funding progress, payout confirmation, and receipt/reconciliation status.
+- **B's engine reused:** `createPot`, `confirmPot`, `settlePot`, persistent optimistic revisions, receipt attribution,
+  and durable payout intents. Wallet credentials and SDK calls remain server-only.
+- **A9 backend/domain coverage implemented:** private-link isolation/revocation, address locking, stale previews,
+  immutable expense locking, wallet reservation, initialization recovery, partial/pending deposits, unauthorized
+  payouts, and lost-response recovery without duplicate sends. UI changes are verified manually per `AGENTS.md`.
+- **Remaining acceptance gate:** rehearse the integrated group flow with a configured real Bark signet daemon and
+  independently verify destination-wallet receipts. Offline fixture tests are not evidence of live payments.
 
 ## Ownership
 
-### Person A: product, groups, expenses, accounting
+### Person A: product and integration
 
-- Group/participant schema, validated server functions, and creation/invitation/join flows.
-- Expense schema, equal splitting, historical share snapshots, and accounting tests.
-- Expense entry, list/detail, edit/delete, and personal/group balance screens.
-- Group payment UI consuming B's authoritative funding and settlement data.
-- Settlement preview, explicit confirmation, and readable payment progress/errors.
+- Groups, participants, invitations, expense persistence, and accounting.
+- Private participant capabilities and personal address-entry UI.
+- Server-side adapter from persisted expense balances to Ben's immutable debt setup.
+- Group closure, authorization, wallet reservation, and payment/readiness screens.
+- Backend/domain integration coverage, manual mobile verification, and demo documentation.
 
-### Person B: wallet, funding, settlement execution
+### Ben / Person B: Bark engine and demo environment
 
-- Server-only Bark services/layers and isolated signet wallets.
-- Deposit instructions, confirmed receipts, attribution, reconciliation, and contribution credits.
-- Protected recipient setup, payment fees, readiness checks, and available funds.
-- Group-bound pot persistence, settlement locking/snapshots, payout attempts, and references.
-- Duplicate-send prevention, uncertain-outcome reconciliation, and deployment wallet configuration.
+- Authenticated, isolated signet daemon/wallet setup and server-only SDK services.
+- Confirmed receipt attribution, deduplication, spendable balance checks, and exact payouts.
+- Persist-before-send safeguards, movement references, and uncertain-send reconciliation.
+- Verify fee/reserve behavior and real recipient receipts with A during the integrated rehearsal.
+- Keep each backend-managed wallet exclusive: no external sends, competing copies, restores, or snapshot resets.
 
-**A calculates balances. B executes payments.** B must independently verify persisted balances, authorization,
-destinations, locking, funding, and fees before sending. Never accept browser-computed payout amounts as authority.
+No new contribution-credit/refund backend is required. See [Bark pot documentation](dev/bark/POTS.md).
 
-## Person A's semantic commits
+## Person A roadmap and semantic slices
 
-| Order | Commit                                                               | Status / acceptance                                                                                                          |
-| ----- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| A1    | `feat(domain): add equal expense splitting and participant balances` | Done. Rounding, conservation, invalid inputs, multiple payers, top-ups, and historical shares tested.                        |
-| A2    | `feat(groups): persist groups and participants with scoped access`   | Done. Hashed invitation/organizer capabilities, separate authorization, group isolation, generated migration.                |
-| A3    | `feat(groups): add group creation and invitation flows`              | Done. Mobile creation, shared invitation, name selection, persistent view, and no organizer privilege from selecting a name. |
-| A4    | `feat(expenses): persist expenses and their split snapshots`         | Done. Transactional CRUD, idempotent creates, versioned edits/deletes, membership checks, and settlement lock checks.        |
-| A5    | `feat(expenses): add expense entry and management screens`           | Done. Payer/description/sats/date, repeated-entry feedback, readable list/detail, editing, and confirmed deletion.           |
-| A6    | `feat(balances): add personalized group overview`                    | Done. Group spending, personal share/payment/expense balance, and everyone's balances; recalculation tested.                 |
-| A7    | `feat(pot): display confirmed funding and expected payouts`          | Next, after money-model agreement and B's group funding API. Pending funds must never count as confirmed money.              |
-| A8    | `feat(settlement): add preview and organizer confirmation`           | Next, after B's group-bound settlement API. Display blockers, locking, partial completion, and unknown outcomes.             |
-| A9    | `docs(demo): verify group expense and settlement journeys`           | Pending. Manually verify the complete funded group journey, refresh recovery, and failure scenarios.                         |
+| Slice | Deliverable                                                                 | Status                                                 |
+| ----- | --------------------------------------------------------------------------- | ------------------------------------------------------ |
+| A1    | Equal expense splitting and participant balances                            | Done                                                   |
+| A2    | Persisted groups and participants with scoped access                        | Done                                                   |
+| A3    | Group creation and invitation flows                                         | Done                                                   |
+| A4    | Expenses and historical split snapshots                                     | Done                                                   |
+| A5    | Expense entry and management screens                                        | Done                                                   |
+| A6    | Personalized group overview                                                 | Done                                                   |
+| A7    | Private personal destinations, debt QR, confirmed funding progress          | Implemented; live rehearsal pending                    |
+| A8    | Group review, immutable closing, organizer payout confirmation and recovery | Implemented; live rehearsal pending                    |
+| A9    | Backend/domain integration coverage and manual UI/demo acceptance           | Offline coverage done; live payment acceptance pending |
 
-Feature commits include backend/domain tests. Do not add UI, component, or browser tests (see `AGENTS.md`). A9 adds
-a manual cross-feature demo checklist; it is not permission to defer accounting or payment-safety tests.
+Integration commits separate accounting/destinations, backend freezing/execution, atomic wallet isolation, payment UI,
+and documentation. Do not add UI/component/browser test suites; keep tests in backend/domain modules.
 
-## Person B's semantic slices and remaining bridge
+## Access model
 
-| Slice                                                                | Deliverable                                                              | Current state                                                                                                |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `feat(payments): add server-only Bark wallet service`                | Receive/send proof, signet verification, server-only credentials         | Present in the merged Bark adapter/demo.                                                                     |
-| `feat(pot): track and reconcile confirmed contributions`             | Isolated pot, deposit addresses, attributed and deduplicated receipts    | Present for net-debt obligations; adapt for the agreed contribution-credit model.                            |
-| `feat(payments): add protected recipient setup`                      | Recipient destinations verified under appropriate access                 | Existing standalone operator flow locks destinations; group/person ownership still needs a protected bridge. |
-| `feat(settlement): persist settlement snapshots and payout attempts` | Immutable amounts/destinations, locking, durable states                  | Standalone pot snapshots exist; link to group ID and atomically freeze group expenses.                       |
-| `feat(settlement): execute and reconcile Bark payouts`               | Confirmed payouts, no automatic resend of unknown attempts               | Present in the standalone service; preserve these safeguards during integration.                             |
-| `chore(deploy): configure demo hosting and wallet environment`       | Trusted HTTPS access, authenticated loopback daemon, server-only secrets | Local configuration documented; agree on the shared demo environment.                                        |
+- The shared group invitation allows bookkeeping and choosing a name. **Name selection is not authentication.**
+- An HTTP-only, group-scoped organizer cookie authorizes private-link issuance, closing, deposit reconciliation, and
+  payouts. Selecting the organizer's name or possessing another group's organizer cookie grants nothing.
+- The organizer generates a random private link per participant, including themselves, and sends it privately.
+  Only its hash is persisted. The raw link is shown once; replacing it revokes the old link but preserves the address.
+- That bearer capability authorizes only its person's address. Anyone holding it can act as that person, including
+  the trusted organizer who distributed it. It is lightweight capability access, not identity verification or
+  proof of wallet ownership. Do not publish these links.
+- Private pages disable caching/referrers/indexing and later show that person's own QR or payout status. Participants
+  can refresh saved status; only the organizer calls the daemon to check deposits or spend.
+- Losing organizer cookies loses organizer access; recovery is not implemented. Keep the original browser.
+- `/settle` remains Ben's **unauthenticated local-only** standalone workspace with multiple persisted pots and a
+  backend-managed wallet per pot. It cannot operate on linked group pots. It is not safe to expose the whole application
+  publicly without additional perimeter/access controls.
 
-These are ownership slices, not a request to rewrite B's existing commits or duplicate the standalone implementation.
+## Backend contract and recovery
 
-## Shared API contract
+- Stable `groupId` is the linked pot ID; stable `participantId` maps to each pot user. Never use names as payment IDs.
+- Ben's current schema requires a unique personal address for **every** participant when money moves, including
+  debtors. All-square groups need neither addresses nor a wallet and can close without moving money.
+- Previews are computed server-side from persisted split snapshots. Closing requires a fingerprint of the reviewed
+  expense versions and destination setup; a changed preview must be refreshed and reviewed again.
+- One transaction stores the immutable setup and unique wallet reservation and changes `open → settling` before
+  generating deposit instructions. Existing expense and address mutations reject closed groups.
+- If pot initialization fails, the lock/reservation remains. **Resume pot setup** recovers the same immutable setup;
+  there is no reopening or editing after closing, even if no deposits have arrived.
+- Pot insertion rechecks wallet reservations transactionally. A standalone/group race cannot steal a reserved wallet.
+- Each group uses its own backend-managed signet wallet directory, distinct from the numbered standalone pot wallets.
+  Preserve wallet directories and the database for any pending settlement; do not restore one without the other.
+- Backend payout checks require every debtor's attributed receipts and enough spendable funds. Browser amounts,
+  selected names, stale readiness, unrelated deposits, and another person's overpayment never authorize payouts.
+- Failed/timeout requests refresh persisted state. A `sending` payout may already have moved money: explicit
+  **Reconcile and finish payouts** checks history rather than blindly resending the attempt.
+- Group status becomes `settled` only after Ben's pot is settled, or when everyone's balance is zero.
 
-Agree in code before A7/B's bridge work:
+Key modules: `src/domain/group-settlement.ts`, `src/db/participant-payments.ts`, `src/db/group-settlements.ts`,
+`src/db/group-payment-access.ts`, `src/server/pots/group-service.ts`, and `src/server/pots/service.ts`.
 
-1. Link stable `groupId` and `participantId` to the pot and its participants. Invitation tokens are access capabilities,
-   not database IDs; participant selection cookies are not authenticated payout ownership.
-2. Expose per-participant confirmed contribution totals and deposit status. Include backend receipt/payment references.
-3. Expose available/spendable pot funds separately from participant contributions and fee reserves.
-4. Build previews from persisted expense share snapshots and confirmed contribution credits; define fee/top-up behavior.
-5. Store an immutable settlement snapshot and transition `groups.status` from `open` to `settling` transactionally.
-   Expense mutations already reject non-open groups. Do not call Bark before the lock/snapshot is persisted.
-6. Distinguish pending, succeeded, failed, and unknown/reconciliation-required outcomes. Preserve existing `sending`
-   attempts and reconcile them; never blindly retry a timeout.
-7. Recheck organizer/operator authorization server-side. Scope every lookup/mutation to the linked group and wallet.
+## Boundaries and next joint work
 
-Relevant A modules: `src/domain/accounting.ts`, `src/db/group-schema.ts`, `src/db/expense-schema.ts`,
-`src/db/balances.ts`, and `src/server/group-session.ts`.
-Relevant B modules: `src/lib/pot.ts`, `src/server/pots/service.ts`, `src/server/pots/store.ts`, and
-`src/server/pots/ui-service.ts`.
+This is a server-custodied signet hackathon demo, not trustless escrow or production custody. Equal integer-sat splits
+only. No advance contributions, automatic refunds, fee allocation, background polling, or destination ownership
+verification. Excess deposits and leftover reserves stay in the pot. If fees/spendability block payouts, inspect and
+fund an independent reserve as documented by Ben; do not change locked balances or simulate success.
 
-## Suggested 23-hour schedule
+Run `pnpm fmt`, `pnpm check`, `pnpm test`, and `pnpm build`. Commit generated Drizzle migrations and generated routes.
+Use Second's [signet guide](https://second.tech/docs/getting-started/bark-cli/signet) for wallet setup. Never expose
+daemon tokens, add new wallet secrets to Git, or use the public development seed on mainnet.
 
-This is a budget from the start of the hackathon work, not a claim about elapsed time.
+## Integrated demo acceptance
 
-| Hours | Person A                                                                  | Person B                                               |
-| ----- | ------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 0–2   | Accounting tests and group schema                                         | Prove Bark receive/send and confirm signet/environment |
-| 2–7   | Group/expense backend and initial UI                                      | Funding, persistence, and receipt reconciliation       |
-| 7–12  | Dashboard, expense management, and payment UI against agreed contract     | Group-pot bridge, recipients, fees, and settlement     |
-| 12–15 | Together: first complete funded-group settlement                          | Together: verify destination-wallet receipts           |
-| 15–19 | UX/accounting edge cases                                                  | Recovery, authorization, wallet isolation, deployment  |
-| 19–23 | Together: feature freeze, tests, demo rehearsal, backup recording, buffer | No new features                                        |
-
-If the money-model bridge is not ready, demo the existing expense and standalone signet flows **as separate flows**.
-Do not describe them as an integrated funded trip or substitute simulated payment success.
-
-## Integration and delivery rules
-
-- Separate branches/worktrees; small semantic commits and frequent pulls.
-- Designate one migration coordinator. Preserve both sides' committed migrations and let Drizzle reconcile snapshots;
-  verify fresh databases and upgrading an existing database. Do not manually edit generated files.
-- Let TanStack regenerate `src/routeTree.gen.ts` after route merges.
-- Read `AGENTS.md` and the installed shadcn skill before UI changes. Use existing components and semantic Tailwind tokens.
-- Run `pnpm fmt`, `pnpm check`, `pnpm test`, and `pnpm build` before merging/pushing. Advisory complexity warnings are
-  not errors; improve focused modules without broad lint suppressions.
-- Pair-review the balance formula, rounding, money-model adapter, authorization, and settlement recovery.
-- Keep Barkd authenticated and on loopback; use trusted HTTPS access for the app. Never commit daemon tokens,
-  operator codes, new wallet secrets, or mainnet recovery material. The existing shared public seed is signet-only.
-
-## Final demo acceptance
-
-- [ ] Create a group; join from another browser.
-- [ ] Record and correct expenses; explain the personal/group balances.
-- [ ] Fund that same group's isolated pot; verify attributed deposits.
-- [ ] Preview refunds/reimbursements, fees, and required top-ups under the agreed model.
-- [ ] Authorize settlement through protected organizer/operator access.
-- [ ] Verify actual signet receipts in recipient wallets.
-- [ ] Refresh without losing state or duplicating payouts; show partial/unknown outcomes honestly.
-- [ ] Clearly label signet, custody, access-control, and refund limitations.
+- [x] Create/join from separate browsers and record/correct expenses (manually exercised).
+- [x] Enter and persist a personal address through its private capability; reject invalid signet format.
+- [x] Shared name selection does not expose organizer actions (manually exercised).
+- [x] Confirm/cancel closing; close an all-square group without a wallet (manually exercised).
+- [x] Offline backend coverage for locking, stale review, wallet isolation, funding, and payout recovery.
+- [ ] Configure backend-managed signet wallets; repeat with valid personal wallet addresses.
+- [ ] Close a nonzero group and scan the debtor QR; enter the displayed remaining sats.
+- [ ] Check real attributed deposits, authorize payouts, and verify recipient-wallet movement references.
+- [ ] Refresh throughout the live flow without changing the snapshot or duplicating payouts.
+- [ ] Record the demo, document fee/reserve behavior, and retain recovery artifacts outside Git.

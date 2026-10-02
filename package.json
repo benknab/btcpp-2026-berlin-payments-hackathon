@@ -9,6 +9,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
+    "db:reset": "node --env-file-if-exists=.env scripts/reset-db.ts && pnpm db:migrate",
     "db:studio": "drizzle-kit studio",
     "dev": "vp dev",
     "fmt": "vp fmt",

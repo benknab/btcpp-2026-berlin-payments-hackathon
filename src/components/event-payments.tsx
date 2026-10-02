@@ -16,6 +16,9 @@ export function EventPayments({
   readonly view: GroupView;
   readonly page: EventPageData;
 }): ReactNode {
+  if (page.settlement === null && view.group.status !== "open") {
+    return null;
+  }
   return (
     <>
       <EventSettlementCard inviteKey={inviteKey} view={view} members={page.settlement} />

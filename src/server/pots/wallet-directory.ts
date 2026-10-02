@@ -9,7 +9,7 @@ import { Effect } from "effect";
 
 const DATABASE_NAMESPACE_LENGTH = 16;
 
-export function potWalletDirectory(id: number): string {
+export function potWalletDirectory(id: number | string): string {
   const url = process.env["DATABASE_URL"] ?? "file:local.db";
   const database = url.startsWith("file:") ? path.resolve(url.slice("file:".length)) : url;
   const namespace = createHash("sha256").update(database).digest("hex").slice(0, DATABASE_NAMESPACE_LENGTH);
@@ -43,7 +43,9 @@ function availablePort(): Promise<number> {
   });
 }
 
-export const prepareWalletDirectory = Effect.fn("prepareWalletDirectory")(function* prepareWalletDirectory(id: number) {
+export const prepareWalletDirectory = Effect.fn("prepareWalletDirectory")(function* prepareWalletDirectory(
+  id: number | string,
+) {
   const datadir = potWalletDirectory(id);
   yield* walletIo(() => mkdir(datadir, { recursive: true, mode: 0o700 }), "Could not open the pot wallet directory");
   const lock = `${datadir}.lock`;

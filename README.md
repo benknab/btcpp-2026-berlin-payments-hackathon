@@ -65,6 +65,11 @@ The owner can pay creditors from the browser wallet, with persisted attempts and
 The signet round trip has been manually verified with a prepared BOLT11 payout invoice; automatic LNURL resolution
 still needs verification against a compatible signet receiving service.
 
+The **Managed settlement** page at `/groups/<inviteKey>/settlement` also supports private participant Bark-address
+links, debtor QR codes, deposit progress, and organizer-authorized payouts through a server-held wallet. An event
+uses the flow in which it is first locked; the other flow cannot lock or pay it afterward. Managed group payments
+have offline integration coverage and still need a live signet rehearsal.
+
 ### Browser event wallets
 
 - Use HTTPS or localhost. The SDK loads lazily when creating an event; it does not execute during SSR.
@@ -97,6 +102,21 @@ with Bark for payments. Events use `@secondts/bark/web` for the owner's browser 
 Lightning collection on the owner's behalf. The separate `/settle` workspace uses backend Barkd wallets.
 
 ## Bark signet development wallet
+
+### Reset the development database
+
+The October 2 integration replaces the divergent migration histories with one generated baseline. Existing local
+databases must be reset once after pulling this change. Stop the dev server, then run:
+
+```sh
+pnpm db:reset
+pnpm dev
+```
+
+`db:reset` deletes the SQLite file configured by `DATABASE_URL` (default `file:local.db`), its sidecar files, and
+reapplies migrations. It loads `.env` and only accepts local `file:` databases. This removes all event, expense,
+and settlement records. Bark wallet directories and browser storage are separate. This non-production project
+permits database resets and baseline regeneration when migration reconciliation becomes costly.
 
 ### Install Bark and Barkd
 
@@ -148,10 +168,33 @@ An Ark address is only a receiving destination, not a wallet backup. The legacy 
 `dev/bark/signet.mnemonic` is public and is not a complete backup of that wallet; never use it for mainnet.
 
 The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
-and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` to list settled/unsettled pots,
-start a new pot, and open its `/settle/<id>` page. Pots, users, and debt rows use SQLite auto-increment IDs.
-Saving debts needs no Bark configuration; the backend manages a separate signet wallet per pot when deposits are
-prepared. No operator code or daemon token setup is required. Keep the app local because settlement actions are unauthenticated.
+and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local signet settlement
+UI: create and list standalone pots at `/settle`, save participants and debts, then open `/settle/<id>` to prepare
+deposits. The backend manages a separate signet wallet for each pot. No operator code is required; keep the app local
+because standalone settlement actions are unauthenticated. Linked group pots use separate wallets and can only be
+operated through the group's organizer-authorized endpoints.
+
+### Group settlement demo
+
+1. Create a group and share its bookkeeping invitation. Record expenses with the actual payer and equal shares.
+2. Open **Review settlement & personal addresses**. Generate each participant's private setup link and send it only
+   to that person, including yourself. Each participant pastes their own `bark address` result.
+3. Click **Refresh status** to load newly saved addresses. Review amounts/destinations, then **Close group** and confirm.
+4. Debtors reopen their private link (or choose themselves on the shared group page) to see their deposit QR and amount.
+   The QR contains only the Bark address: enter the displayed remaining sats in the wallet. It is not a Lightning invoice.
+5. The organizer clicks **Check deposits**, then confirms **Pay creditors** once every debtor is funded.
+6. Read confirmed payout movement references. If a response is lost, refresh and **Reconcile and finish payouts**;
+   never send manually or reset a `sending` payout.
+
+Configure `BARK_POTS_DATADIR` and the backend-managed Bark daemon as described in [the pot guide](dev/bark/POTS.md).
+Each group gets its own isolated signet wallet. All-square groups need no wallet or participant addresses.
+Closing cannot be undone; initialization failures keep the group locked and offer **Resume pot setup** with the same
+wallet. Keep organizer cookies and private links: account recovery is not implemented. The trusted organizer issues
+bearer links; these provide lightweight access, not proof of identity or ownership of the receiving wallet.
+
+This is a custodial signet-only demo: overpayment refunds, fee allocation, and production access controls are not
+implemented. The unauthenticated standalone workspace means the whole app must remain local/trusted, even though
+group payment actions require organizer authority. Never use mainnet or real funds.
 
 ## Start
 

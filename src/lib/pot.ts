@@ -12,6 +12,10 @@ export const SignetAddress = Schema.String.pipe(
   Schema.check(Schema.isPattern(/^tark1[023456789acdefghjklmnpqrstuvwxyz]+$/u)),
 );
 
+export function isSignetAddress(value: string): boolean {
+  return Schema.is(SignetAddress)(value);
+}
+
 export const PotInputSchema = Schema.Struct({
   id: Identifier,
   users: Schema.Array(Schema.Struct({ id: Identifier, name: Schema.NonEmptyString, arkAddress: SignetAddress })),
