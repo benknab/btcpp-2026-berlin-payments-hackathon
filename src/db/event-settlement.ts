@@ -12,7 +12,7 @@ import { groups, participants } from "./group-schema";
 import { getGroup, GroupError } from "./groups";
 import type { GroupDatabaseError, GroupView } from "./groups";
 
-type SettlementError = GroupDatabaseError | GroupError | Schema.SchemaError | AccountingError;
+export type SettlementError = GroupDatabaseError | GroupError | Schema.SchemaError | AccountingError;
 
 export const requireOrganizer = Effect.fn("requireEventOrganizer")(function* requireOrganizer(
   inviteKey: string,

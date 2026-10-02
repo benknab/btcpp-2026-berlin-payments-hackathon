@@ -1,0 +1,29 @@
+import { getOverview } from "@/db/balances";
+import type { GroupOverview } from "@/db/balances";
+import { DatabaseLive } from "@/db/database";
+import { loadEventInvoices } from "@/db/event-funding";
+import type { EventInvoice } from "@/db/event-payment-schema";
+import { loadEventSettlement } from "@/db/event-settlement";
+import type { EventSettlementMember } from "@/domain/event-settlement";
+import { GroupRequest } from "@/domain/group-input";
+import { createServerFn } from "@tanstack/react-start";
+import { Effect, Schema } from "effect";
+
+export interface EventPageData {
+  readonly overview: GroupOverview;
+  readonly settlement: readonly EventSettlementMember[] | null;
+  readonly invoices: readonly EventInvoice[];
+}
+
+export const eventPage = createServerFn({ method: "GET" })
+  .validator(Schema.decodeUnknownSync(GroupRequest))
+  .handler(({ data }: { readonly data: typeof GroupRequest.Type }): Promise<EventPageData> =>
+    Effect.runPromise(
+      Effect.gen(function* page() {
+        const overview = yield* getOverview(data.inviteKey);
+        const settlement = yield* loadEventSettlement(data.inviteKey);
+        const invoices = yield* loadEventInvoices(data.inviteKey);
+        return { overview, settlement, invoices };
+      }).pipe(Effect.provide(DatabaseLive)),
+    ),
+  );

@@ -59,8 +59,9 @@ cannot receive the test payouts.
 **Current status:** group creation, invitations, equal expense splitting, expense management, and personal balance
 overviews are implemented. A separate, **server-custodied** Bark signet settlement workspace is available at `/settle`.
 Event creation generates a dedicated signet wallet using `@secondts/bark/web` and saves its public address in
-`groups.ark_address`. Group funding and settlement are **not connected to the expense flow yet**.
-Lightning collection on behalf of the owner and Lightning-address payouts remain the V1 target.
+`groups.ark_address`. Events can lock net obligations and collect Lightning contributions through a persistent
+Barkd receiving wallet, including while the organizer's browser is closed. See [browser pot setup](dev/bark/BROWSER.md).
+Browser Lightning payouts remain the next milestone.
 
 ### Browser event wallets
 

@@ -1,25 +1,16 @@
+import { EventFundingCard } from "@/components/event-funding-card";
 import { EventSettlementCard } from "@/components/event-settlement-card";
 import { EventWalletCard } from "@/components/event-wallet-card";
 import { ExpenseList } from "@/components/expense-list";
 import { ExpenseSummary } from "@/components/expense-summary";
 import { GroupInvite } from "@/components/group-invite";
 import { ParticipantBalances } from "@/components/participant-balances";
-import { groupOverview } from "@/server/balances";
-import { eventSettlementPage } from "@/server/event-settlement";
+import { eventPage } from "@/server/event-page";
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/groups/$inviteKey/")({
-  loader: async ({
-    params,
-  }): Promise<{
-    overview: Awaited<ReturnType<typeof groupOverview>>;
-    settlement: Awaited<ReturnType<typeof eventSettlementPage>>;
-  }> => {
-    const data = { inviteKey: params.inviteKey };
-    const [overview, settlement] = await Promise.all([groupOverview({ data }), eventSettlementPage({ data })]);
-    return { overview, settlement };
-  },
+  loader: ({ params }): ReturnType<typeof eventPage> => eventPage({ data: { inviteKey: params.inviteKey } }),
   component: GroupHome,
 });
 const groupRoute = getRouteApi("/groups/$inviteKey");
@@ -27,7 +18,7 @@ const groupRoute = getRouteApi("/groups/$inviteKey");
 function GroupHome(): ReactNode {
   const { inviteKey } = Route.useParams();
   const view = groupRoute.useLoaderData();
-  const { overview, settlement } = Route.useLoaderData();
+  const { overview, settlement, invoices } = Route.useLoaderData();
   return (
     <>
       <ExpenseSummary overview={overview} selectedParticipantId={view.selectedParticipantId} />
@@ -40,6 +31,7 @@ function GroupHome(): ReactNode {
       />
       <ParticipantBalances participants={view.participants} balances={overview.balances} />
       <EventSettlementCard inviteKey={inviteKey} view={view} members={settlement} />
+      {settlement !== null && <EventFundingCard inviteKey={inviteKey} members={settlement} invoices={invoices} />}
       {view.group.arkAddress !== null && (
         <EventWalletCard arkAddress={view.group.arkAddress} isOrganizer={view.isOrganizer} />
       )}
