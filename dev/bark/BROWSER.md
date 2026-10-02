@@ -59,17 +59,20 @@ Never use `VITE_` for them. `pnpm dev` loads `.env`; restart the app after chang
 
 For a three-person, two-payout demo, create Alice (owner), Bob, and Charlie. Add **Lunch: 1,500 sats paid by Alice**
 and **Coffee and snacks: 1,500 sats paid by Bob**, each split equally between all three. Alice and Bob each receive
-500 sats; Charlie contributes 1,000 sats. Add Alice's and Bob's LNURLs before locking. The LNURL services must accept
+500 sats; Charlie contributes 1,000 sats. Alice provides her destination at creation; Bob and Charlie open the invite,
+select their own name, and save their destination before continuing. The LNURL services must accept
 500-sat payments and support browser CORS. Net settlement does not require creditors to contribute too.
 
 The owner must return in the browser profile and origin that created the event: the invitation link alone does not
 transfer the organizer cookie or the browser-owned wallet.
 
-1. Open the app over localhost or HTTPS and create a new event. Each event gets a separate mainnet browser wallet.
+1. Run `pnpm db:migrate` for the additive invoice-purpose migration (no reset). Open the app over localhost or HTTPS
+   and create a new event with the owner's receiving destination. Each event gets a separate mainnet browser wallet.
 2. For a small LNURL test, have Alice pay a 2,000-sat expense split equally with Bob: Bob owes Alice 1,000 sats.
    Save Alice's mainnet Lightning address or LNURL. The service must allow the exact 1,000-sat payout and browser CORS.
-3. Select **Start settlement** to freeze net amounts. The organizer can still edit receiving addresses in
-   **Settlement** until each participant's payout starts. Saving a replacement expires any prepared, unsent payout;
+3. Invitees select their name and save their own receiving address. Select **Start settlement** to freeze net amounts.
+   Each person can still edit their own destination until their payout starts; the owner's destination requires
+   organizer access. Saving a replacement expires any prepared, unsent payout;
    sending or paid payouts retain their receiving address.
 4. Select **Pay Bob's share**. The backend creates a mainnet Lightning invoice targeting the event's Ark address.
    Anyone with the invitation may pay it; choosing Bob does not authenticate the payer.
@@ -77,13 +80,15 @@ transfer the organizer cookie or the browser-owned wallet.
 6. Select **Refresh contributions** to reconcile receipts. Paid but undelivered receipts do not count as funded.
    Unexpired invoices are reused; expired attempts remain stored and are checked for late payments.
 7. In the original browser, select **Sync wallet** to collect mailbox deliveries and inspect spendable sats.
-8. In **Event wallet · mainnet**, enter a **Top-up amount (sats)** and select **Generate Lightning invoice**.
-   Pay the QR/invoice, then **Sync wallet**. Barkd delivers the top-up even while the browser is closed.
-   This funds the wallet without crediting a participant or changing settlement balances. The invoice is shown
-   in the current page; Barkd retains the receipt if the page is closed. You can also send Ark directly to the displayed address.
-   Contributions cover creditor entitlements;
-   the organizer covers receive/send fees. The browser estimates send fees and checks spendable funds before sending.
-   Use a small reserve that covers the server's current fee estimate; very small payments may be below server minimums.
+8. In **Owner fee reserve**, select **Estimate fees / deposit**. Pay the generated QR/invoice, then select the same
+   button again to reconcile delivery and recheck fees. Barkd delivers the deposit even while the browser is closed.
+   Pending reserve invoices survive reloads and are reused. They do not credit anyone's expense contribution and
+   do not trigger excess-contribution handling. The owner's net debt, if any, still needs its own contribution.
+   The browser requires delivered reserve receipts covering the remaining estimated fees, then checks actual
+   spendable funds again before sending. Once contributions are delivered, the reserve estimate also includes
+   any wallet shortfall. Manual **Top-up amount (sats)** invoices use the same reserve ledger. Direct Ark transfers
+   and historical untracked top-ups increase wallet funds but cannot establish an owner deposit receipt.
+   Zero-fee payouts need no reserve; very small invoices may be below receiving-service minimums.
 9. Select **Pay creditors / reconcile**. The browser resolves each creditor's LNURL, checks the mainnet invoice's
    network, amount, and expiry, persists the attempt, and pays creditors sequentially.
 10. The backend verifies each payment preimage and marks the event settled once all creditors are paid.
@@ -112,7 +117,8 @@ Do not clear the organizer's site data. Changing the app's origin (including por
 
 - `groups.ark_address`: public receiving address (nullable for pre-wallet events).
 - `event_settlements`: immutable participant amounts; receiving destinations remain editable until payout starts.
-- `event_invoices`: every contribution invoice, payment hash, expiry, status, and delivered amount.
+- `event_invoices`: contribution and owner fee-reserve invoices, distinguished by `purpose`, with payment hash,
+  expiry, status, and delivered amount. Reserves never count toward participant obligations or excess contributions.
 - `event_payouts`: creditor invoices and prepared/sending/paid/expired attempt states, with one active attempt per creditor.
 - `bark:mainnet:wallet-withdrawal:<ark-address>`: localStorage journal of the latest leftover withdrawal, persisted
   before sending and retained across reloads. Wallet history remains the source of truth for completed transfers.
@@ -133,6 +139,7 @@ not automatically replace uncertain payments. Excess contributions block complet
 implemented. Unused fee reserves can be withdrawn after settlement. Keep the receiving daemon and wallet data available
 to reconcile late payments.
 
-Reconciliation reopens a settled event when it discovers a late delivery. Displayed balances include delivered
+Reconciliation reopens a settled event when it discovers a late contribution delivery, not a late reserve delivery.
+In-flight payouts reconcile before new payouts are gated on deposits or balance. Displayed balances include delivered
 contributions and proven payouts, so a completed event shows zero remaining obligations and an excess remains visible.
 Browser sync and payout operations share a cross-tab wallet lock.

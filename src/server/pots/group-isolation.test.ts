@@ -26,6 +26,7 @@ it.effect("atomically keeps other pot creation out of reserved group wallets", (
       const other = yield* createGroup({
         name: "Other",
         organizerName: "Dave",
+        organizerLnurl: "dave@wallet.com",
         participantNames: ["Eve"],
         arkAddress: "ark1ace",
       });

@@ -133,6 +133,7 @@ it.effect(
         const other = yield* createGroup({
           name: "Other",
           organizerName: "Dave",
+          organizerLnurl: "dave@wallet.com",
           participantNames: ["Eve"],
           arkAddress: "ark1ace",
         });
@@ -156,6 +157,7 @@ it.effect("closes all-square groups without addresses or wallet configuration", 
       const group = yield* createGroup({
         name: "Empty",
         organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
         participantNames: ["Bob"],
         arkAddress: "ark1ace",
       });

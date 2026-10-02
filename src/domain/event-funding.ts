@@ -4,7 +4,16 @@ import type { EventSettlementMember } from "./event-settlement";
 
 export function deliveredFor(participantId: string, invoices: readonly EventInvoice[]): number {
   return invoices
-    .filter((invoice) => invoice.participantId === participantId && invoice.status === "delivered")
+    .filter(
+      (invoice) =>
+        invoice.purpose === "contribution" && invoice.participantId === participantId && invoice.status === "delivered",
+    )
+    .reduce((total, invoice) => total + invoice.deliveredSats, 0);
+}
+
+export function deliveredFeeReserve(invoices: readonly EventInvoice[]): number {
+  return invoices
+    .filter((invoice) => invoice.purpose === "fee-reserve" && invoice.status === "delivered")
     .reduce((total, invoice) => total + invoice.deliveredSats, 0);
 }
 

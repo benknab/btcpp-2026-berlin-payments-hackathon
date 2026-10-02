@@ -51,7 +51,7 @@ export const createGroup = Effect.fn("createGroup")(function* createGroup(
           groupId,
           name,
           nameKey: name.toLocaleLowerCase("en-US"),
-          lnurl: position === 0 ? null : (valid.participantLnurls?.[position - 1] ?? null),
+          lnurl: position === 0 ? valid.organizerLnurl : (valid.participantLnurls?.[position - 1] ?? null),
           position,
         })),
       );

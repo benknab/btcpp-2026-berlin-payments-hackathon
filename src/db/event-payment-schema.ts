@@ -14,6 +14,9 @@ export const eventInvoices = sqliteTable(
       .notNull()
       .references(() => participants.id),
     invoice: text("invoice").notNull(),
+    purpose: text("purpose", { enum: ["contribution", "fee-reserve"] })
+      .notNull()
+      .default("contribution"),
     amountSats: integer("amount_sats").notNull(),
     expiresAt: integer("expires_at").notNull(),
     status: text("status", { enum: ["pending", "paid", "delivered", "expired"] })

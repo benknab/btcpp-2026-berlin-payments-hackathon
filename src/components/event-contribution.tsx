@@ -23,7 +23,9 @@ export function EventContribution({
   const delivered = deliveredFor(member.participantId, invoices);
   const active = invoices.find(
     (invoice) =>
-      invoice.participantId === member.participantId && (invoice.status === "pending" || invoice.status === "paid"),
+      invoice.purpose === "contribution" &&
+      invoice.participantId === member.participantId &&
+      (invoice.status === "pending" || invoice.status === "paid"),
   );
   function handleInvoice(): void {
     action.run(async () => {

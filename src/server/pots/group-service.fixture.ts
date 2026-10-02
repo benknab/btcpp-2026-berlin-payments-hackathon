@@ -124,6 +124,7 @@ export const setup = Effect.fn("setupGroup")(function* setup(addresses?: boolean
   const group = yield* createGroup({
     name: "Berlin",
     organizerName: "Alice",
+    organizerLnurl: "alice@wallet.com",
     participantNames: ["Bob", "Carol"],
     arkAddress: "ark1ace",
   });

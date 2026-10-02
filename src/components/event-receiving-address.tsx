@@ -30,6 +30,7 @@ export function EventReceivingAddress({
       <LabeledField id={`receiving-${participant.id}`} label={`${participant.name} · receiving address`}>
         <Input
           id={`receiving-${participant.id}`}
+          required
           value={value}
           placeholder="name@wallet.com, lnurl1…, ark1…, or lno1…"
           maxLength={MAX_PAYOUT_DESTINATION_LENGTH}

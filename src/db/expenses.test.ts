@@ -25,6 +25,7 @@ describe("persisted expenses", () => {
         const created = yield* createGroup({
           name: "Custom",
           organizerName: "Alice",
+          organizerLnurl: "alice@wallet.com",
           participantNames: ["Bob"],
           arkAddress: "ark1ace",
         });
@@ -103,6 +104,7 @@ describe("persisted expenses", () => {
         name: "Berlin",
         arkAddress: "ark1ace",
         organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
         participantNames: ["Bob", "Carol"],
       });
       const input = {
@@ -137,7 +139,13 @@ describe("persisted expenses", () => {
       expect.hasAssertions();
       const database = yield* Database;
       yield* migrate(database, { migrationsFolder: "./drizzle" });
-      const input = { name: "Berlin", organizerName: "Alice", participantNames: ["Bob"], arkAddress: "ark1ace" };
+      const input = {
+        name: "Berlin",
+        organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
+        participantNames: ["Bob"],
+        arkAddress: "ark1ace",
+      };
       const first = yield* createGroup(input);
       const second = yield* createGroup(input);
       const expense = {
@@ -177,6 +185,7 @@ describe("persisted expenses", () => {
       const created = yield* createGroup({
         name: "Berlin",
         organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
         participantNames: ["Bob"],
         arkAddress: "ark1ace",
       });

@@ -7,6 +7,7 @@ import { Database } from "./database";
 import { saveReceivingAddress } from "./event-receiving-address";
 import { loadEventSettlement, lockEventSettlement } from "./event-settlement";
 import { addExpense } from "./expenses";
+import { participants } from "./group-schema";
 import { createGroup, getGroup } from "./groups";
 
 const TestDatabase = Database.layer.pipe(Layer.provide(LibsqlClient.layer({ url: "file::memory:" })));
@@ -16,6 +17,7 @@ const fixture = Effect.fn("settlementFixture")(function* fixture() {
   const created = yield* createGroup({
     name: "Dinner",
     organizerName: "Alice",
+    organizerLnurl: "alice@wallet.com",
     participantNames: ["Bob"],
     arkAddress: "ark1ace",
   });
@@ -37,6 +39,8 @@ describe("event settlement snapshot", () => {
       expect.hasAssertions();
       const event = yield* fixture();
       expect((yield* Effect.flip(lockEventSettlement(event.inviteKey)))._tag).toBe("GroupError");
+      const database = yield* Database;
+      yield* database.update(participants).set({ lnurl: null });
       expect((yield* Effect.flip(lockEventSettlement(event.inviteKey, event.organizerToken)))._tag).toBe("GroupError");
       expect((yield* getGroup(event.inviteKey)).group.status).toBe("open");
       expect(yield* loadEventSettlement(event.inviteKey)).toBeNull();

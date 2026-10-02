@@ -18,6 +18,7 @@ describe("group overview", () => {
       const group = yield* createGroup({
         name: "Berlin",
         organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
         participantNames: ["Bob", "Carol"],
         arkAddress: "ark1ace",
       });

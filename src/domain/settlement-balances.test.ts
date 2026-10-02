@@ -14,6 +14,7 @@ const invoice: EventInvoice = {
   deliveredSats: 5000,
   expiresAt: 0,
   status: "delivered",
+  purpose: "contribution",
 };
 const payout: EventPayout = {
   method: "bolt11",
@@ -30,6 +31,29 @@ const payout: EventPayout = {
 };
 
 describe("remaining settlement balances", () => {
+  it.effect("does not credit owner fee reserves against expense debt", () =>
+    Effect.gen(function* verifyReserveSeparation() {
+      const balances = yield* calculateBalances({
+        participantIds: ["alice", "bob"],
+        contributions: [],
+        expenses: [
+          {
+            payerId: "alice",
+            amountSats: 10_000,
+            shares: [
+              { participantId: "alice", amountSats: 5000 },
+              { participantId: "bob", amountSats: 5000 },
+            ],
+          },
+        ],
+      });
+      const remaining = applySettlementPayments(balances, [{ ...invoice, purpose: "fee-reserve" }], []);
+      expect(remaining.find((member) => member.participantId === "bob")).toMatchObject({
+        contributedSats: 0,
+        settlementSats: -5000,
+      });
+    }),
+  );
   it.effect("counts delivered contributions and proven payouts while retaining expense history and excess", () =>
     Effect.gen(function* verifyRemaining() {
       expect.hasAssertions();

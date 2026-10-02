@@ -27,6 +27,7 @@ const ParticipantLnurls = Schema.Array(Schema.NullOr(ReceivingAddress));
 export const NewGroup = Schema.Struct({
   name: GroupName,
   organizerName: ParticipantName,
+  organizerLnurl: ReceivingAddress,
   participantNames: OtherParticipants,
   participantLnurls: Schema.optional(ParticipantLnurls),
 }).pipe(
@@ -42,7 +43,9 @@ export const NewGroup = Schema.Struct({
         "Receiving addresses must match the participants.",
     ),
     Schema.makeFilter(
-      (input) => hasUniquePayoutDestinations(input.participantLnurls ?? []) || DUPLICATE_PAYOUT_DESTINATION_ERROR,
+      (input) =>
+        hasUniquePayoutDestinations([input.organizerLnurl, ...(input.participantLnurls ?? [])]) ||
+        DUPLICATE_PAYOUT_DESTINATION_ERROR,
     ),
   ),
 );

@@ -36,6 +36,7 @@ describe("settlement flow isolation", () => {
       const event = yield* createGroup({
         name: "Empty event",
         organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
         participantNames: ["Bob"],
         arkAddress: "ark1ace",
       });

@@ -1,4 +1,3 @@
-import type { NewGroup } from "@/domain/group-input";
 import * as LibsqlClient from "@effect/sql-libsql/LibsqlClient";
 import { describe, expect, it } from "@effect/vitest";
 import { migrate } from "drizzle-orm/effect-libsql/migrator";
@@ -20,12 +19,17 @@ describe("groups and invitation access", () => {
         name: "Berlin",
         arkAddress: "ark1ace",
         organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
         participantNames: ["Bob", "Carol"],
       });
       const shared = yield* getGroup(created.inviteKey);
       const organizer = yield* getGroup(created.inviteKey, created.organizerToken);
       expect(shared.participants.map((participant) => participant.name)).toStrictEqual(["Alice", "Bob", "Carol"]);
-      expect(shared.participants.map((participant) => participant.lnurl)).toStrictEqual([null, null, null]);
+      expect(shared.participants.map((participant) => participant.lnurl)).toStrictEqual([
+        "alice@wallet.com",
+        null,
+        null,
+      ]);
       expect(shared.isOrganizer).toBe(false);
       expect(shared.group.arkAddress).toBe("ark1ace");
       expect(organizer.isOrganizer).toBe(true);
@@ -43,7 +47,13 @@ describe("groups and invitation access", () => {
       expect.hasAssertions();
       const database = yield* Database;
       yield* migrate(database, { migrationsFolder: "./drizzle" });
-      const input = { name: "Berlin", organizerName: "Alice", participantNames: ["Bob"], arkAddress: "ark1ace" };
+      const input = {
+        name: "Berlin",
+        organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
+        participantNames: ["Bob"],
+        arkAddress: "ark1ace",
+      };
       const first = yield* createGroup(input);
       const second = yield* createGroup(input);
       expect((yield* Effect.flip(getGroup("unknown")))._tag).toBe("GroupError");
@@ -63,12 +73,14 @@ describe("groups and invitation access", () => {
       participantNames: ["Bob", "Carol"],
       participantLnurls: ["bob@wallet.com", "lightning:bob@wallet.com"],
     },
-  ])("rejects invalid event creation without persisting an event or participants %j", (input: typeof NewGroup.Type) =>
+  ])("rejects invalid event creation without persisting an event or participants %j", (input) =>
     Effect.gen(function* verifyInvalidCreation() {
       expect.hasAssertions();
       const database = yield* Database;
       yield* migrate(database, { migrationsFolder: "./drizzle" });
-      const result = yield* Effect.flip(createGroup({ ...input, arkAddress: "ark1ace" }));
+      const result = yield* Effect.flip(
+        createGroup({ ...input, organizerLnurl: "alice@wallet.com", arkAddress: "ark1ace" }),
+      );
       expect(result._tag).toBe("SchemaError");
       expect(yield* database.select().from(groups)).toStrictEqual([]);
       expect(yield* database.select().from(participants)).toStrictEqual([]);
@@ -84,12 +96,13 @@ describe("groups and invitation access", () => {
         name: "Dinner",
         arkAddress: "ark1ace",
         organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
         participantNames: ["Bob", "Carol"],
         participantLnurls: [null, "carol@wallet.com"],
       });
       const reloaded = yield* getGroup(created.inviteKey);
       expect(reloaded.participants.map(({ name, lnurl }) => ({ name, lnurl }))).toStrictEqual([
-        { name: "Alice", lnurl: null },
+        { name: "Alice", lnurl: "alice@wallet.com" },
         { name: "Bob", lnurl: null },
         { name: "Carol", lnurl: "carol@wallet.com" },
       ]);

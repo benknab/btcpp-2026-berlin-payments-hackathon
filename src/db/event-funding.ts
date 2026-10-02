@@ -45,7 +45,7 @@ const applyReceipt = Effect.fn("applyEventReceipt")(function* applyReceipt(
         .set({ status, deliveredSats: status === "delivered" ? amountSats : 0 })
         .where(and(eq(eventInvoices.paymentHash, invoice.paymentHash), eq(eventInvoices.status, invoice.status)))
         .returning({ paymentHash: eventInvoices.paymentHash });
-      if (changed.length === 1 && status === "delivered") {
+      if (changed.length === 1 && status === "delivered" && invoice.purpose === "contribution") {
         // A receipt discovered after completion is an excess contribution, requiring a refund.
         yield* database
           .update(groups)
@@ -72,6 +72,7 @@ const reconcileInvoice = Effect.fn("reconcileEventInvoice")(function* reconcileI
     groupId: invoice.groupId,
     participantId: invoice.participantId,
     paymentHash: invoice.paymentHash,
+    purpose: invoice.purpose,
     previousStatus: invoice.status,
     status,
     amountSats: receipt.amountSat,
@@ -119,6 +120,7 @@ const saveInvoice = Effect.fn("saveEventInvoice")(function* saveInvoice(input: {
     participantId: input.participantId,
     status: "pending",
     deliveredSats: 0,
+    purpose: "contribution",
   };
   yield* database.insert(eventInvoices).values(row);
   yield* Effect.logInfo("contribution.persisted", {
@@ -161,7 +163,9 @@ export const contributionInvoice = Effect.fn("contributionInvoice")(function* co
       const invoices = yield* loadEventInvoices(inviteKey);
       const existing = invoices.find(
         (invoice) =>
-          invoice.participantId === participantId && (invoice.status === "pending" || invoice.status === "paid"),
+          invoice.purpose === "contribution" &&
+          invoice.participantId === participantId &&
+          (invoice.status === "pending" || invoice.status === "paid"),
       );
       if (existing !== undefined) {
         yield* Effect.logInfo("contribution.reused", {

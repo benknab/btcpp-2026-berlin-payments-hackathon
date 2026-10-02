@@ -17,12 +17,14 @@ it.effect("private capabilities authorize only their participant; rotation revok
     const group = yield* createGroup({
       name: "Berlin",
       organizerName: "Alice",
+      organizerLnurl: "alice@wallet.com",
       participantNames: ["Bob"],
       arkAddress: "ark1ace",
     });
     const other = yield* createGroup({
       name: "Other",
       organizerName: "Carol",
+      organizerLnurl: "carol@wallet.com",
       participantNames: ["Dave"],
       arkAddress: "ark1ace",
     });
@@ -61,12 +63,14 @@ it.effect("rejects another participant's destination but permits independent gro
     const group = yield* createGroup({
       name: "Berlin",
       organizerName: "Alice",
+      organizerLnurl: "alice@wallet.com",
       participantNames: ["Bob"],
       arkAddress: "ark1ace",
     });
     const other = yield* createGroup({
       name: "Other",
       organizerName: "Carol",
+      organizerLnurl: "carol@wallet.com",
       participantNames: ["Dave"],
       arkAddress: "ark1ace",
     });

@@ -1,0 +1,1 @@
+ALTER TABLE `event_invoices` ADD `purpose` text DEFAULT 'contribution' NOT NULL;

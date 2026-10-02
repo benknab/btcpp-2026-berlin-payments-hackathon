@@ -23,6 +23,7 @@ describe("settlement receiving addresses", () => {
         const group = yield* Schema.decodeUnknownEffect(CreateGroupRequest)({
           name: "Dinner",
           organizerName: "Alice",
+          organizerLnurl: "owner@wallet.com",
           participantNames: ["Bob"],
           participantLnurls: [value],
           arkAddress: "ark1ace",

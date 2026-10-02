@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 interface ReceivingAddressFieldProps {
   readonly id: string;
   readonly name: string;
+  readonly required?: boolean;
 }
 
 function validate(input: HTMLInputElement): boolean {
@@ -20,15 +21,16 @@ function validate(input: HTMLInputElement): boolean {
   return valid;
 }
 
-export function ReceivingAddressField({ id, name }: ReceivingAddressFieldProps): ReactNode {
+export function ReceivingAddressField({ id, name, required = false }: ReceivingAddressFieldProps): ReactNode {
   const [invalid, setInvalid] = useState(false);
 
   return (
     <Field data-invalid={invalid}>
-      <FieldLabel htmlFor={id}>Receiving address (optional)</FieldLabel>
+      <FieldLabel htmlFor={id}>{required ? "Receiving address" : "Receiving address (optional)"}</FieldLabel>
       <Input
         id={id}
         name={name}
+        required={required}
         placeholder="name@wallet.com, lnurl1…, ark1…, or lno1…"
         className="h-12 px-4"
         maxLength={MAX_PAYOUT_DESTINATION_LENGTH}

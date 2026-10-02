@@ -6,11 +6,10 @@ import { Effect, Schema } from "effect";
 
 import { Database } from "./database";
 import { eventPayouts } from "./event-payment-schema";
-import { requireOrganizer } from "./event-settlement";
 import type { SettlementError } from "./event-settlement";
 import { eventSettlements } from "./event-settlement-schema";
 import { participants } from "./group-schema";
-import { GroupError } from "./groups";
+import { getGroup, GroupError } from "./groups";
 
 const updateSnapshot = Effect.fn("updateSettlementDestination")(function* updateSnapshot(
   groupId: string,
@@ -58,12 +57,22 @@ const updateSnapshot = Effect.fn("updateSettlementDestination")(function* update
 
 export const saveReceivingAddress = Effect.fn("saveReceivingAddress")(function* saveReceivingAddress(
   input: typeof ReceivingAddressRequest.Type,
-  token: string | undefined,
+  token?: string,
+  selectedParticipantId?: string,
 ): Effect.fn.Return<void, SettlementError, Database> {
   const database = yield* Database;
   yield* database.transaction(() =>
     Effect.gen(function* updateAddress() {
-      const view = yield* requireOrganizer(input.inviteKey, token);
+      const view = yield* getGroup(input.inviteKey, token);
+      const participant = view.participants.find((member) => member.id === input.participantId);
+      const allowed =
+        participant?.position === 0
+          ? view.isOrganizer
+          : participant !== undefined && selectedParticipantId === input.participantId;
+      if (!allowed) {
+        yield* new GroupError({ message: "Only change your own receiving address after selecting your name." });
+        return;
+      }
       const destinations = view.participants.map((member) =>
         member.id === input.participantId ? input.lnurl : member.lnurl,
       );

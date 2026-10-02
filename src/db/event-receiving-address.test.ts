@@ -8,7 +8,7 @@ import { eventInvoices, eventPayouts } from "./event-payment-schema";
 import { claimEventPayout, loadEventPayouts, prepareEventPayout } from "./event-payouts";
 import { saveReceivingAddress } from "./event-receiving-address";
 import { loadEventSettlement } from "./event-settlement";
-import { getGroup } from "./groups";
+import { createGroup, getGroup } from "./groups";
 
 const fundedEvent = Effect.fn("addressChangeFixture")(function* fundedEvent() {
   const event = yield* eventPaymentFixture();
@@ -27,6 +27,44 @@ const fundedEvent = Effect.fn("addressChangeFixture")(function* fundedEvent() {
 });
 
 describe("settlement receiving address changes", () => {
+  it.effect("lets invitees save only their selected destination before locking", () =>
+    Effect.gen(function* verifyInviteeAddress() {
+      yield* eventPaymentFixture();
+      const event = yield* createGroup({
+        name: "Trip",
+        organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
+        participantNames: ["Bob", "Carol"],
+        arkAddress: "ark1ace",
+      });
+      const guests = (yield* getGroup(event.inviteKey)).participants.filter((member) => member.position > 0);
+      const [bob, carol] = guests;
+      if (bob === undefined || carol === undefined) {
+        yield* Effect.die("Missing guests");
+        return;
+      }
+      const input = { inviteKey: event.inviteKey, participantId: bob.id, lnurl: "bob@wallet.com" };
+      expect(yield* Effect.flip(saveReceivingAddress(input))).toMatchObject({ _tag: "GroupError" });
+      expect(yield* Effect.flip(saveReceivingAddress(input, undefined, carol.id))).toMatchObject({
+        _tag: "GroupError",
+      });
+      expect(yield* Effect.flip(saveReceivingAddress(input, event.organizerToken))).toMatchObject({
+        _tag: "GroupError",
+      });
+      yield* saveReceivingAddress(input, undefined, bob.id);
+      expect((yield* getGroup(event.inviteKey)).participants.find((member) => member.id === bob.id)?.lnurl).toBe(
+        "bob@wallet.com",
+      );
+      expect(
+        yield* Effect.flip(
+          saveReceivingAddress({ ...input, participantId: event.organizerId }, undefined, event.organizerId),
+        ),
+      ).toMatchObject({ _tag: "GroupError" });
+      expect(
+        yield* Effect.flip(saveReceivingAddress({ ...input, participantId: carol.id }, undefined, carol.id)),
+      ).toMatchObject({ _tag: "GroupError" });
+    }).pipe(Effect.provide(EventTestDatabase)),
+  );
   it.effect("invalidates an unsent invoice and rejects stale preparation and claim requests", () =>
     Effect.gen(function* test() {
       const event = yield* fundedEvent();
@@ -95,12 +133,15 @@ describe("settlement receiving address changes", () => {
     }).pipe(Effect.provide(EventTestDatabase)),
   );
 
-  it.effect("requires organizer access and keeps receiving addresses distinct during settlement", () =>
+  it.effect("requires the selected identity and keeps receiving addresses distinct during settlement", () =>
     Effect.gen(function* test() {
       const event = yield* fundedEvent();
       const input = { inviteKey: event.inviteKey, participantId: event.organizerId, lnurl: "new@wallet.com" };
       expect(yield* Effect.flip(saveReceivingAddress(input, "wrong-token"))).toMatchObject({ _tag: "GroupError" });
-      yield* saveReceivingAddress({ ...input, participantId: event.bobId }, event.organizerToken);
+      expect(
+        yield* Effect.flip(saveReceivingAddress({ ...input, participantId: event.bobId }, event.organizerToken)),
+      ).toMatchObject({ _tag: "GroupError" });
+      yield* saveReceivingAddress({ ...input, participantId: event.bobId }, undefined, event.bobId);
       expect(yield* Effect.flip(saveReceivingAddress(input, event.organizerToken))).toMatchObject({
         _tag: "GroupError",
       });

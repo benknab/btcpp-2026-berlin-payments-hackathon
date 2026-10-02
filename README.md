@@ -9,12 +9,15 @@ Participants track expenses, then fund an owner-controlled pot to settle their f
 
 ### V1 scope: owner-controlled settlement pot
 
-1. **Owner creates the group and pot wallet.**
+1. **Owner creates the event and pot wallet.**
+   - A valid owner receiving destination is required at creation.
    - Create a dedicated Bark wallet in the owner's browser using `@secondts/bark/web`.
    - Store its public Ark address on the backend; the owner's wallet keys stay in the browser.
    - Back up the mnemonic and wallet data, keeping the data backup current as the wallet changes.
 2. **Friends join.**
-   - Participants join with a name. Anyone owed money supplies a receiving address before settlement is locked.
+   - Invitees open the invitation, select their name, and save their own receiving destination before continuing.
+     The owner no longer fills in guests' destinations. Owner destination changes require the organizer cookie;
+     guest changes must match the selected participant cookie. Name selection is not authenticated identity.
    - Supported payout destinations: Lightning addresses/LNURL-pay, Bark mainnet Ark addresses (`ark1…`), and
      BOLT12 offers (`lno1…`). Nostr profile lookup is not supported.
 3. **Record expenses and lock settlement.**
@@ -34,12 +37,15 @@ Participants track expenses, then fund an owner-controlled pot to settle their f
      amounts and account for duplicate or excess contributions separately.
 5. **Owner redistributes the pot.**
    - The owner opens and unlocks their browser wallet, syncs it, and reviews the payout amounts and destinations.
-   - Start redistribution after all required contributions are delivered and spendable funds cover payouts and fees.
+   - Start redistribution after all required contributions and an owner fee-reserve invoice are delivered, and
+     spendable funds cover payouts and current estimated fees. **Owner fee reserve → Estimate fees / deposit**
+     estimates remaining payout fees using the browser wallet and creates an invoice for the shortfall.
    - Resolve LNURL-pay invoices, send directly to Ark addresses, or pay BOLT12 offers for the exact settlement amount.
      The owner approves, and their browser wallet executes the payments.
    - Persist each attempt before sending and confirm each payout individually. Reconcile interrupted or unknown
      outcomes before retrying; payouts are sequential, not an atomic batch.
-   - Account for the owner's entitlement, excess contributions, and leftover fees. Mark the group settled only when
+   - Fee-reserve receipts are separate from expense contributions and never create excess participant debt payments.
+     Account for the owner's entitlement, excess contributions, and leftover fees. Mark the group settled only when
      all entitlements are accounted for.
 
 **Trust model:** friends trust the owner with the pot. Our backend is trusted to deliver incoming contributions;
@@ -75,7 +81,8 @@ still needs a funded rehearsal with a receiving service that supports browser CO
 
 Event payouts also support Bark mainnet Ark addresses on the same Ark server and compatible mainnet BOLT12 offers.
 Run `pnpm db:migrate` to apply the additive payout-method migration; no database reset is needed. Receiving-address
-fields auto-detect the method, including during event creation. Locked destinations cannot be changed.
+fields auto-detect the method, including during event creation. Participants can update their own destination until
+their payout starts; saving a replacement expires prepared, unsent attempts without changing net obligations.
 Ark/BOLT12 intents and the wallet-history boundary are persisted before sending. Interrupted attempts reconcile
 against matching wallet movements and are never automatically resent. Lightning payouts require a matching preimage;
 Ark receipts and the binding of BOLT12 payment hashes to offers/amounts rely on organizer-attested browser history,
@@ -83,6 +90,13 @@ not independent backend verification. The legacy `lnurl` field stores all receiv
 `paymentHash` coordination key is a random intent ID for Ark/BOLT12, with actual Lightning hashes stored separately.
 Live mainnet Ark/BOLT12 payouts still need rehearsal; local backend tests cover preparation, authorization, amount and
 destination matching, proof checks, and interrupted-attempt reconciliation.
+
+Run `pnpm db:migrate` for the additive `event_invoices.purpose` migration; existing invoices remain expense
+contributions and events are preserved. New owner top-up invoices are persisted as fee reserves and reused while
+pending. Historical top-ups and direct Ark transfers cannot be attributed retroactively as owner deposits. The
+reserve requirement applies before new payouts, not before reconciling an already-started payment. Zero estimated
+fees require no reserve. Leftover reserves remain withdrawable after settlement; a deposit does not guarantee
+receiver availability or resolve uncertain payment outcomes.
 
 The **Managed settlement** page at `/groups/<inviteKey>/managed-settlement` also supports private participant Bark-address
 links, debtor QR codes, deposit progress, and organizer-authorized payouts through a server-held wallet. An event

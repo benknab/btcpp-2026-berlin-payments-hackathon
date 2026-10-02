@@ -10,12 +10,47 @@ const BOB_LNURL = bech32.encodeFromBytes(
 );
 
 describe("group validation", () => {
+  it.effect.each([undefined, null, "", "invalid", "lnbc1invalid"])(
+    "requires an owner destination: %j",
+    (organizerLnurl: unknown) =>
+      Effect.gen(function* verifyOwnerDestination() {
+        const input = {
+          name: "Dinner",
+          organizerName: "Alice",
+          participantNames: ["Bob"],
+          arkAddress: "ark1ace",
+          organizerLnurl,
+        };
+        expect(yield* Effect.flip(Schema.decodeUnknownEffect(CreateGroupRequest)(input))).toMatchObject({
+          _tag: "SchemaError",
+        });
+      }),
+  );
+
+  it.effect("rejects a guest destination that duplicates the owner's", () =>
+    Effect.gen(function* verifyOwnerUniqueness() {
+      const input = {
+        name: "Dinner",
+        organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
+        participantNames: ["Bob"],
+        participantLnurls: ["lightning:alice@wallet.com"],
+      };
+      expect(yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input))).toMatchObject({ _tag: "SchemaError" });
+    }),
+  );
   it.effect.each([undefined, null, "", "tark1ace", "not-an-address"])(
     "requires a mainnet pot address for event creation: %j",
     (arkAddress: unknown) =>
       Effect.gen(function* verifyWalletAddress() {
         expect.hasAssertions();
-        const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], arkAddress };
+        const input = {
+          name: "Dinner",
+          organizerName: "Alice",
+          organizerLnurl: "alice@wallet.com",
+          participantNames: ["Bob"],
+          arkAddress,
+        };
         expect((yield* Effect.flip(Schema.decodeUnknownEffect(CreateGroupRequest)(input)))._tag).toBe("SchemaError");
       }),
   );
@@ -23,7 +58,13 @@ describe("group validation", () => {
   it.effect("preserves participant validation when adding the pot address", () =>
     Effect.gen(function* verifyRequest() {
       expect.hasAssertions();
-      const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], arkAddress: "ark1ace" };
+      const input = {
+        name: "Dinner",
+        organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
+        participantNames: ["Bob"],
+        arkAddress: "ark1ace",
+      };
       expect(yield* Schema.decodeUnknownEffect(CreateGroupRequest)(input)).toStrictEqual(input);
       expect(
         (yield* Effect.flip(Schema.decodeUnknownEffect(CreateGroupRequest)({ ...input, participantNames: ["alice"] })))
@@ -34,7 +75,12 @@ describe("group validation", () => {
   it.effect("accepts a group without an email or account", () =>
     Effect.gen(function* verifyGroup() {
       expect.hasAssertions();
-      const input = { name: "Berlin weekend", organizerName: "Alice", participantNames: ["Bob", "Carol"] };
+      const input = {
+        name: "Berlin weekend",
+        organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
+        participantNames: ["Bob", "Carol"],
+      };
       expect(yield* Schema.decodeUnknownEffect(NewGroup)(input)).toStrictEqual(input);
     }),
   );
@@ -46,10 +92,13 @@ describe("group validation", () => {
     { name: "Berlin", organizerName: "Alice", participantNames: ["alice"] },
     { name: "Berlin", organizerName: "Alice", participantNames: ["Bob", "bob"] },
     { name: "Berlin", organizerName: "Alice", participantNames: Array.from({ length: MAX_PARTICIPANTS }, String) },
-  ])("rejects invalid group %j", (input: unknown) =>
+  ])("rejects invalid group %j", (input) =>
     Effect.gen(function* verifyInvalidGroup() {
       expect.hasAssertions();
-      expect((yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input)))._tag).toBe("SchemaError");
+      expect(
+        (yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)({ organizerLnurl: "alice@wallet.com", ...input })))
+          ._tag,
+      ).toBe("SchemaError");
     }),
   );
 
@@ -64,7 +113,13 @@ describe("group validation", () => {
     ({ participantLnurls }: { readonly participantLnurls: readonly string[] }) =>
       Effect.gen(function* verifyDuplicates() {
         expect.hasAssertions();
-        const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob", "Carol"], participantLnurls };
+        const input = {
+          name: "Dinner",
+          organizerName: "Alice",
+          organizerLnurl: "alice@wallet.com",
+          participantNames: ["Bob", "Carol"],
+          participantLnurls,
+        };
         expect((yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input)))._tag).toBe("SchemaError");
       }),
   );
@@ -74,7 +129,13 @@ describe("group validation", () => {
     ({ participantLnurls }: { readonly participantLnurls: readonly (string | null)[] }) =>
       Effect.gen(function* verifyDistinctDestinations() {
         expect.hasAssertions();
-        const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob", "Carol"], participantLnurls };
+        const input = {
+          name: "Dinner",
+          organizerName: "Alice",
+          organizerLnurl: "alice@wallet.com",
+          participantNames: ["Bob", "Carol"],
+          participantLnurls,
+        };
         expect(yield* Schema.decodeUnknownEffect(NewGroup)(input)).toStrictEqual(input);
       }),
   );
@@ -94,6 +155,7 @@ describe("group validation", () => {
       const input = {
         name: "Dinner",
         organizerName: "Alice",
+        organizerLnurl: "alice@wallet.com",
         participantNames: ["Bob", "Carol"],
         participantLnurls: [null, "carol@wallet.com"],
       };
@@ -111,7 +173,13 @@ describe("group validation", () => {
     (receivingDetails: { readonly participantLnurls: readonly (string | null)[] }) =>
       Effect.gen(function* verifyInvalidReceivingDetails() {
         expect.hasAssertions();
-        const input = { name: "Dinner", organizerName: "Alice", participantNames: ["Bob"], ...receivingDetails };
+        const input = {
+          name: "Dinner",
+          organizerName: "Alice",
+          organizerLnurl: "alice@wallet.com",
+          participantNames: ["Bob"],
+          ...receivingDetails,
+        };
         expect((yield* Effect.flip(Schema.decodeUnknownEffect(NewGroup)(input)))._tag).toBe("SchemaError");
       }),
   );

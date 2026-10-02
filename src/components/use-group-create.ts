@@ -13,6 +13,8 @@ export type { PersonInput } from "@/components/use-people-input";
 interface GroupCreateState {
   readonly name: string;
   readonly organizerName: string;
+  readonly organizerLnurl: string;
+  readonly setOrganizerLnurl: (value: string) => void;
   readonly people: readonly PersonInput[];
   readonly pending: boolean;
   readonly error: string | null;
@@ -30,6 +32,7 @@ export function useGroupCreate(): GroupCreateState {
   const createWallet = useEventWallet();
   const [name, setName] = useState("");
   const [organizerName, setOrganizerName] = useState("");
+  const [organizerLnurl, setOrganizerLnurl] = useState("");
   const { people, addPerson, changePerson, removePerson } = usePeopleInput();
   const [validation, setValidation] = useState<string | null>(null);
 
@@ -38,6 +41,7 @@ export function useGroupCreate(): GroupCreateState {
     const data = {
       name: name.trim(),
       organizerName: organizerName.trim(),
+      organizerLnurl: organizerLnurl.trim(),
       participantNames: people.map((person) => person.name.trim()),
     };
     if (!Schema.is(NewGroup)(data)) {
@@ -54,6 +58,8 @@ export function useGroupCreate(): GroupCreateState {
   return {
     name,
     organizerName,
+    organizerLnurl,
+    setOrganizerLnurl,
     people,
     pending: action.pending,
     error: validation ?? action.error,

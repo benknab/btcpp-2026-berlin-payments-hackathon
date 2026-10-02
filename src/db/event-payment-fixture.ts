@@ -18,6 +18,7 @@ export const eventPaymentFixture = Effect.fn("eventPaymentFixture")(function* ev
   const event = yield* createGroup({
     name: "Dinner",
     organizerName: "Alice",
+    organizerLnurl: "alice@wallet.com",
     participantNames: ["Bob"],
     arkAddress: "ark1ace",
   });

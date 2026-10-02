@@ -8,7 +8,7 @@ import { GroupRequest } from "@/domain/group-input";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
-import { readOrganizerToken } from "./group-session";
+import { readOrganizerToken, readParticipantId } from "./group-session";
 import { runServer } from "./telemetry";
 
 const organizerToken = Effect.fn("eventOrganizerToken")(function* organizerToken(inviteKey: string) {
@@ -39,7 +39,8 @@ export const updateReceivingAddress = createServerFn({ method: "POST" })
     runServer(
       "settlement.address.save",
       Effect.gen(function* update() {
-        yield* saveReceivingAddress(data, yield* organizerToken(data.inviteKey));
+        const view = yield* getGroup(data.inviteKey);
+        yield* saveReceivingAddress(data, readOrganizerToken(view.group.id), readParticipantId(view.group.id));
       }).pipe(Effect.provide(DatabaseLive)),
     ),
   );

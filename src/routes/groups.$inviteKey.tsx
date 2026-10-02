@@ -1,3 +1,4 @@
+import { EventReceivingAddress } from "@/components/event-receiving-address";
 import { GroupUnavailable } from "@/components/group-unavailable";
 import { PageShell } from "@/components/page-shell";
 import { ParticipantChooser } from "@/components/participant-chooser";
@@ -49,7 +50,18 @@ function GroupLayout(): ReactNode {
           }}
         />
       ) : (
-        <Outlet />
+        <>
+          {view.group.arkAddress !== null &&
+            view.group.status !== "settled" &&
+            (selected.position !== 0 || view.isOrganizer) && (
+              <EventReceivingAddress
+                key={`${selected.id}:${selected.lnurl}`}
+                inviteKey={inviteKey}
+                participant={selected}
+              />
+            )}
+          {(view.group.arkAddress === null || selected.lnurl !== null || view.group.status === "settled") && <Outlet />}
+        </>
       )}
     </PageShell>
   );

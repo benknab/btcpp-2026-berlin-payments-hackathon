@@ -1,5 +1,6 @@
 import { EventPersonFields } from "@/components/event-person-fields";
 import { OrganizerNameField } from "@/components/organizer-name-field";
+import { ReceivingAddressField } from "@/components/receiving-address-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldLegend, FieldSet } from "@/components/ui/field";
 import { MAX_PARTICIPANTS } from "@/domain/group-input";
@@ -29,6 +30,7 @@ export function EventParticipants(): ReactNode {
       <FieldLegend>Participants</FieldLegend>
       <FieldGroup className="gap-6">
         <OrganizerNameField />
+        <ReceivingAddressField id="organizer-lnurl" name="organizerLnurl" required />
         {people.map((id, index) => (
           <EventPersonFields
             key={id}
