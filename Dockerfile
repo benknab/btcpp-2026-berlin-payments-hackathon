@@ -40,14 +40,15 @@ ENV NODE_ENV=production \
     PORT=3100 \
     HOST=0.0.0.0
 COPY --from=bark /usr/local/bin/bark /usr/local/bin/barkd /usr/local/bin/
-COPY --from=production-dependencies /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/drizzle ./drizzle
-COPY package.json tsconfig.json ./
-COPY scripts/production.ts scripts/production-healthcheck.ts ./scripts/
-COPY src/db/database.ts ./src/db/
-COPY src/server/env.ts ./src/server/
-COPY src/server/deployment ./src/server/deployment/
+# Host files may be private (0600); the runtime user must own all application inputs.
+COPY --chown=node:node --from=production-dependencies /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/dist ./dist
+COPY --chown=node:node --from=build /app/drizzle ./drizzle
+COPY --chown=node:node package.json tsconfig.json ./
+COPY --chown=node:node scripts/production.ts scripts/production-healthcheck.ts ./scripts/
+COPY --chown=node:node src/db/database.ts ./src/db/
+COPY --chown=node:node src/server/env.ts ./src/server/
+COPY --chown=node:node src/server/deployment ./src/server/deployment/
 RUN mkdir -p /data && chown node:node /data && chmod 700 /data \
     && bark --version && barkd --version
 USER node
