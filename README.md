@@ -37,6 +37,15 @@ For Docker, including Bark and database setup:
 docker compose up --detach --build --wait --wait-timeout 180
 ```
 
+## Demo presets
+
+Open the bottom-right **Demo** menu to create a populated event: **Coffee** (200 sats), **Dinner** (300 sats), or
+**Berlin weekend** (500 sats). The three presets total **1,000 sats combined** and include Vini, Ben, Dingo, and
+MintMonkey with their receiving destinations. Setup does not send payments; fees are separate.
+
+Use **Saved events** in the menu to reopen an event or copy its link. Creating a preset again creates a fresh event
+without resetting previous events or wallets. See [preset setup and payment flow](dev/bark/BROWSER.md#demo-presets).
+
 ## Safety
 
 **This is a mainnet hackathon prototype. Use small amounts with trusted participants.**

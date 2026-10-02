@@ -20,6 +20,31 @@ private network; never expose its token or use a `VITE_` variable for credential
 See [Second's mainnet guide](https://second.tech/docs/getting-started/bark-cli/mainnet) for wallet creation and funding.
 Do not run Bark CLI wallet commands while Barkd is using the same wallet database.
 
+## Demo presets
+
+Select the floating **Demo** button at the bottom right, then choose a preset to create and open a populated event:
+
+| Preset         | Expenses                                                | Total    |
+| -------------- | ------------------------------------------------------- | -------- |
+| Coffee         | Ben pays for coffee                                     | 200 sats |
+| Dinner         | Ben pays for dinner; Dingo pays for drinks              | 300 sats |
+| Berlin weekend | Vini, Ben, Dingo, and MintMonkey each record an expense | 500 sats |
+
+The three presets total **1,000 sats combined**, split equally between all four people. Vini is the owner.
+Every preset includes the supplied receiving destinations: Ben (`bk@breez.tips`), Dingo (`denimdingo16@primal.net`),
+MintMonkey (`mintmonkey6303@breez.tips`), and Vini's BOLT12 offer. Coffee has one creditor, Dinner has two, and Berlin
+weekend pays Vini's BOLT12 destination.
+
+The menu's **Saved events** commands reopen each preset's most recent event or copy its invitation link. Links and
+wallets persist in this browser; shared links let other browsers select a participant. Creating a preset again creates
+a fresh event and dedicated browser wallet, without resetting earlier events or wallets. Failed setup retries reuse
+the pending wallet and idempotent server request. Opening a saved event never resets its expenses or settlement state;
+an event removed by a database reset is reported unavailable, not recreated.
+
+Setup only records expenses and receiving destinations: it does **not** lock settlement, create invoices, simulate
+payments, or send sats. Start settlement and fund contributions manually. Mainnet payment fees and the owner's fee
+reserve are separate from the preset expense totals. Keep wallet recovery phrases backed up as in the normal flow.
+
 ## Demo
 
 Use localhost or HTTPS and small real amounts. For example, Alice pays a 2,000-sat expense split equally with Bob:

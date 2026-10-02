@@ -1,3 +1,4 @@
+import { DemoPresetMenu } from "@/components/demo-preset-menu";
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
@@ -30,6 +31,7 @@ function Root(): ReactNode {
       </head>
       <body>
         <Outlet />
+        <DemoPresetMenu />
         <Scripts />
       </body>
     </html>

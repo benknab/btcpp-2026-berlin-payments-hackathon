@@ -17,25 +17,23 @@ export interface GroupView {
 }
 export type GroupDatabaseError = EffectDrizzleQueryError | SqlError.SqlError;
 export class GroupError extends Data.TaggedError("GroupError")<{ readonly message: string }> {}
+export interface CreatedGroup {
+  readonly inviteKey: string;
+  readonly organizerToken: string;
+  readonly organizerId: string;
+  readonly groupId: string;
+}
 
 export const createGroup = Effect.fn("createGroup")(function* createGroup(
   input: typeof CreateGroupRequest.Type,
-): Effect.fn.Return<
-  {
-    readonly inviteKey: string;
-    readonly organizerToken: string;
-    readonly organizerId: string;
-    readonly groupId: string;
-  },
-  GroupDatabaseError | Schema.SchemaError,
-  Database
-> {
+  tokens?: Readonly<{ inviteKey: string; organizerToken: string }>,
+): Effect.fn.Return<CreatedGroup, GroupDatabaseError | Schema.SchemaError, Database> {
   const valid = yield* Schema.decodeUnknownEffect(CreateGroupRequest)(input);
   const database = yield* Database;
   const groupId = newId();
   const organizerId = newId();
-  const inviteKey = newToken();
-  const organizerToken = newToken();
+  const inviteKey = tokens?.inviteKey ?? newToken();
+  const organizerToken = tokens?.organizerToken ?? newToken();
   yield* database.transaction(() =>
     Effect.gen(function* insertGroup() {
       yield* database.insert(groups).values({
