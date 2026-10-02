@@ -93,7 +93,9 @@ transfer the organizer cookie or the browser-owned wallet.
     The browser syncs and computes the maximum spendable amount after the current send fee. Settlement must be
     complete, with no unresolved or excess contributions. Receiver limits still apply.
     An interrupted withdrawal is persisted in this browser; **Reconcile withdrawal** checks that attempt instead
-    of sending again. A BOLT12 request proven not to have started is released for an explicit retry.
+    of sending again. A matching terminal failed wallet movement with no pending Lightning checkpoints releases
+    the attempt and restores **Withdraw max**. A BOLT12 request proven not to have started is also released for
+    an explicit retry. Withdrawal state stays synchronized across tabs.
 
 Lightning invoices must begin with `lnbc`; Ark destinations must begin with `ark1` on Second's mainnet server.
 LNURL-pay follows the current [LUD-06](https://github.com/lnurl/luds/blob/luds/06.md): the invoice must match the

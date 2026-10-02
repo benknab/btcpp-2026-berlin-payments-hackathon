@@ -1,10 +1,12 @@
 import { PaymentError } from "@/domain/payment-error";
 import { matchesPayoutMovement } from "@/domain/payout-movement";
-import { canReleaseBolt12Claim } from "@/domain/payout-recovery";
 import type { WalletWithdrawal } from "@/domain/withdrawal";
+import { withdrawalRelease } from "@/domain/withdrawal-recovery";
+import type { WithdrawalRelease } from "@/domain/withdrawal-recovery";
 import type { Wallet } from "@secondts/bark/web";
 
 import { receipt } from "./native-event-payout";
+import { unstartedBolt12Error } from "./payout-recovery";
 import { saveWithdrawal } from "./withdrawal-storage";
 
 export async function reconcileWithdrawal(wallet: Readonly<Wallet>, withdrawal: WalletWithdrawal): Promise<void> {
@@ -35,18 +37,27 @@ export async function reconcileWithdrawal(wallet: Readonly<Wallet>, withdrawal: 
   throw new PaymentError("withdrawalPending");
 }
 
-export async function releaseUnstartedWithdrawal(
+export async function releaseUnsuccessfulWithdrawal(
   wallet: Readonly<Wallet>,
   arkAddress: string,
   withdrawal: WalletWithdrawal,
-): Promise<boolean> {
-  if (withdrawal.method !== "bolt12") {
-    return false;
-  }
+): Promise<WithdrawalRelease> {
   const pending = await wallet.pendingLightningSends();
-  if (canReleaseBolt12Claim(withdrawal, await wallet.history(), pending.length)) {
+  const history = await wallet.history();
+  const released = withdrawalRelease(
+    withdrawal,
+    history.map((movement) => receipt(movement)),
+    pending.length,
+  );
+  if (released !== null) {
     saveWithdrawal(arkAddress, { ...withdrawal, status: "failed" });
-    return true;
   }
-  return false;
+  return released;
+}
+
+export function withdrawalFailure(error: unknown, released: WithdrawalRelease): PaymentError {
+  if (released === "unstarted") {
+    return unstartedBolt12Error(error);
+  }
+  return new PaymentError(released === "failed" ? "withdrawalFailed" : "withdrawalPending");
 }
