@@ -15,21 +15,21 @@ export function PersonalAddressField({
 }): ReactNode {
   return (
     <Field data-invalid={invalid} data-disabled={disabled}>
-      <FieldLabel htmlFor="personal-ark-address">Your Bark signet address</FieldLabel>
+      <FieldLabel htmlFor="personal-ark-address">Your Bark mainnet address</FieldLabel>
       <Input
         id="personal-ark-address"
         value={address}
         onChange={(event) => {
           onChange(event.target.value);
         }}
-        placeholder="tark1…"
+        placeholder="ark1…"
         required
         spellCheck={false}
         autoComplete="off"
         aria-invalid={invalid}
         disabled={disabled}
       />
-      {invalid && <FieldError>Enter a Bark signet address beginning with tark1.</FieldError>}
+      {invalid && <FieldError>Enter a Bark mainnet address beginning with ark1.</FieldError>}
     </Field>
   );
 }

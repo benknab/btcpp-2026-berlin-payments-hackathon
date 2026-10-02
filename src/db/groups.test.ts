@@ -18,7 +18,7 @@ describe("groups and invitation access", () => {
       yield* migrate(database, { migrationsFolder: "./drizzle" });
       const created = yield* createGroup({
         name: "Berlin",
-        arkAddress: "tark1ace",
+        arkAddress: "ark1ace",
         organizerName: "Alice",
         participantNames: ["Bob", "Carol"],
       });
@@ -27,7 +27,7 @@ describe("groups and invitation access", () => {
       expect(shared.participants.map((participant) => participant.name)).toStrictEqual(["Alice", "Bob", "Carol"]);
       expect(shared.participants.map((participant) => participant.lnurl)).toStrictEqual([null, null, null]);
       expect(shared.isOrganizer).toBe(false);
-      expect(shared.group.arkAddress).toBe("tark1ace");
+      expect(shared.group.arkAddress).toBe("ark1ace");
       expect(organizer.isOrganizer).toBe(true);
       expect(shared.group).not.toHaveProperty("organizerTokenHash");
       expect(shared.group).not.toHaveProperty("inviteTokenHash");
@@ -43,7 +43,7 @@ describe("groups and invitation access", () => {
       expect.hasAssertions();
       const database = yield* Database;
       yield* migrate(database, { migrationsFolder: "./drizzle" });
-      const input = { name: "Berlin", organizerName: "Alice", participantNames: ["Bob"], arkAddress: "tark1ace" };
+      const input = { name: "Berlin", organizerName: "Alice", participantNames: ["Bob"], arkAddress: "ark1ace" };
       const first = yield* createGroup(input);
       const second = yield* createGroup(input);
       expect((yield* Effect.flip(getGroup("unknown")))._tag).toBe("GroupError");
@@ -68,7 +68,7 @@ describe("groups and invitation access", () => {
       expect.hasAssertions();
       const database = yield* Database;
       yield* migrate(database, { migrationsFolder: "./drizzle" });
-      const result = yield* Effect.flip(createGroup({ ...input, arkAddress: "tark1ace" }));
+      const result = yield* Effect.flip(createGroup({ ...input, arkAddress: "ark1ace" }));
       expect(result._tag).toBe("SchemaError");
       expect(yield* database.select().from(groups)).toStrictEqual([]);
       expect(yield* database.select().from(participants)).toStrictEqual([]);
@@ -82,7 +82,7 @@ describe("groups and invitation access", () => {
       yield* migrate(database, { migrationsFolder: "./drizzle" });
       const created = yield* createGroup({
         name: "Dinner",
-        arkAddress: "tark1ace",
+        arkAddress: "ark1ace",
         organizerName: "Alice",
         participantNames: ["Bob", "Carol"],
         participantLnurls: [null, "carol@wallet.com"],

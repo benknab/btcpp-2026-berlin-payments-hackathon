@@ -10,10 +10,11 @@ import { Effect } from "effect";
 const DATABASE_NAMESPACE_LENGTH = 16;
 
 export function potWalletDirectory(id: number | string): string {
-  const url = process.env["DATABASE_URL"] ?? "file:local.db";
+  const url = process.env["DATABASE_URL"] ?? "file:mainnet.db";
   const database = url.startsWith("file:") ? path.resolve(url.slice("file:".length)) : url;
   const namespace = createHash("sha256").update(database).digest("hex").slice(0, DATABASE_NAMESPACE_LENGTH);
-  const root = process.env["BARK_POTS_DATADIR"] ?? path.join(homedir(), ".local", "share", "bark-settlement-pots");
+  const root =
+    process.env["BARK_POTS_DATADIR"] ?? path.join(homedir(), ".local", "share", "bark-settlement-pots-mainnet");
   return path.resolve(root, namespace, String(id));
 }
 

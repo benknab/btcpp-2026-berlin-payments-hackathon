@@ -1,4 +1,4 @@
-import { parseSignetInvoice } from "@/domain/bolt11";
+import { parseMainnetInvoice } from "@/domain/bolt11";
 import { deliveredFor } from "@/domain/event-funding";
 import type { BarkError } from "@/server/bark/receiver";
 import { Receiver } from "@/server/bark/receiver";
@@ -92,8 +92,8 @@ const saveInvoice = Effect.fn("saveEventInvoice")(function* saveInvoice(input: {
   const database = yield* Database;
   const invoice = yield* receiver.invoice(input.address, input.amountSats);
   const details = yield* Effect.try({
-    try: () => parseSignetInvoice(invoice),
-    catch: () => new GroupError({ message: "Invalid signet invoice." }),
+    try: () => parseMainnetInvoice(invoice),
+    catch: () => new GroupError({ message: "Invalid mainnet invoice." }),
   });
   const now = yield* Clock.currentTimeMillis;
   if (details.amountSats !== input.amountSats || details.expiresAt <= now) {

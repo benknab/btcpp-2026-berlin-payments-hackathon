@@ -14,7 +14,7 @@ export const generateTestAddresses = Effect.fn("generateTestParticipantAddresses
 ) {
   const valid = yield* Schema.decodeUnknownEffect(ParticipantAddressRequest)({ count });
   const bark = yield* Bark;
-  // Fingerprint verifies the configured Ark server is signet before allocating addresses.
+  // Fingerprint verifies the configured Ark server is mainnet before allocating addresses.
   yield* bark.fingerprint();
   return yield* Effect.forEach(Array.from({ length: valid.count }), () => bark.address(), { concurrency: 1 });
 });
@@ -25,7 +25,7 @@ export const TestParticipantWalletLive = Layer.effect(
   Effect.gen(function* testWallet() {
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
     const datadir =
-      process.env["BARK_FUNDING_DATADIR"] ?? path.join(homedir(), ".local", "share", "bark-hackathon-signet");
+      process.env["BARK_FUNDING_DATADIR"] ?? path.join(homedir(), ".local", "share", "bark-hackathon-mainnet");
     const token = yield* spawner
       .string(
         ChildProcess.make(process.env["BARKD_BIN"] ?? "barkd", ["--datadir", datadir, "secret", "show"], {
@@ -37,7 +37,7 @@ export const TestParticipantWalletLive = Layer.effect(
       );
     const valid = yield* Schema.decodeUnknownEffect(Schema.NonEmptyString)(token.trim());
     return makeBark({
-      basePath: process.env["BARK_FUNDING_URL"] ?? "http://127.0.0.1:3031",
+      basePath: process.env["BARK_FUNDING_URL"] ?? "http://127.0.0.1:3041",
       token: Redacted.make(valid),
     });
   }),

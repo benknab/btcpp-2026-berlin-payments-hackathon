@@ -9,8 +9,8 @@ import { settlementActionResult } from "./ui-service";
 
 const setup: SettlementSetupInput = {
   users: [
-    { id: "alice", name: "Alice", arkAddress: "tark1ace" },
-    { id: "bob", name: "Bob", arkAddress: "tark1q0q" },
+    { id: "alice", name: "Alice", arkAddress: "ark1ace" },
+    { id: "bob", name: "Bob", arkAddress: "ark1q0q" },
   ],
   debts: [{ from: "alice", to: "bob", amountSat: 9000 }],
 };

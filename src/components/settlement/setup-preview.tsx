@@ -22,7 +22,7 @@ export function SetupPreview({ controller }: Readonly<{ controller: DraftControl
   }
   return (
     <MessageAlert variant="destructive" title="Check the settlement inputs">
-      Enter all names, distinct signet payout addresses, and at least one positive whole-sat debt between different
+      Enter all names, distinct mainnet payout addresses, and at least one positive whole-sat debt between different
       participants.
     </MessageAlert>
   );

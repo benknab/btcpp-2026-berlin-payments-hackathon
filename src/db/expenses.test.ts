@@ -26,7 +26,7 @@ describe("persisted expenses", () => {
           name: "Custom",
           organizerName: "Alice",
           participantNames: ["Bob"],
-          arkAddress: "tark1ace",
+          arkAddress: "ark1ace",
         });
         const view = yield* getGroup(created.inviteKey);
         const bob = yield* Effect.fromNullishOr(view.participants.find((person) => person.name === "Bob"));
@@ -101,7 +101,7 @@ describe("persisted expenses", () => {
       yield* migrate(database, { migrationsFolder: "./drizzle" });
       const created = yield* createGroup({
         name: "Berlin",
-        arkAddress: "tark1ace",
+        arkAddress: "ark1ace",
         organizerName: "Alice",
         participantNames: ["Bob", "Carol"],
       });
@@ -137,7 +137,7 @@ describe("persisted expenses", () => {
       expect.hasAssertions();
       const database = yield* Database;
       yield* migrate(database, { migrationsFolder: "./drizzle" });
-      const input = { name: "Berlin", organizerName: "Alice", participantNames: ["Bob"], arkAddress: "tark1ace" };
+      const input = { name: "Berlin", organizerName: "Alice", participantNames: ["Bob"], arkAddress: "ark1ace" };
       const first = yield* createGroup(input);
       const second = yield* createGroup(input);
       const expense = {
@@ -178,7 +178,7 @@ describe("persisted expenses", () => {
         name: "Berlin",
         organizerName: "Alice",
         participantNames: ["Bob"],
-        arkAddress: "tark1ace",
+        arkAddress: "ark1ace",
       });
       const input = {
         inviteKey: created.inviteKey,

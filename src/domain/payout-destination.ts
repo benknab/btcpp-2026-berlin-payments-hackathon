@@ -5,18 +5,18 @@ import { isBolt12Offer, normalizeBolt12Offer } from "./bolt12";
 import { lnurlEndpoint } from "./lnurl";
 
 export const MAX_PAYOUT_DESTINATION_LENGTH = 10_000;
-export const PAYOUT_DESTINATION_ERROR = "Enter a Lightning address, LNURL, Bark signet address, or BOLT12 offer.";
+export const PAYOUT_DESTINATION_ERROR = "Enter a Lightning address, LNURL, Bark mainnet address, or BOLT12 offer.";
 export const DUPLICATE_PAYOUT_DESTINATION_ERROR = "Each participant needs a different receiving address.";
 const MIN_ARK_PAYLOAD_LENGTH = 39;
 
 export type PayoutDestination = Readonly<{ kind: "lnurl" | "ark" | "bolt12"; value: string }>;
 
-function isSignetArkAddress(value: string): boolean {
+function isMainnetArkAddress(value: string): boolean {
   try {
     const decoded = bech32m.decode(value, MAX_PAYOUT_DESTINATION_LENGTH);
     // Bark policy addresses use version 1, followed by server ID and a serialized VTXO policy.
     return (
-      decoded.prefix === "tark" &&
+      decoded.prefix === "ark" &&
       decoded.words[0] === 1 &&
       bech32m.fromWords(decoded.words.slice(1)).length >= MIN_ARK_PAYLOAD_LENGTH
     );
@@ -30,7 +30,7 @@ export function payoutDestination(value: string): PayoutDestination | null {
     return null;
   }
   const candidate = value.replace(/^lightning:/iu, "");
-  if (isSignetArkAddress(candidate)) {
+  if (isMainnetArkAddress(candidate)) {
     return { kind: "ark", value: candidate.toLowerCase() };
   }
   if (isBolt12Offer(candidate)) {

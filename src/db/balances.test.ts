@@ -19,7 +19,7 @@ describe("group overview", () => {
         name: "Berlin",
         organizerName: "Alice",
         participantNames: ["Bob", "Carol"],
-        arkAddress: "tark1ace",
+        arkAddress: "ark1ace",
       });
       const input = {
         inviteKey: group.inviteKey,

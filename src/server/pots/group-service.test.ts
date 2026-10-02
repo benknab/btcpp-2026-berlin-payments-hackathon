@@ -28,7 +28,7 @@ it.effect("requires addresses, organizer access, and a current reviewed snapshot
       expect((yield* getGroup(group.inviteKey)).group.status).toBe("open");
       for (const [index, person] of (yield* getGroup(group.inviteKey)).participants.entries()) {
         const link = yield* issuePersonalLink(group.inviteKey, person.id, group.organizerToken);
-        yield* savePersonalAddress({ accessKey: link.accessKey, arkAddress: `tark1${"q".repeat(index + 1)}` });
+        yield* savePersonalAddress({ accessKey: link.accessKey, arkAddress: `ark1${"q".repeat(index + 1)}` });
       }
       expect(
         yield* Effect.result(executeGroupPayment({ ...action, organizerToken: group.organizerToken })),
@@ -72,7 +72,7 @@ it.effect("locks expenses and addresses, collects net debts, and confirms exact 
         yield* Effect.result(addExpense({ ...group.dinner, expenseId: "00000000-0000-4000-8000-000000000003" })),
       ).toMatchObject({ _tag: "Failure" });
       expect(
-        yield* Effect.result(savePersonalAddress({ accessKey: group.links[0] ?? "", arkAddress: "tark1ace" })),
+        yield* Effect.result(savePersonalAddress({ accessKey: group.links[0] ?? "", arkAddress: "ark1ace" })),
       ).toMatchObject({ _tag: "Failure" });
       expect(yield* Effect.result(requireStandalonePot(group.groupId))).toMatchObject({ _tag: "Failure" });
       expect(yield* Effect.result(requireUnreservedWallet("isolated-test-wallet"))).toMatchObject({ _tag: "Failure" });
@@ -134,7 +134,7 @@ it.effect(
           name: "Other",
           organizerName: "Dave",
           participantNames: ["Eve"],
-          arkAddress: "tark1ace",
+          arkAddress: "ark1ace",
         });
         expect(
           yield* Effect.result(
@@ -157,7 +157,7 @@ it.effect("closes all-square groups without addresses or wallet configuration", 
         name: "Empty",
         organizerName: "Alice",
         participantNames: ["Bob"],
-        arkAddress: "tark1ace",
+        arkAddress: "ark1ace",
       });
       const page = yield* groupSettlementPage(group.inviteKey);
       const settled = yield* groupPaymentRequest({

@@ -42,7 +42,7 @@ export function GroupOrganizerControls({
         label={page.pot?.status === "paying" ? "Reconcile and finish payouts" : "Pay creditors"}
         pending={action.pending}
         disabled={page.pot === null || !potFullyFunded(page.pot)}
-        description="Send locked signet payouts to participants’ personal addresses. Pending attempts will be reconciled."
+        description="Send locked mainnet payouts to participants’ personal addresses. Pending attempts will be reconciled."
         onConfirm={() => {
           action.run("pay");
         }}

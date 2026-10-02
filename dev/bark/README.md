@@ -1,17 +1,17 @@
-# Bark signet development wallet
+# Bark mainnet development wallet
 
 Install **Bark and Barkd 0.7.1** using the [repository installation instructions](../../README.md#install-bark-and-barkd).
-Follow [Second's signet guide](https://second.tech/docs/getting-started/bark-cli/signet) for wallet setup and funding.
+Follow [Second's mainnet guide](https://second.tech/docs/getting-started/bark-cli/mainnet) for wallet setup and funding.
 
 ## Create a fresh local wallet
 
-The default developer wallet path is `~/.local/share/bark-hackathon-signet`. This is a local directory, not a
+The default developer wallet path is `~/.local/share/bark-hackathon-mainnet`. This is a local directory, not a
 wallet included in the repository. On a new machine, create a fresh wallet with its own generated keys:
 
 ```sh
-export BARK_DATADIR="$HOME/.local/share/bark-hackathon-signet"
+export BARK_DATADIR="$HOME/.local/share/bark-hackathon-mainnet"
 umask 077
-bark create --signet --ark https://ark.signet.2nd.dev --esplora https://esplora.signet.2nd.dev
+bark create --mainnet --ark https://ark.second.tech --esplora https://mempool.second.tech/api
 bark address
 ```
 
@@ -21,26 +21,31 @@ Keep the wallet directory and recovery phrase outside the repository; never prin
 
 ## Fund and check the wallet
 
-Sign in with GitHub at [Second's signet faucet](https://signet.2nd.dev/) and submit the **address printed by your
-local wallet**, not an address copied from another environment. The faucet sends free signet sats over Ark.
+Generate a small mainnet Lightning invoice and pay it from your Lightning wallet:
+
+```sh
+bark ln invoice "3000 sats"
+```
+
+For browser-event LNURL testing, use the separate [receiving-daemon setup](BROWSER.md).
 
 ```sh
 bark balance
 bark vtxos
 ```
 
-The pot demo spends up to **26,000 signet sats per run**. Check the current spendable balance before running it.
-Ark-to-Ark demo success does not verify Lightning; Second's signet guide includes a test store for Lightning sends.
+The pot demo transfers up to **2,900 real sats plus fees per run**. Check the current spendable balance before running it.
+Ark-to-Ark demo success does not verify Lightning or LNURL payouts.
 
 ## Start the developer daemon
 
 After funding, start Barkd in a separate terminal for the app's test payout addresses and `pnpm pot:demo`:
 
 ```sh
-barkd --datadir "$HOME/.local/share/bark-hackathon-signet" --host 127.0.0.1 --port 3031 --no-logfile
+barkd --datadir "$HOME/.local/share/bark-hackathon-mainnet" --host 127.0.0.1 --port 3041 --no-logfile
 ```
 
-Use your alternative wallet path here if configured. The app/demo default to `http://127.0.0.1:3031`;
+Use your alternative wallet path here if configured. The app/demo default to `http://127.0.0.1:3041`;
 `BARK_FUNDING_URL` overrides that URL. Tokens are retrieved internally; do not commit or expose them.
 **Do not run Bark CLI wallet commands while Barkd is using the same wallet database.** Stop the daemon first.
 
@@ -66,6 +71,6 @@ with the app database when migrating existing pots; the developer wallet alone i
 
 For the backend JSON-to-deposits-to-payouts flow, see [the pot demo](POTS.md).
 
-- [Bark signet guide (source of truth)](https://second.tech/docs/getting-started/bark-cli/signet).
+- [Bark mainnet guide (source of truth)](https://second.tech/docs/getting-started/bark-cli/mainnet).
 - [Wallet backups and recovery](https://second.tech/docs/backups).
-- [Signet faucet (GitHub sign-in required)](https://signet.2nd.dev/).
+- [Mainnet connection details](https://second.tech/docs/connection-details).

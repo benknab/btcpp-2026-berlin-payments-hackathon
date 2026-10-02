@@ -20,7 +20,7 @@ export function io<Value>(run: () => Promise<Value>): Effect.Effect<Value, DemoE
 }
 
 export const makeDemoDirectory = Effect.fn("makeDemoDirectory")(function* makeDemoDirectory() {
-  const root = path.join(homedir(), ".local", "share", "bark-pot-demos");
+  const root = path.join(homedir(), ".local", "share", "bark-pot-demos-mainnet");
   yield* io(() => mkdir(root, { recursive: true, mode: 0o700 }));
   return yield* io(() => mkdtemp(path.join(root, "run-")));
 });
@@ -63,7 +63,7 @@ export const startDemoWallet = Effect.fn("startDemoWallet")(function* startDemoW
     }
     return yield* bark.ready();
   }).pipe(Effect.retry(startupRetry));
-  yield* bark.createSignetWallet();
+  yield* bark.createMainnetWallet();
   return bark;
 });
 

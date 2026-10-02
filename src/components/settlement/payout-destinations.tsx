@@ -12,7 +12,7 @@ export function PayoutDestinations({ pot }: Readonly<{ pot: Pot }>): ReactNode {
         id={`payout-${participant.userId}`}
         label={`${participant.name} receives ${participant.receiveSat.toLocaleString()} sats`}
         description={
-          participant.payoutStatus === "paid" ? "Payout confirmed by Bark." : "Locked personal signet payout address."
+          participant.payoutStatus === "paid" ? "Payout confirmed by Bark." : "Locked personal mainnet payout address."
         }
       >
         <Input id={`payout-${participant.userId}`} value={participant.payoutAddress} readOnly spellCheck={false} />

@@ -16,7 +16,7 @@ export const newParticipantAddresses = createServerFn({ method: "POST" })
           Effect.succeed<ParticipantAddressResult>({
             ok: false,
             message:
-              "Start the shared signet Bark daemon on port 3031, then retry, or enter payout addresses manually.",
+              "Start the shared mainnet Bark daemon on port 3041, then retry, or enter payout addresses manually.",
           }),
         ),
       ),

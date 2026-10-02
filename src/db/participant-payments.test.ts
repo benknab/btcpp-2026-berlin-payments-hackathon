@@ -18,13 +18,13 @@ it.effect("private capabilities authorize only their participant; rotation revok
       name: "Berlin",
       organizerName: "Alice",
       participantNames: ["Bob"],
-      arkAddress: "tark1ace",
+      arkAddress: "ark1ace",
     });
     const other = yield* createGroup({
       name: "Other",
       organizerName: "Carol",
       participantNames: ["Dave"],
-      arkAddress: "tark1ace",
+      arkAddress: "ark1ace",
     });
     expect(yield* Effect.result(issuePersonalLink(group.inviteKey, group.organizerId))).toMatchObject({
       _tag: "Failure",
@@ -37,17 +37,17 @@ it.effect("private capabilities authorize only their participant; rotation revok
     ).toMatchObject({ _tag: "Failure" });
     const first = yield* issuePersonalLink(group.inviteKey, group.organizerId, group.organizerToken);
     expect(yield* Effect.result(personalPayment(group.inviteKey))).toMatchObject({ _tag: "Failure" });
-    yield* savePersonalAddress({ accessKey: first.accessKey, arkAddress: "tark1ace" });
+    yield* savePersonalAddress({ accessKey: first.accessKey, arkAddress: "ark1ace" });
     expect((yield* personalPayment(first.accessKey)).name).toBe("Alice");
     const second = yield* issuePersonalLink(group.inviteKey, group.organizerId, group.organizerToken);
     expect(yield* Effect.result(personalPayment(first.accessKey))).toMatchObject({ _tag: "Failure" });
-    expect((yield* personalPayment(second.accessKey)).arkAddress).toBe("tark1ace");
+    expect((yield* personalPayment(second.accessKey)).arkAddress).toBe("ark1ace");
     expect(
       yield* Effect.result(savePersonalAddress({ accessKey: second.accessKey, arkAddress: "bc1mainnet" })),
     ).toMatchObject({ _tag: "Failure" });
     yield* (yield* Database).update(groups).set({ status: "settling" }).where(eq(groups.id, group.groupId));
     expect(
-      yield* Effect.result(savePersonalAddress({ accessKey: second.accessKey, arkAddress: "tark1q0q" })),
+      yield* Effect.result(savePersonalAddress({ accessKey: second.accessKey, arkAddress: "ark1q0q" })),
     ).toMatchObject({ _tag: "Failure" });
     expect(
       yield* Effect.result(issuePersonalLink(group.inviteKey, group.organizerId, group.organizerToken)),
@@ -62,13 +62,13 @@ it.effect("rejects another participant's destination but permits independent gro
       name: "Berlin",
       organizerName: "Alice",
       participantNames: ["Bob"],
-      arkAddress: "tark1ace",
+      arkAddress: "ark1ace",
     });
     const other = yield* createGroup({
       name: "Other",
       organizerName: "Carol",
       participantNames: ["Dave"],
-      arkAddress: "tark1ace",
+      arkAddress: "ark1ace",
     });
     const members = yield* getGroup(group.inviteKey);
     const bobId = members.participants.find((person) => person.name === "Bob")?.id;
@@ -79,11 +79,11 @@ it.effect("rejects another participant's destination but permits independent gro
     const aliceLink = yield* issuePersonalLink(group.inviteKey, group.organizerId, group.organizerToken);
     const bobLink = yield* issuePersonalLink(group.inviteKey, bobId, group.organizerToken);
     const carolLink = yield* issuePersonalLink(other.inviteKey, other.organizerId, other.organizerToken);
-    yield* savePersonalAddress({ accessKey: aliceLink.accessKey, arkAddress: "tark1ace" });
+    yield* savePersonalAddress({ accessKey: aliceLink.accessKey, arkAddress: "ark1ace" });
     expect(
-      yield* Effect.result(savePersonalAddress({ accessKey: bobLink.accessKey, arkAddress: "tark1ace" })),
+      yield* Effect.result(savePersonalAddress({ accessKey: bobLink.accessKey, arkAddress: "ark1ace" })),
     ).toMatchObject({ _tag: "Failure" });
-    yield* savePersonalAddress({ accessKey: carolLink.accessKey, arkAddress: "tark1ace" });
+    yield* savePersonalAddress({ accessKey: carolLink.accessKey, arkAddress: "ark1ace" });
     expect((yield* personalPayment(bobLink.accessKey)).arkAddress).toBeNull();
   }).pipe(Effect.provide(TestDatabase)),
 );

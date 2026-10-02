@@ -1,4 +1,4 @@
-import { Sats, SignetAddress } from "@/lib/pot";
+import { Sats, MainnetAddress } from "@/lib/pot";
 import { Context, Schema } from "effect";
 import type { Effect } from "effect";
 
@@ -18,7 +18,7 @@ export const BarkMovementSchema = Schema.Struct({
 });
 export type BarkMovement = typeof BarkMovementSchema.Type;
 
-export const BarkAddress = Schema.Struct({ address: SignetAddress });
+export const BarkAddress = Schema.Struct({ address: MainnetAddress });
 export const BarkBalance = Schema.Struct({ spendableSat: Sats });
 export const BarkWallet = Schema.Struct({ fingerprint: Schema.NonEmptyString });
 
@@ -30,7 +30,7 @@ export interface BarkOperations {
   readonly ready: () => Effect.Effect<void, BarkError>;
   readonly fingerprint: () => Effect.Effect<string, BarkError>;
   readonly send: (address: string, amountSat: number) => Effect.Effect<void, BarkError>;
-  readonly createSignetWallet: () => Effect.Effect<void, BarkError>;
+  readonly createMainnetWallet: () => Effect.Effect<void, BarkError>;
 }
 
 export class Bark extends Context.Service<Bark, BarkOperations>()("payments/Bark") {}

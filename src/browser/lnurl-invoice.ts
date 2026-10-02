@@ -1,4 +1,4 @@
-import { parseSignetInvoice } from "@/domain/bolt11";
+import { parseMainnetInvoice } from "@/domain/bolt11";
 import { lnurlEndpoint } from "@/domain/lnurl";
 import { hex } from "@scure/base";
 import { Schema } from "effect";
@@ -56,7 +56,7 @@ function callbackUrl(request: typeof PayRequest.Type, amountSats: number): strin
 export async function resolvePayoutInvoice(lnurl: string, amountSats: number): Promise<string> {
   const request = await receivingService(lnurl);
   const response = Schema.decodeUnknownSync(InvoiceResponse)(await getJson(callbackUrl(request, amountSats)));
-  const details = parseSignetInvoice(response.pr);
+  const details = parseMainnetInvoice(response.pr);
   if (
     details.amountSats !== amountSats ||
     details.expiresAt <= Date.now() ||

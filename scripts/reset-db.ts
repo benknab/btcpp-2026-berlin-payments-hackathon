@@ -1,7 +1,7 @@
 import { rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-const url = process.env["DATABASE_URL"] ?? "file:local.db";
+const url = process.env["DATABASE_URL"] ?? "file:mainnet.db";
 if (!url.startsWith("file:") || url === "file::memory:") {
   throw new Error("db:reset requires a local file: DATABASE_URL.");
 }

@@ -1,10 +1,10 @@
 import {
   BOLT12_OFFER,
-  SIGNET_ARK_ADDRESS,
+  MAINNET_ARK_ADDRESS,
   PREIMAGE,
   PAYMENT_HASH,
   INVOICE,
-  signetInvoice,
+  mainnetInvoice,
 } from "@/domain/payout-fixture";
 import { describe, expect, it } from "@effect/vitest";
 import { eq } from "drizzle-orm";
@@ -36,7 +36,7 @@ const fundEvent = Effect.fn("fundPayoutFixture")(function* fundEvent(event: {
 
 describe("browser payout coordination", () => {
   it.effect.each([
-    { destination: SIGNET_ARK_ADDRESS, method: "ark" },
+    { destination: MAINNET_ARK_ADDRESS, method: "ark" },
     { destination: BOLT12_OFFER, method: "bolt12" },
   ])(
     "persists and reconciles $method payouts without replacing unknown attempts",
@@ -103,7 +103,7 @@ describe("browser payout coordination", () => {
       yield* fundEvent(event);
       expect(yield* Effect.flip(prepareEventPayout(input, "wrong-owner"))).toMatchObject({ _tag: "GroupError" });
       expect(
-        yield* Effect.flip(prepareEventPayout({ ...input, invoice: signetInvoice("60") }, event.organizerToken)),
+        yield* Effect.flip(prepareEventPayout({ ...input, invoice: mainnetInvoice("60") }, event.organizerToken)),
       ).toMatchObject({ _tag: "GroupError" });
       const payout = yield* prepareEventPayout(input, event.organizerToken);
       expect(payout.status).toBe("prepared");

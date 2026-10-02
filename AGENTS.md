@@ -1,6 +1,6 @@
 # Project context
 
-This repository is for a project entering the **bitcoin++ Berlin 2026 payments hackathon**, “money in movement” (October 1–3, 2026). The project is a shared-expense app with shared-pot settlement using Bark. See `README.md` for the project direction and stack, and `dev/bark/POTS.md` for the backend signet demo.
+This repository is for a project entering the **bitcoin++ Berlin 2026 payments hackathon**, “money in movement” (October 1–3, 2026). The project is a shared-expense app with shared-pot settlement using Bark. See `README.md` for the project direction and stack, and `dev/bark/POTS.md` for the backend mainnet demo.
 
 Prioritize a working, demoable Bitcoin project within the roughly 24-hour hacking window. Keep scope small and document setup, the demo flow, and any challenge eligibility requirements as the project takes shape.
 
@@ -71,7 +71,7 @@ work. Resets are permitted during this phase. Document the reset command and any
 
 ## Bark
 
-- Use [Second's Bark signet guide](https://second.tech/docs/getting-started/bark-cli/signet) as the source of truth for Bark-related work.
+- Use [Second's Bark mainnet guide](https://second.tech/docs/getting-started/bark-cli/mainnet) and [connection details](https://second.tech/docs/connection-details) as the source of truth for Bark-related work. The app uses mainnet with small real amounts; keep mainnet database and wallet storage separate from historical signet data.
 
 ## UI and styling
 

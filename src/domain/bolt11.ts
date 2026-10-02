@@ -13,9 +13,9 @@ const InvoiceDetails = Schema.Struct({
   expiresAt: Timestamp,
   descriptionHash: Schema.optional(PaymentHash),
 });
-export type SignetInvoice = typeof InvoiceDetails.Type;
+export type MainnetInvoice = typeof InvoiceDetails.Type;
 const InvoiceParts = Schema.Struct({
-  network: Schema.Literal("tbs"),
+  network: Schema.Literal("bc"),
   payment_hash: PaymentHash,
   amount: Schema.String,
   timestamp: Schema.Number,
@@ -24,7 +24,7 @@ const InvoiceParts = Schema.Struct({
 });
 
 /** Bark validates the signature when paying; this checks the network, amount, hash and expiry. */
-export function parseSignetInvoice(invoice: string): SignetInvoice {
+export function parseMainnetInvoice(invoice: string): MainnetInvoice {
   const decoded = decode(invoice);
   const sections = new Map<string, unknown>();
   for (const section of decoded.sections) {

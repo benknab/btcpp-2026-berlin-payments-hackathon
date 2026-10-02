@@ -40,15 +40,15 @@ const loadFixture = Effect.fn("loadDemoFixture")(function* loadFixture() {
 
 const fundingWallet = Effect.fn("demoFundingWallet")(function* fundingWallet() {
   const fundingConfig = yield* walletConfig(
-    process.env["BARK_FUNDING_DATADIR"] ?? path.join(homedir(), ".local", "share", "bark-hackathon-signet"),
-    process.env["BARK_FUNDING_URL"] ?? "http://127.0.0.1:3031",
+    process.env["BARK_FUNDING_DATADIR"] ?? path.join(homedir(), ".local", "share", "bark-hackathon-mainnet"),
+    process.env["BARK_FUNDING_URL"] ?? "http://127.0.0.1:3041",
   );
   const funding = makeBark(fundingConfig);
-  // Reject any network other than signet before spending.
+  // Reject any network other than mainnet before spending.
   yield* funding.fingerprint();
   yield* funding.sync();
   if ((yield* funding.balance()) < MAX_DEMO_FUNDING_SAT) {
-    return yield* new DemoError({ message: "Shared signet wallet needs at least 26,000 spendable sats" });
+    return yield* new DemoError({ message: "Shared mainnet wallet needs at least 2,900 spendable sats plus fees" });
   }
   return funding;
 });

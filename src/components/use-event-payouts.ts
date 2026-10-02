@@ -17,7 +17,7 @@ export function useEventPayouts(
   function handlePay(): void {
     action.run(
       () => payCreditors(inviteKey, arkAddress),
-      "Payouts stopped. Check the wallet balance, fee reserve, and signet receiving services. Retry to reconcile an in-flight payment.",
+      "Payouts stopped. Check the wallet balance, fee reserve, and receiving services. Retry to reconcile an in-flight payment.",
     );
   }
   return { pending: action.pending, error: action.error, handlePay };

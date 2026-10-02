@@ -24,7 +24,7 @@ export function DepositCard({ participant }: Readonly<{ participant: PotParticip
         label={`Pot deposit address for ${participant.name}`}
         value={participant.depositAddress}
         spellCheck={false}
-        description="Send only signet Ark sats to this address. Check deposits after paying."
+        description="Send only mainnet Ark sats to this address. Check deposits after paying."
       />
     </SectionCard>
   );

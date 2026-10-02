@@ -17,9 +17,9 @@ type SendMode = "ok" | "lost-response" | "failed" | "pending" | "unrecorded";
 const input = {
   id: "dinner",
   users: [
-    { id: "alice", name: "Alice", arkAddress: "tark1ace" },
-    { id: "bob", name: "Bob", arkAddress: "tark1q0q" },
-    { id: "carol", name: "Carol", arkAddress: "tark1car0l" },
+    { id: "alice", name: "Alice", arkAddress: "ark1ace" },
+    { id: "bob", name: "Bob", arkAddress: "ark1q0q" },
+    { id: "carol", name: "Carol", arkAddress: "ark1car0l" },
   ],
   debts: [
     { from: "alice", to: "bob", amountSat: 8000 },
@@ -52,14 +52,14 @@ function makeControls(): Controls {
       address: (): Effect.Effect<string> =>
         Effect.sync((): string => {
           addressIndex += 1;
-          return `tark1${String(addressIndex).replaceAll("1", "q")}`;
+          return `ark1${String(addressIndex).replaceAll("1", "q")}`;
         }),
       balance: (): Effect.Effect<number> => Effect.sync((): number => balance),
       fingerprint: (): Effect.Effect<string> => Effect.sync((): string => fingerprint),
       history: (): Effect.Effect<readonly BarkMovement[]> => Effect.sync((): readonly BarkMovement[] => history),
       sync: (): Effect.Effect<void> => Effect.void,
       ready: (): Effect.Effect<void> => Effect.void,
-      createSignetWallet: (): Effect.Effect<void> => Effect.void,
+      createMainnetWallet: (): Effect.Effect<void> => Effect.void,
       send: (address, amountSat): Effect.Effect<void, BarkError> =>
         Effect.gen(function* send() {
           sendCount += 1;
@@ -196,7 +196,7 @@ describe("durable Bark pot", (): void => {
           if (payer === undefined) {
             return;
           }
-          controls.receive("tark1unrelated", 100_000);
+          controls.receive("ark1unrelated", 100_000);
           controls.receive(payer.depositAddress, 9000, "pending");
           controls.receive(payer.depositAddress, 9000, "failed");
           controls.receive(payer.depositAddress, 3000);

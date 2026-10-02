@@ -37,7 +37,7 @@ describe("settlement flow isolation", () => {
         name: "Empty event",
         organizerName: "Alice",
         participantNames: ["Bob"],
-        arkAddress: "tark1ace",
+        arkAddress: "ark1ace",
       });
       const preview = yield* previewGroupSettlement(event.inviteKey);
       yield* lockGroupSettlement({

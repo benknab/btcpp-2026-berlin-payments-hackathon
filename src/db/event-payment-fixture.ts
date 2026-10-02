@@ -18,7 +18,7 @@ export const eventPaymentFixture = Effect.fn("eventPaymentFixture")(function* ev
     name: "Dinner",
     organizerName: "Alice",
     participantNames: ["Bob"],
-    arkAddress: "tark1ace",
+    arkAddress: "ark1ace",
   });
   yield* saveReceivingAddress(
     { inviteKey: event.inviteKey, participantId: event.organizerId, lnurl: destination ?? "alice@wallet.com" },

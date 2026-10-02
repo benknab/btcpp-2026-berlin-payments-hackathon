@@ -29,7 +29,7 @@ export function ReceivingAddressField({ id, name }: ReceivingAddressFieldProps):
       <Input
         id={id}
         name={name}
-        placeholder="name@wallet.com, lnurl1…, tark1…, or lno1…"
+        placeholder="name@wallet.com, lnurl1…, ark1…, or lno1…"
         className="h-12 px-4"
         maxLength={MAX_PAYOUT_DESTINATION_LENGTH}
         autoCapitalize="none"

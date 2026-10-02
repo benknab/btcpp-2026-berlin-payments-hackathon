@@ -15,10 +15,10 @@ describe("Bark TypeScript SDK Effect adapter", (): void => {
     Effect.gen(function* test() {
       const fetch = vi
         .spyOn(globalThis, "fetch")
-        .mockResolvedValueOnce(response({ address: "tark1ace" }))
+        .mockResolvedValueOnce(response({ address: "ark1ace" }))
         .mockResolvedValueOnce(response({ spendable_sat: 9000 }));
       const bark = makeBark(config);
-      expect(yield* bark.address()).toBe("tark1ace");
+      expect(yield* bark.address()).toBe("ark1ace");
       expect(yield* bark.balance()).toBe(9000);
       expect(fetch.mock.calls[0]?.[0]).toBe("http://127.0.0.1:3031/api/v1/wallet/addresses/next");
       expect(fetch.mock.calls[0]?.[1]?.headers).toMatchObject({ Authorization: "Bearer test-token" });
@@ -33,7 +33,7 @@ describe("Bark TypeScript SDK Effect adapter", (): void => {
           {
             id: 1,
             status: "successful",
-            received_on: [{ amount_sat: 5000, destination: { type: "ark", value: "tark1ace" } }],
+            received_on: [{ amount_sat: 5000, destination: { type: "ark", value: "ark1ace" } }],
             sent_to: [],
             metadata: { ignored: "untrusted metadata" },
           },
@@ -43,29 +43,29 @@ describe("Bark TypeScript SDK Effect adapter", (): void => {
         {
           id: 1,
           status: "successful",
-          receivedOn: [{ amountSat: 5000, destination: { type: "ark", value: "tark1ace" } }],
+          receivedOn: [{ amountSat: 5000, destination: { type: "ark", value: "ark1ace" } }],
           sentTo: [],
         },
       ]);
     }),
   );
 
-  it.effect("checks signet and sends integer sats through the SDK", (): Effect.Effect<void, BarkError> =>
+  it.effect("checks mainnet and sends integer sats through the SDK", (): Effect.Effect<void, BarkError> =>
     Effect.gen(function* test() {
       const fetch = vi
         .spyOn(globalThis, "fetch")
-        .mockResolvedValueOnce(response({ network: "signet" }))
+        .mockResolvedValueOnce(response({ network: "bitcoin" }))
         .mockResolvedValueOnce(response({ message: "Payment sent" }));
-      yield* makeBark(config).send("tark1ace", 5000);
+      yield* makeBark(config).send("ark1ace", 5000);
       expect(fetch.mock.calls[1]?.[0]).toBe("http://127.0.0.1:3031/api/v1/wallet/send");
-      expect(fetch.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ amount_sat: 5000, destination: "tark1ace" }));
+      expect(fetch.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ amount_sat: 5000, destination: "ark1ace" }));
     }),
   );
 
-  it.effect("rejects mainnet before sending", (): Effect.Effect<void> =>
+  it.effect("rejects signet before sending", (): Effect.Effect<void> =>
     Effect.gen(function* test() {
-      const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(response({ network: "bitcoin" }));
-      expect(yield* Effect.result(makeBark(config).send("tark1ace", 5000))).toMatchObject({ _tag: "Failure" });
+      const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(response({ network: "signet" }));
+      expect(yield* Effect.result(makeBark(config).send("ark1ace", 5000))).toMatchObject({ _tag: "Failure" });
       expect(fetch).toHaveBeenCalledTimes(1);
     }),
   );

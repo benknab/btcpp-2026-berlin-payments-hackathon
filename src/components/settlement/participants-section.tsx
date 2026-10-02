@@ -17,7 +17,7 @@ export function ParticipantsSection({
     <FieldSet>
       <FieldLegend>Participants & payout addresses</FieldLegend>
       <FieldDescription>
-        Testing: fresh tark addresses are filled from the shared signet wallet. Payouts return to that wallet, not
+        Testing: fresh ark addresses are filled from the shared mainnet wallet. Payouts return to that wallet, not
         individual participants. Replace them with personal addresses if needed; saving locks them.
       </FieldDescription>
       <ParticipantAddressStatus controller={controller} pending={pending} />

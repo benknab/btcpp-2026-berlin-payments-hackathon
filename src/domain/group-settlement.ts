@@ -1,4 +1,4 @@
-import { PotInputSchema, SignetAddress } from "@/lib/pot";
+import { PotInputSchema, MainnetAddress } from "@/lib/pot";
 import { Effect, Schema } from "effect";
 
 import type { ParticipantBalance } from "./accounting";
@@ -8,7 +8,7 @@ import { EntityId, InviteKey, ParticipantName } from "./group-input";
 export { ParticipantRequest as IssuePersonalLink } from "./group-input";
 
 export const PersonalPaymentRequest = Schema.Struct({ accessKey: InviteKey });
-export const SavePersonalAddress = Schema.Struct({ ...PersonalPaymentRequest.fields, arkAddress: SignetAddress });
+export const SavePersonalAddress = Schema.Struct({ ...PersonalPaymentRequest.fields, arkAddress: MainnetAddress });
 export const CloseGroupRequest = Schema.Struct({
   inviteKey: InviteKey,
   fingerprint: InviteKey,
@@ -16,7 +16,7 @@ export const CloseGroupRequest = Schema.Struct({
 });
 export const PayGroupRequest = Schema.Struct({ inviteKey: InviteKey, reviewed: Schema.Literal(true) });
 
-const SnapshotUser = Schema.Struct({ id: EntityId, name: ParticipantName, arkAddress: Schema.NullOr(SignetAddress) });
+const SnapshotUser = Schema.Struct({ id: EntityId, name: ParticipantName, arkAddress: Schema.NullOr(MainnetAddress) });
 export const GroupSettlementSnapshot = Schema.Struct({
   id: EntityId,
   users: Schema.Array(SnapshotUser),

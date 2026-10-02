@@ -7,9 +7,9 @@
     { "id": "dave", "name": "Dave" }
   ],
   "debts": [
-    { "from": "alice", "to": "bob", "amountSat": 7000 },
-    { "from": "carol", "to": "bob", "amountSat": 3000 },
-    { "from": "bob", "to": "alice", "amountSat": 2000 },
-    { "from": "dave", "to": "carol", "amountSat": 4000 }
+    { "from": "alice", "to": "bob", "amountSat": 700 },
+    { "from": "carol", "to": "bob", "amountSat": 300 },
+    { "from": "bob", "to": "alice", "amountSat": 200 },
+    { "from": "dave", "to": "carol", "amountSat": 700 }
   ]
 }

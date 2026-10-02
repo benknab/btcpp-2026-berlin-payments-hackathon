@@ -12,7 +12,7 @@ export function PotUsersTable({ users }: Readonly<{ users: SettlementDocument["u
   ));
   return (
     <Table>
-      <TableCaption>Each user’s personal signet payout address.</TableCaption>
+      <TableCaption>Each user’s personal mainnet payout address.</TableCaption>
       <TableHeading>
         <TableHead>User</TableHead>
         <TableHead>Payout address</TableHead>

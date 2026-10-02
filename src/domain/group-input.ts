@@ -1,4 +1,4 @@
-import { SignetAddress } from "@/lib/pot";
+import { MainnetAddress } from "@/lib/pot";
 import { Schema } from "effect";
 
 import {
@@ -48,7 +48,7 @@ export const NewGroup = Schema.Struct({
 );
 
 // Adding a field preserves all participant-name and receiving-address checks.
-export const CreateGroupRequest = NewGroup.mapFields(() => ({ ...NewGroup.fields, arkAddress: SignetAddress }), {
+export const CreateGroupRequest = NewGroup.mapFields(() => ({ ...NewGroup.fields, arkAddress: MainnetAddress }), {
   unsafePreserveChecks: true,
 });
 

@@ -1,8 +1,9 @@
-import { bech32, hex } from "@scure/base";
+import { bech32, bech32m, hex } from "@scure/base";
 
 // Bark's upstream address and BOLT12 offer test vectors.
 export const SIGNET_ARK_ADDRESS =
   "tark1pwh9vsmezqqpharv69q4z8m6x364d5m5prnmcalcalq9pdmzw0y7mpveck4pcfhezqypczkrrj3lkx5ue4qrf4jc7ztpt9htdttmh2judhqnu7aue8p0y9mq47jn9z";
+export const MAINNET_ARK_ADDRESS = bech32m.encode("ark", bech32m.decode(SIGNET_ARK_ADDRESS, false).words, false);
 export const BOLT12_OFFER =
   "lno1qgsyxjtl6luzd9t3pr62xr7eemp6awnejusgf6gw45q75vcfqqqqqqq2p32x2um5ypmx2cm5dae8x93pqthvwfzadd7jejes8q9lhc4rvjxd022zv5l44g6qah82ru5rdpnpj";
 
@@ -18,7 +19,7 @@ const WORDS = [
   ...bech32.toWords(hex.decode(PAYMENT_HASH)),
   ...Array.from({ length: 104 }, () => 0),
 ];
-export function signetInvoice(amount = "50"): string {
-  return bech32.encode(`lntbs${amount}u`, WORDS, false);
+export function mainnetInvoice(amount = "50"): string {
+  return bech32.encode(`lnbc${amount}u`, WORDS, false);
 }
-export const INVOICE = signetInvoice();
+export const INVOICE = mainnetInvoice();

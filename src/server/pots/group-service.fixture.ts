@@ -53,13 +53,13 @@ function makeControls(): Controls {
           ? Effect.fail(new BarkError({ operation: "address", message: "Offline" }))
           : Effect.sync(() => {
               addressIndex += 1;
-              return `tark1q${"q".repeat(addressIndex)}`;
+              return `ark1q${"q".repeat(addressIndex)}`;
             }),
       fingerprint: () => Effect.succeed("isolated-test-wallet"),
       balance: () => Effect.sync(() => balance),
       sync: () => Effect.void,
       ready: () => Effect.void,
-      createSignetWallet: () => Effect.void,
+      createMainnetWallet: () => Effect.void,
       history: () => Effect.sync(() => history),
       send: (address, amountSat) =>
         Effect.gen(function* send() {
@@ -115,7 +115,7 @@ const prepareLinks = Effect.fn("prepareGroupLinks")(function* prepareLinks(
   for (const [index, person] of view.participants.entries()) {
     const link = yield* issuePersonalLink(group.inviteKey, person.id, group.organizerToken);
     links.push(link.accessKey);
-    yield* savePersonalAddress({ accessKey: link.accessKey, arkAddress: `tark1${"q".repeat(index + 1)}` });
+    yield* savePersonalAddress({ accessKey: link.accessKey, arkAddress: `ark1${"q".repeat(index + 1)}` });
   }
   return links;
 });
@@ -125,7 +125,7 @@ export const setup = Effect.fn("setupGroup")(function* setup(addresses?: boolean
     name: "Berlin",
     organizerName: "Alice",
     participantNames: ["Bob", "Carol"],
-    arkAddress: "tark1ace",
+    arkAddress: "ark1ace",
   });
   const view = yield* getGroup(group.inviteKey);
   const [alice, bob] = view.participants;

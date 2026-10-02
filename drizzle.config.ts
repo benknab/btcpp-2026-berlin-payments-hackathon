@@ -12,7 +12,7 @@ export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./drizzle",
   dbCredentials: {
-    url: process.env["DATABASE_URL"] ?? "file:local.db",
+    url: process.env["DATABASE_URL"] ?? "file:mainnet.db",
     ...(process.env["DATABASE_AUTH_TOKEN"] === undefined ? {} : { authToken: process.env["DATABASE_AUTH_TOKEN"] }),
   },
   verbose: true,

@@ -33,7 +33,7 @@ function GroupSettlement(): ReactNode {
         <PersonalLinks inviteKey={inviteKey} origin={view.origin} users={page.preview.snapshot.users} />
       ) : null}
       <p className="text-xs text-muted-foreground">
-        Signet-only custodial demo. One isolated Bark wallet per pot. Excess deposits remain in the pot; automatic
+        Mainnet custodial settlement. One isolated Bark wallet per pot. Excess deposits remain in the pot; automatic
         refunds and fee allocation are not supported. Fees or unavailable funds can block payout—ask the organizer to
         inspect the wallet, never alter locked amounts.
       </p>

@@ -24,7 +24,7 @@ it.effect("nets Kittysplit balances into the exact pot obligations, including ro
       users: ids.map((id, index) => ({
         id,
         name: id,
-        arkAddress: ["tark1ace", "tark1q0q", "tark1car0l"][index] ?? "",
+        arkAddress: ["ark1ace", "ark1q0q", "ark1car0l"][index] ?? "",
       })),
     });
     expect(obligations.map((entry) => entry.receiveSat - entry.payInSat)).toStrictEqual([40, 10, -50]);

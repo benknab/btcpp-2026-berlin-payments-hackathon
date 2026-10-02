@@ -7,10 +7,10 @@ import type { PotInput, PotError } from "./pot";
 const input = {
   id: "dinner",
   users: [
-    { id: "alice", name: "Alice", arkAddress: "tark1ace" },
-    { id: "bob", name: "Bob", arkAddress: "tark1q0q" },
-    { id: "carol", name: "Carol", arkAddress: "tark1car0l" },
-    { id: "dave", name: "Dave", arkAddress: "tark1dave" },
+    { id: "alice", name: "Alice", arkAddress: "ark1ace" },
+    { id: "bob", name: "Bob", arkAddress: "ark1q0q" },
+    { id: "carol", name: "Carol", arkAddress: "ark1car0l" },
+    { id: "dave", name: "Dave", arkAddress: "ark1dave" },
   ],
   debts: [
     { from: "alice", to: "bob", amountSat: 7000 },

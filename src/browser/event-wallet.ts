@@ -6,8 +6,8 @@ import { findWallet, readWallet, saveWallet } from "./wallet-storage";
 import type { EventWalletRecord } from "./wallet-storage";
 
 const config: Config = {
-  serverAddress: "https://ark.signet.2nd.dev",
-  esploraAddress: "https://esplora.signet.2nd.dev",
+  serverAddress: "https://ark.second.tech",
+  esploraAddress: "https://mempool.second.tech/api",
 };
 let initialization: Promise<unknown> | null = null;
 
@@ -24,7 +24,7 @@ async function initialize(): Promise<void> {
 
 async function openWallet(record: EventWalletRecord, createIfNotExists: boolean): Promise<Wallet> {
   await initialize();
-  return Wallet.open("Signet", record.mnemonic, config, undefined, {
+  return Wallet.open("Bitcoin", record.mnemonic, config, undefined, {
     indexedDbName: record.dbName,
     createIfNotExists,
     runDaemon: false,
@@ -49,7 +49,7 @@ export async function createEventWallet(id: string): Promise<string> {
 
 function prepareWallet(id: string): EventWalletRecord {
   const record = readWallet(id) ?? {
-    dbName: `bark-event-${id}`,
+    dbName: `bark-mainnet-event-${id}`,
     mnemonic: generateMnemonic(),
     arkAddress: null,
   };

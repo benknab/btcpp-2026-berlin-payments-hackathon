@@ -27,7 +27,7 @@ it.effect("atomically keeps other pot creation out of reserved group wallets", (
         name: "Other",
         organizerName: "Dave",
         participantNames: ["Eve"],
-        arkAddress: "tark1ace",
+        arkAddress: "ark1ace",
       });
       const otherPage = yield* groupSettlementPage(other.inviteKey);
       expect(

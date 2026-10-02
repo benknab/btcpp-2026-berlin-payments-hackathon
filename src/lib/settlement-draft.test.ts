@@ -13,8 +13,8 @@ import type { SettlementDraft } from "./settlement-draft";
 
 const draft: SettlementDraft = {
   users: [
-    { id: "alice", name: " Alice ", arkAddress: " tark1ace " },
-    { id: "bob", name: "Bob", arkAddress: "tark1q0q" },
+    { id: "alice", name: " Alice ", arkAddress: " ark1ace " },
+    { id: "bob", name: "Bob", arkAddress: "ark1q0q" },
   ],
   debts: [
     { id: "one", from: "alice", to: "bob", amount: "9000" },
@@ -28,7 +28,7 @@ describe("settlement form validation", (): void => {
     (): Effect.Effect<void, Schema.SchemaError | PotError> =>
       Effect.gen(function* test() {
         const prepared = yield* prepareSettlementDraft(draft);
-        expect(prepared.setup.users[0]).toStrictEqual({ id: "alice", name: "Alice", arkAddress: "tark1ace" });
+        expect(prepared.setup.users[0]).toStrictEqual({ id: "alice", name: "Alice", arkAddress: "ark1ace" });
         expect(prepared.obligations).toStrictEqual([
           { userId: "alice", payInSat: 8000, receiveSat: 0 },
           { userId: "bob", payInSat: 0, receiveSat: 8000 },
@@ -61,8 +61,8 @@ describe("settlement form validation", (): void => {
   });
 
   it("fills initial participant addresses in request order", () => {
-    const filled = fillDraftAddresses(initialSettlementDraft, ["alice", "bob"], ["tark1ace", "tark1q0q"]);
-    expect(filled.users.map((user) => user.arkAddress)).toStrictEqual(["tark1ace", "tark1q0q"]);
+    const filled = fillDraftAddresses(initialSettlementDraft, ["alice", "bob"], ["ark1ace", "ark1q0q"]);
+    expect(filled.users.map((user) => user.arkAddress)).toStrictEqual(["ark1ace", "ark1q0q"]);
     expect(filled.debts).toBe(initialSettlementDraft.debts);
     expect(initialSettlementDraft.users.map((user) => user.arkAddress)).toStrictEqual(["", ""]);
   });
@@ -71,15 +71,15 @@ describe("settlement form validation", (): void => {
     const current = {
       ...initialSettlementDraft,
       users: [
-        { id: "bob", name: "Renamed Bob", arkAddress: "tark1personal" },
+        { id: "bob", name: "Renamed Bob", arkAddress: "ark1personal" },
         { id: "carol", name: "Carol", arkAddress: "" },
       ],
     };
     expect(
-      fillDraftAddresses(current, ["alice", "bob", "carol"], ["tark1ace", "tark1q0q", "tark1car0l"]).users,
+      fillDraftAddresses(current, ["alice", "bob", "carol"], ["ark1ace", "ark1q0q", "ark1car0l"]).users,
     ).toStrictEqual([
-      { id: "bob", name: "Renamed Bob", arkAddress: "tark1personal" },
-      { id: "carol", name: "Carol", arkAddress: "tark1car0l" },
+      { id: "bob", name: "Renamed Bob", arkAddress: "ark1personal" },
+      { id: "carol", name: "Carol", arkAddress: "ark1car0l" },
     ]);
   });
 });

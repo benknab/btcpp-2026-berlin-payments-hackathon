@@ -1,4 +1,4 @@
-import { Sats, SignetAddress } from "@/lib/pot";
+import { Sats, MainnetAddress } from "@/lib/pot";
 import { Configuration, HistoryApi, ResponseError, WalletApi } from "@secondts/barkd";
 import { Effect, Layer, Redacted, Schema } from "effect";
 
@@ -37,23 +37,23 @@ function decode<Shape extends Schema.Top>(
   );
 }
 
-function ensureSignet(wallet: Readonly<WalletApi>): Effect.Effect<void, BarkError> {
+function ensureMainnet(wallet: Readonly<WalletApi>): Effect.Effect<void, BarkError> {
   return request("arkInfo", (signal: Readonly<AbortSignal>): ReturnType<WalletApi["arkInfo"]> =>
     wallet.arkInfo({ signal }),
   ).pipe(
-    Effect.flatMap((value: unknown) => decode("arkInfo", Schema.Struct({ network: Schema.Literal("signet") }), value)),
+    Effect.flatMap((value: unknown) => decode("arkInfo", Schema.Struct({ network: Schema.Literal("bitcoin") }), value)),
     Effect.asVoid,
   );
 }
 
-function createSignetWallet(wallet: Readonly<WalletApi>): Effect.Effect<void, BarkError> {
+function createMainnetWallet(wallet: Readonly<WalletApi>): Effect.Effect<void, BarkError> {
   return request("createWallet", (signal: Readonly<AbortSignal>): ReturnType<WalletApi["createWallet"]> =>
     wallet.createWallet(
       {
         createWalletRequest: {
-          network: "signet",
-          arkServer: "https://ark.signet.2nd.dev",
-          chainSource: { esplora: { url: "https://esplora.signet.2nd.dev" } },
+          network: "mainnet",
+          arkServer: "https://ark.second.tech",
+          chainSource: { esplora: { url: "https://mempool.second.tech/api" } },
         },
       },
       { signal },
@@ -94,21 +94,21 @@ export function makeBark(config: BarkConfig): BarkOperations {
       request("sync", (signal: Readonly<AbortSignal>): Promise<void> => wallet.sync({ signal })),
     ready: (): Effect.Effect<void, BarkError> => walletDetails(wallet).pipe(Effect.asVoid),
     fingerprint: (): Effect.Effect<string, BarkError> =>
-      ensureSignet(wallet).pipe(
+      ensureMainnet(wallet).pipe(
         Effect.andThen(walletDetails(wallet)),
         Effect.flatMap((value: unknown) => decode("wallet", BarkWallet, value)),
         Effect.map((value): string => value.fingerprint),
       ),
     send: (address, amountSat): Effect.Effect<void, BarkError> =>
       Effect.gen(function* send() {
-        yield* ensureSignet(wallet);
-        yield* decode("send", SignetAddress, address);
+        yield* ensureMainnet(wallet);
+        yield* decode("send", MainnetAddress, address);
         yield* decode("send", PositiveSats, amountSat);
         yield* request("send", (signal: Readonly<AbortSignal>): ReturnType<WalletApi["send"]> =>
           wallet.send({ sendRequest: { destination: address, amountSat } }, { signal }),
         );
       }),
-    createSignetWallet: (): Effect.Effect<void, BarkError> => createSignetWallet(wallet),
+    createMainnetWallet: (): Effect.Effect<void, BarkError> => createMainnetWallet(wallet),
   };
 }
 

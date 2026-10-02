@@ -24,7 +24,7 @@ export function SettlementSetupForm({
   return (
     <SectionCard
       title="Users and debts"
-      description="Enter the agreed debts and everyone’s personal Bark signet address. We net reciprocal debts, so each person only pays or receives their final balance. Test payout addresses are filled automatically; saving the debts does not spend funds."
+      description="Enter the agreed debts and everyone’s personal Bark mainnet address. We net reciprocal debts, so each person only pays or receives their final balance. Test payout addresses are filled automatically; saving the debts does not spend funds."
       footer={
         <Button type="submit" form="settlement-setup" disabled={pending || controller.addressPending}>
           {pending ? <Spinner data-icon="inline-start" /> : null}

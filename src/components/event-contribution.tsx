@@ -28,7 +28,7 @@ export function EventContribution({
   function handleInvoice(): void {
     action.run(async () => {
       await createContributionInvoice({ data: { inviteKey, participantId: member.participantId } });
-    }, "Could not create the invoice. Check that the signet receiving daemon is configured and running.");
+    }, "Could not create the invoice. Check that the mainnet receiving daemon is configured and running.");
   }
   return (
     <div className="flex flex-col gap-3">

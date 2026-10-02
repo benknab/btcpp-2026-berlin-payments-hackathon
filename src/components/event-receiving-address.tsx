@@ -31,7 +31,7 @@ export function EventReceivingAddress({
         <Input
           id={`receiving-${participant.id}`}
           value={value}
-          placeholder="name@wallet.com, lnurl1…, tark1…, or lno1…"
+          placeholder="name@wallet.com, lnurl1…, ark1…, or lno1…"
           maxLength={MAX_PAYOUT_DESTINATION_LENGTH}
           autoCapitalize="none"
           autoComplete="off"

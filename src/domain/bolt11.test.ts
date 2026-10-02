@@ -2,7 +2,7 @@ import { describe, expect, it } from "@effect/vitest";
 import { bech32 } from "@scure/base";
 import { Effect } from "effect";
 
-import { parseSignetInvoice } from "./bolt11";
+import { parseMainnetInvoice } from "./bolt11";
 
 // Parser fixtures deliberately have dummy signatures; Bark verifies signatures before sending.
 const WORDS = [
@@ -14,21 +14,23 @@ const WORDS = [
   ...Array.from({ length: 104 }, () => 0),
 ];
 
-describe("signet invoices", () => {
+describe("mainnet invoices", () => {
   it.effect("extracts the amount and hash and applies BOLT11's default expiry", () =>
     Effect.sync(() => {
       expect.hasAssertions();
-      expect(parseSignetInvoice(bech32.encode("lntbs50u", WORDS, false))).toStrictEqual({
+      expect(parseMainnetInvoice(bech32.encode("lnbc50u", WORDS, false))).toStrictEqual({
         paymentHash: "0".repeat(64),
         amountSats: 5000,
         expiresAt: 3_600_000,
       });
     }),
   );
-  it.effect.each(["lnbc50u", "lntb50u", "lntbs", "lntbs1p"])("rejects unsupported invoice %s", (prefix: string) =>
-    Effect.sync(() => {
-      expect.hasAssertions();
-      expect(() => parseSignetInvoice(bech32.encode(prefix, WORDS, false))).toThrow();
-    }),
+  it.effect.each(["lntbs50u", "lntb50u", "lnbcrt50u", "lnbc", "lnbc1p"])(
+    "rejects unsupported invoice %s",
+    (prefix: string) =>
+      Effect.sync(() => {
+        expect.hasAssertions();
+        expect(() => parseMainnetInvoice(bech32.encode(prefix, WORDS, false))).toThrow();
+      }),
   );
 });

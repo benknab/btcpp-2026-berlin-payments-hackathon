@@ -2,7 +2,7 @@ import { ParticipantNameField } from "@/components/settlement/participant-name-f
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SignetAddress } from "@/lib/pot";
+import { MainnetAddress } from "@/lib/pot";
 import type { DraftUser } from "@/lib/settlement-draft";
 import { Schema } from "effect";
 import { Trash2Icon } from "lucide-react";
@@ -26,7 +26,7 @@ export function ParticipantInput({
   onRemove,
 }: ParticipantProps): ReactNode {
   const invalidName = showErrors && user.name.trim().length === 0;
-  const invalidAddress = showErrors && !Schema.is(SignetAddress)(user.arkAddress.trim());
+  const invalidAddress = showErrors && !Schema.is(MainnetAddress)(user.arkAddress.trim());
   return (
     <FieldGroup className="rounded-lg border p-4">
       <ParticipantNameField user={user} pending={pending} invalid={invalidName} onChange={onChange} />
@@ -34,7 +34,7 @@ export function ParticipantInput({
         <FieldLabel htmlFor={`${user.id}-address`}>Payout address for {user.name || "participant"}</FieldLabel>
         <Input
           id={`${user.id}-address`}
-          placeholder="tark1…"
+          placeholder="ark1…"
           value={user.arkAddress}
           required
           disabled={pending}

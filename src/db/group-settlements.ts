@@ -59,7 +59,7 @@ const reviewedPreview = Effect.fn("reviewedManagedPreview")(function* reviewedPr
     });
   }
   if (preview.totalSat > 0 && input.walletFingerprint === null) {
-    return yield* new GroupError({ message: "A dedicated Bark signet wallet is required." });
+    return yield* new GroupError({ message: "A dedicated Bark mainnet wallet is required." });
   }
   if (input.walletFingerprint !== null) {
     yield* requireUnreservedWallet(input.walletFingerprint, preview.snapshot.id);

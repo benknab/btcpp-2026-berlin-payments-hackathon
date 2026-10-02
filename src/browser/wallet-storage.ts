@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-const WALLET_PREFIX = "bark:event-wallet:";
+const WALLET_PREFIX = "bark:mainnet:event-wallet:";
 const StoredWallet = Schema.Struct({
   dbName: Schema.String,
   mnemonic: Schema.String,

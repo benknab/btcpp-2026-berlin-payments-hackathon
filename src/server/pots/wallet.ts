@@ -61,18 +61,18 @@ const initializeWallet = Effect.fn("initializePotWallet")(function* initializeWa
         message: "This pot's wallet data is missing. Restore its original wallet before continuing",
       });
     }
-    yield* bark.createSignetWallet().pipe(
+    yield* bark.createMainnetWallet().pipe(
       Effect.mapError(
         (): PotError =>
           new PotError({
-            message: "Could not create the pot's signet wallet. Its details are saved; try preparing deposits again",
+            message: "Could not create the pot's mainnet wallet. Its details are saved; try preparing deposits again",
           }),
       ),
     );
   }
   yield* bark
     .fingerprint()
-    .pipe(Effect.mapError((): PotError => new PotError({ message: "Could not verify the pot's signet wallet" })));
+    .pipe(Effect.mapError((): PotError => new PotError({ message: "Could not verify the pot's mainnet wallet" })));
   if (allowCreate && ((yield* bark.balance()) > 0 || (yield* bark.history()).length > 0)) {
     return yield* new PotError({
       message: "This wallet already has payment history. Restore its original pot database before continuing",

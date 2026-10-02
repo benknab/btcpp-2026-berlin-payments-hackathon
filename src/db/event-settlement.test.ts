@@ -16,7 +16,7 @@ const fixture = Effect.fn("settlementFixture")(function* fixture() {
     name: "Dinner",
     organizerName: "Alice",
     participantNames: ["Bob"],
-    arkAddress: "tark1ace",
+    arkAddress: "ark1ace",
   });
   const expense = {
     inviteKey: created.inviteKey,

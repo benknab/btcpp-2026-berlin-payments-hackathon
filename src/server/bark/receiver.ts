@@ -1,4 +1,4 @@
-import { parseSignetInvoice } from "@/domain/bolt11";
+import { parseMainnetInvoice } from "@/domain/bolt11";
 import { Sats } from "@/domain/money";
 import { Configuration, LightningApi, WalletApi } from "@secondts/barkd";
 import { Config, Context, Effect, Layer, Redacted, Schema } from "effect";
@@ -22,7 +22,7 @@ export class Receiver extends Context.Service<Receiver, ReceiverOperations>()("p
 function request<Value>(run: () => Promise<Value>): Effect.Effect<Value, BarkError> {
   return Effect.tryPromise({
     try: run,
-    catch: () => new BarkError({ operation: "receiver", message: "The signet receiving wallet is unavailable." }),
+    catch: () => new BarkError({ operation: "receiver", message: "The mainnet receiving wallet is unavailable." }),
   });
 }
 
@@ -34,8 +34,8 @@ export function makeReceiver(basePath: string, token: Readonly<Redacted.Redacted
     invoice: (address, amountSats) =>
       Effect.gen(function* createInvoice() {
         const info = yield* request(() => wallet.arkInfo({ signal: AbortSignal.timeout(TIMEOUT_MS) }));
-        if (info.network !== "signet") {
-          return yield* new BarkError({ operation: "receiver", message: "The receiving wallet must use signet." });
+        if (info.network !== "bitcoin") {
+          return yield* new BarkError({ operation: "receiver", message: "The receiving wallet must use mainnet." });
         }
         const response = yield* request(() =>
           lightning.generateInvoiceForAddress(
@@ -44,7 +44,7 @@ export function makeReceiver(basePath: string, token: Readonly<Redacted.Redacted
           ),
         );
         yield* Effect.try({
-          try: () => parseSignetInvoice(response.invoice),
+          try: () => parseMainnetInvoice(response.invoice),
           catch: () =>
             new BarkError({ operation: "receiver", message: "The receiving wallet returned an invalid invoice." }),
         });

@@ -11,7 +11,7 @@ import { EventTestDatabase, eventPaymentFixture } from "./event-payment-fixture"
 import { eventInvoices, groups } from "./schema";
 
 const INVOICE = bech32.encode(
-  "lntbs50u",
+  "lnbc50u",
   [
     ...Array.from({ length: 7 }, () => 0),
     1,
@@ -65,7 +65,7 @@ describe("event contributions", () => {
       const receiver = Receiver.of({
         invoice: (address, amount) =>
           Effect.gen(function* invoice() {
-            expect(address).toBe("tark1ace");
+            expect(address).toBe("ark1ace");
             expect(amount).toBe(5000);
             yield* Ref.update(calls, (count) => count + 1);
             return INVOICE;

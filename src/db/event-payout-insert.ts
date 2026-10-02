@@ -1,4 +1,4 @@
-import { parseSignetInvoice } from "@/domain/bolt11";
+import { parseMainnetInvoice } from "@/domain/bolt11";
 import { payoutDestination } from "@/domain/payout-destination";
 import type { PayoutDestination } from "@/domain/payout-destination";
 import { hex } from "@scure/base";
@@ -49,8 +49,8 @@ const lightningPayout = Effect.fn("insertLightningEventPayout")(function* lightn
     return yield* new GroupError({ message: "A Lightning payout invoice is required." });
   }
   const details = yield* Effect.try({
-    try: () => parseSignetInvoice(invoice),
-    catch: () => new GroupError({ message: "Invalid signet payout invoice." }),
+    try: () => parseMainnetInvoice(invoice),
+    catch: () => new GroupError({ message: "Invalid mainnet payout invoice." }),
   });
   const now = yield* Clock.currentTimeMillis;
   if (details.amountSats !== input.amountSats || details.expiresAt <= now) {

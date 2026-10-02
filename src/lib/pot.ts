@@ -8,17 +8,17 @@ const MAX_IDENTIFIER_LENGTH = 100;
 const Identifier = Schema.String.pipe(
   Schema.check(Schema.isPattern(/^[\w-]+$/u), Schema.isMaxLength(MAX_IDENTIFIER_LENGTH)),
 );
-export const SignetAddress = Schema.String.pipe(
-  Schema.check(Schema.isPattern(/^tark1[023456789acdefghjklmnpqrstuvwxyz]+$/u)),
+export const MainnetAddress = Schema.String.pipe(
+  Schema.check(Schema.isPattern(/^ark1[023456789acdefghjklmnpqrstuvwxyz]+$/u)),
 );
 
-export function isSignetAddress(value: string): boolean {
-  return Schema.is(SignetAddress)(value);
+export function isMainnetAddress(value: string): boolean {
+  return Schema.is(MainnetAddress)(value);
 }
 
 export const PotInputSchema = Schema.Struct({
   id: Identifier,
-  users: Schema.Array(Schema.Struct({ id: Identifier, name: Schema.NonEmptyString, arkAddress: SignetAddress })),
+  users: Schema.Array(Schema.Struct({ id: Identifier, name: Schema.NonEmptyString, arkAddress: MainnetAddress })),
   debts: Schema.Array(Schema.Struct({ from: Identifier, to: Identifier, amountSat: PositiveSats })),
 });
 export type PotInput = typeof PotInputSchema.Type;
@@ -82,8 +82,8 @@ export const calculateObligations = Effect.fn("calculateObligations")(function* 
 export const PotParticipantSchema = Schema.Struct({
   userId: Identifier,
   name: Schema.NonEmptyString,
-  payoutAddress: SignetAddress,
-  depositAddress: SignetAddress,
+  payoutAddress: MainnetAddress,
+  depositAddress: MainnetAddress,
   payInSat: Sats,
   receiveSat: Sats,
   receivedSat: Sats,

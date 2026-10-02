@@ -9,7 +9,7 @@ export class Database extends Context.Service<Database, LibsqlDrizzle.EffectLibs
   public static readonly layer = Layer.effect(Database, LibsqlDrizzle.makeWithDefaults());
 }
 
-const databaseUrl = Config.String("DATABASE_URL").pipe(Config.withDefault("file:local.db"));
+const databaseUrl = Config.String("DATABASE_URL").pipe(Config.withDefault("file:mainnet.db"));
 const authToken = Config.Redacted("DATABASE_AUTH_TOKEN").pipe(Config.option, Config.map(Option.getOrUndefined));
 const LibsqlLive = LibsqlClient.layerConfig({ url: databaseUrl, authToken });
 

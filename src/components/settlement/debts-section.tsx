@@ -13,7 +13,7 @@ export function DebtsSection({
   return (
     <FieldSet>
       <FieldLegend>Who owes whom</FieldLegend>
-      <FieldDescription>Amounts are whole signet sats. Add debts from your existing expense split.</FieldDescription>
+      <FieldDescription>Amounts are whole sats. Add debts from your existing expense split.</FieldDescription>
       <FieldGroup>
         {controller.draft.debts.map((debt) => (
           <DebtInput

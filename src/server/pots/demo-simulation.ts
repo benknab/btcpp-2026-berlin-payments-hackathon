@@ -13,9 +13,9 @@ import type { DemoUserWallet } from "./demo-wallets";
 import { receivedAt } from "./receipts";
 import { confirmPot, createPot, settlePot } from "./service";
 
-const USER_FUNDING_SAT = 12_000;
-const POT_FEE_RESERVE_SAT = 2000;
-export const MAX_DEMO_FUNDING_SAT = 26_000;
+const USER_FUNDING_SAT = 1200;
+const POT_FEE_RESERVE_SAT = 500;
+export const MAX_DEMO_FUNDING_SAT = 2900;
 const JSON_INDENT = 2;
 
 interface Simulation {
@@ -69,7 +69,7 @@ const fundPot = Effect.fn("fundDemoPot")(function* fundPot(options: Simulation, 
     payers.length * USER_FUNDING_SAT + POT_FEE_RESERVE_SAT > MAX_DEMO_FUNDING_SAT ||
     payers.some((payer): boolean => payer.payInSat > USER_FUNDING_SAT)
   ) {
-    yield* new DemoError({ message: "Fixture exceeds the explicit 26,000-sat funding budget" });
+    yield* new DemoError({ message: "Fixture exceeds the explicit 2,900-sat funding budget" });
     return;
   }
   // Separate reserve is not credited to any participant's contribution.

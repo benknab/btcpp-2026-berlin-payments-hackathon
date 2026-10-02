@@ -14,7 +14,7 @@ interface EventWalletCardProps {
 export function EventWalletCard({ arkAddress, isOrganizer }: EventWalletCardProps): ReactNode {
   const wallet = useWalletBalance(arkAddress);
   return (
-    <SectionCard title="Event wallet · signet" contentClassName="flex flex-col gap-3">
+    <SectionCard title="Event wallet · mainnet" contentClassName="flex flex-col gap-3">
       <code className="text-xs break-all">{arkAddress}</code>
       {isOrganizer && (
         <Button

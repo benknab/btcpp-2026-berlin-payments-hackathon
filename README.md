@@ -15,7 +15,7 @@ Participants track expenses, then fund an owner-controlled pot to settle their f
    - Back up the mnemonic and wallet data, keeping the data backup current as the wallet changes.
 2. **Friends join.**
    - Participants join with a name. Anyone owed money supplies a receiving address before settlement is locked.
-   - Supported payout destinations: Lightning addresses/LNURL-pay, Bark signet Ark addresses (`tark1…`), and
+   - Supported payout destinations: Lightning addresses/LNURL-pay, Bark mainnet Ark addresses (`ark1…`), and
      BOLT12 offers (`lno1…`). Nostr profile lookup is not supported.
 3. **Record expenses and lock settlement.**
    - Calculate each participant's net contribution or payout, then freeze amounts and payout destinations.
@@ -52,9 +52,9 @@ Track VTXO expiries and implement refresh/reconnection handling alongside ongoin
 [receive-for-address API](https://second.tech/docs/barkd/api-reference/lightning/create-a-bolt11-invoice-for-an-ark-address),
 and [VTXO lifetime documentation](https://second.tech/docs/learn/lifetime).
 
-**First integration milestone:** verify a complete signet round trip: contribution invoice → owner browser closed →
-delivery → owner reopens → Lightning payout. Use compatible signet recipients; ordinary mainnet Lightning addresses
-cannot receive the test payouts.
+**Current integration milestone:** verify a small mainnet round trip: contribution invoice → owner browser closed →
+delivery → owner reopens → Lightning-address/LNURL payout. Start with a 1,000-sat obligation plus a separate fee reserve.
+See [the mainnet browser-pot setup and demo](dev/bark/BROWSER.md).
 
 **Current status:** event creation, invitations, expense management, and personal balance overviews are implemented.
 The event overview shows total spent and a compact remaining-payout tally. **View expenses** opens the searchable
@@ -64,15 +64,15 @@ Weights and percentages support two decimal places; percentages must total 100 a
 Proportional splits allocate whole sats by largest remainder, with participant IDs breaking ties. Split settings persist
 on edit. Run `pnpm db:migrate` for the additive split-settings migration; existing equal splits remain valid.
 The overview refreshes every 15 seconds while visible, and confirmed settlement payments reduce remaining balances.
-A separate, **server-custodied** Bark signet settlement workspace is available at `/settle`.
-Event creation generates a dedicated signet wallet using `@secondts/bark/web` and saves its public address in
+A separate, **server-custodied** Bark mainnet settlement workspace is available at `/settle`.
+Event creation generates a dedicated mainnet wallet using `@secondts/bark/web` and saves its public address in
 `groups.ark_address`. Events can lock net obligations and collect Lightning contributions through a persistent
 Barkd receiving wallet, including while the organizer's browser is closed. See [browser pot setup](dev/bark/BROWSER.md).
 The owner can pay creditors from the browser wallet, with persisted attempts and payment-proof verification.
-The signet round trip has been manually verified with a prepared BOLT11 payout invoice; automatic LNURL resolution
-still needs verification against a compatible signet receiving service.
+The earlier signet round trip was manually verified with a prepared BOLT11 payout invoice; mainnet LNURL settlement
+still needs a funded rehearsal with a receiving service that supports browser CORS.
 
-Event payouts also support Bark signet Ark addresses on the same Ark server and compatible signet BOLT12 offers.
+Event payouts also support Bark mainnet Ark addresses on the same Ark server and compatible mainnet BOLT12 offers.
 Run `pnpm db:migrate` to apply the additive payout-method migration; no database reset is needed. Receiving-address
 fields auto-detect the method, including during event creation. Locked destinations cannot be changed.
 Ark/BOLT12 intents and the wallet-history boundary are persisted before sending. Interrupted attempts reconcile
@@ -80,24 +80,24 @@ against matching wallet movements and are never automatically resent. Lightning 
 Ark receipts and the binding of BOLT12 payment hashes to offers/amounts rely on organizer-attested browser history,
 not independent backend verification. The legacy `lnurl` field stores all receiving destination types; the payout
 `paymentHash` coordination key is a random intent ID for Ark/BOLT12, with actual Lightning hashes stored separately.
-Live signet Ark/BOLT12 payouts still need rehearsal; local backend tests cover preparation, authorization, amount and
+Live mainnet Ark/BOLT12 payouts still need rehearsal; local backend tests cover preparation, authorization, amount and
 destination matching, proof checks, and interrupted-attempt reconciliation.
 
 The **Managed settlement** page at `/groups/<inviteKey>/managed-settlement` also supports private participant Bark-address
 links, debtor QR codes, deposit progress, and organizer-authorized payouts through a server-held wallet. An event
 uses the flow in which it is first locked; the other flow cannot lock or pay it afterward. Managed group payments
-have offline integration coverage and still need a live signet rehearsal.
+have offline integration coverage and still need a live mainnet rehearsal.
 
 ### Browser event wallets
 
 - Use HTTPS or localhost. The SDK loads lazily when creating an event; it does not execute during SSR.
-- Each event has its own IndexedDB wallet (`bark-event-<uuid>`). Its mnemonic and public address are kept in this
-  browser's localStorage under `bark:event-wallet:<uuid>`. Only the public address is sent to the backend.
+- Each event has its own IndexedDB wallet (`bark-mainnet-event-<uuid>`). Its mnemonic and public address are kept in this
+  browser's localStorage under `bark:mainnet:event-wallet:<uuid>`. Only the public address is sent to the backend.
 - Wallet creation and local persistence must succeed before the event is saved. Retrying within the form reuses
   the wallet. Existing events retain a nullable address; no replacement wallet is generated for them.
 - Browser storage is currently unencrypted. Clearing site data loses access. The mnemonic alone is not a full
-  Bark backup: wallet-data export/recovery is still required before using this beyond signet demos.
-- The pinned `@secondts/bark@0.25.0` uses `Wallet.open("Signet", mnemonic, config, undefined, args)` with
+  Bark backup: wallet-data export/recovery is still outstanding. Keep testing to small amounts.
+- The pinned `@secondts/bark@0.25.0` uses `Wallet.open("Bitcoin", mnemonic, config, undefined, args)` with
   `createIfNotExists`; its published types supersede older named-argument examples in the web guide.
 
 See [the Person A / Person B implementation plan](IMPLEMENTATION_PLAN.md) for the earlier work split and 23-hour delivery
@@ -119,7 +119,12 @@ TanStack Start + React, Vite+, Effect 4, Drizzle, SQLite/libSQL, Tailwind CSS 4,
 with Bark for payments. Events use `@secondts/bark/web` for the owner's browser wallet and server-side Barkd for
 Lightning collection on the owner's behalf. The separate `/settle` workspace uses backend Barkd wallets.
 
-## Bark signet development wallet
+## Bark mainnet development wallet
+
+The app uses `https://ark.second.tech` and `https://mempool.second.tech/api`. Mainnet data starts in `mainnet.db`,
+separate browser storage, and mainnet-suffixed Bark wallet directories. Existing signet events and wallets are not
+converted or deleted. Create new events for mainnet testing. Run `pnpm db:migrate` to initialize the fresh database;
+no reset is required for this network switch. Update any existing `DATABASE_URL` override to `file:mainnet.db`.
 
 ### Reset the development database
 
@@ -131,7 +136,7 @@ pnpm db:reset
 pnpm dev
 ```
 
-`db:reset` deletes the SQLite file configured by `DATABASE_URL` (default `file:local.db`), its sidecar files, and
+`db:reset` deletes the SQLite file configured by `DATABASE_URL` (default `file:mainnet.db`), its sidecar files, and
 reapplies migrations. It loads `.env` and only accepts local `file:` databases. This removes all event, expense,
 and settlement records. Bark wallet directories and browser storage are separate. This non-production project
 permits database resets and baseline regeneration when migration reconciliation becomes costly.
@@ -180,15 +185,15 @@ Second's [Bark CLI](https://second.tech/docs/getting-started/bark-cli) and
 
 ### Create and fund a local wallet
 
-Follow [the signet wallet setup](dev/bark/README.md) to create a fresh wallet and fund it from Second's faucet.
+Follow [the mainnet wallet setup](dev/bark/README.md) to create a fresh wallet and fund it over Lightning.
 Installing the tools or cloning this repository does **not** restore the funded wallet on the remote environment.
 An Ark address is only a receiving destination, not a wallet backup. The legacy recovery phrase in
 `dev/bark/signet.mnemonic` is public and is not a complete backup of that wallet; never use it for mainnet.
 
 The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
-and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local signet settlement
+and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` for the local mainnet settlement
 UI: create and list standalone pots at `/settle`, save participants and debts, then open `/settle/<id>` to prepare
-deposits. The backend manages a separate signet wallet for each pot. No operator code is required; keep the app local
+deposits. The backend manages a separate mainnet wallet for each pot. No operator code is required; keep the app local
 because standalone settlement actions are unauthenticated. Linked group pots use separate wallets and can only be
 operated through the group's organizer-authorized endpoints.
 
@@ -205,14 +210,14 @@ operated through the group's organizer-authorized endpoints.
    never send manually or reset a `sending` payout.
 
 Configure `BARK_POTS_DATADIR` and the backend-managed Bark daemon as described in [the pot guide](dev/bark/POTS.md).
-Each group gets its own isolated signet wallet. All-square groups need no wallet or participant addresses.
+Each group gets its own isolated mainnet wallet. All-square groups need no wallet or participant addresses.
 Closing cannot be undone; initialization failures keep the group locked and offer **Resume pot setup** with the same
 wallet. Keep organizer cookies and private links: account recovery is not implemented. The trusted organizer issues
 bearer links; these provide lightweight access, not proof of identity or ownership of the receiving wallet.
 
-This is a custodial signet-only demo: overpayment refunds, fee allocation, and production access controls are not
+This is a small-amount custodial mainnet demo: overpayment refunds, fee allocation, and production access controls are not
 implemented. The unauthenticated standalone workspace means the whole app must remain local/trusted, even though
-group payment actions require organizer authority. Never use mainnet or real funds.
+group payment actions require organizer authority.
 
 ## Start
 
@@ -231,7 +236,7 @@ credentials out of the browser bundle.
 
 ## Database
 
-- Local SQLite: `DATABASE_URL=file:local.db` (the default, even without `.env`).
+- Local SQLite: `DATABASE_URL=file:mainnet.db` (the default, even without `.env`).
 - Remote libSQL / Turso: set `DATABASE_URL=libsql://your-database.turso.io` and `DATABASE_AUTH_TOKEN` in `.env`.
 - Both Drizzle Kit and the server read `.env`; never prefix database credentials with `VITE_`.
 - After editing `src/db/schema.ts`, run `pnpm db:generate`, review the SQL, and run `pnpm db:migrate`.

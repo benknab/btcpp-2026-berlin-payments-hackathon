@@ -25,14 +25,14 @@ function makeWallet(id: number): WalletFixture {
       address: (): Effect.Effect<string> =>
         Effect.sync((): string => {
           addressIndex += 1;
-          return `tark1ace${String(addressIndex).replaceAll("1", "q")}`;
+          return `ark1ace${String(addressIndex).replaceAll("1", "q")}`;
         }),
       fingerprint: (): Effect.Effect<string> => Effect.succeed(`wallet-${id}`),
       balance: (): Effect.Effect<number> => Effect.sync((): number => balance),
       history: (): Effect.Effect<readonly BarkMovement[]> => Effect.sync((): readonly BarkMovement[] => history),
       sync: (): Effect.Effect<void> => Effect.void,
       ready: (): Effect.Effect<void> => Effect.void,
-      createSignetWallet: (): Effect.Effect<void> => Effect.void,
+      createMainnetWallet: (): Effect.Effect<void> => Effect.void,
       send: (address, amountSat): Effect.Effect<void> =>
         Effect.sync((): void => {
           sends += 1;

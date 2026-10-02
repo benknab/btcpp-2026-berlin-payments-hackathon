@@ -1,5 +1,9 @@
 # Implementation plan: Person A + Person B
 
+This plan records the original signet implementation. Mainnet setup, network validation, storage paths, and the
+current small-amount demo supersede its network-specific instructions; see [README.md](README.md) and
+[the browser-wallet guide](dev/bark/BROWSER.md).
+
 ## Agreed V1: settle net debts at the end
 
 Person A owns the group/expense experience; **Ben (Person B)** owns the Bark payment engine.
