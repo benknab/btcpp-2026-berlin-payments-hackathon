@@ -14,9 +14,9 @@ Participants track expenses, then fund an owner-controlled pot to settle their f
    - Store its public Ark address on the backend; the owner's wallet keys stay in the browser.
    - Back up the mnemonic and wallet data, keeping the data backup current as the wallet changes.
 2. **Friends join.**
-   - Participants join with a name. Anyone owed money supplies a Lightning address before settlement is locked.
-   - Validate receiving addresses and supported payment amounts. V1 uses Lightning addresses (LNURL-pay);
-     BOLT12 offers and Nostr profile lookup are later additions.
+   - Participants join with a name. Anyone owed money supplies a receiving address before settlement is locked.
+   - Supported payout destinations: Lightning addresses/LNURL-pay, Bark signet Ark addresses (`tark1…`), and
+     BOLT12 offers (`lno1…`). Nostr profile lookup is not supported.
 3. **Record expenses and lock settlement.**
    - Calculate each participant's net contribution or payout, then freeze amounts and payout destinations.
    - Debtors fund only their net obligation; creditors receive only their net entitlement.
@@ -35,8 +35,8 @@ Participants track expenses, then fund an owner-controlled pot to settle their f
 5. **Owner redistributes the pot.**
    - The owner opens and unlocks their browser wallet, syncs it, and reviews the payout amounts and destinations.
    - Start redistribution after all required contributions are delivered and spendable funds cover payouts and fees.
-   - Request invoices automatically from creditors' Lightning addresses. The owner approves, and their browser
-     wallet executes the payments.
+   - Resolve LNURL-pay invoices, send directly to Ark addresses, or pay BOLT12 offers for the exact settlement amount.
+     The owner approves, and their browser wallet executes the payments.
    - Persist each attempt before sending and confirm each payout individually. Reconcile interrupted or unknown
      outcomes before retrying; payouts are sequential, not an atomic batch.
    - Account for the owner's entitlement, excess contributions, and leftover fees. Mark the group settled only when
@@ -70,6 +70,17 @@ Barkd receiving wallet, including while the organizer's browser is closed. See [
 The owner can pay creditors from the browser wallet, with persisted attempts and payment-proof verification.
 The signet round trip has been manually verified with a prepared BOLT11 payout invoice; automatic LNURL resolution
 still needs verification against a compatible signet receiving service.
+
+Event payouts also support Bark signet Ark addresses on the same Ark server and compatible signet BOLT12 offers.
+Run `pnpm db:migrate` to apply the additive payout-method migration; no database reset is needed. Receiving-address
+fields auto-detect the method, including during event creation. Locked destinations cannot be changed.
+Ark/BOLT12 intents and the wallet-history boundary are persisted before sending. Interrupted attempts reconcile
+against matching wallet movements and are never automatically resent. Lightning payouts require a matching preimage;
+Ark receipts and the binding of BOLT12 payment hashes to offers/amounts rely on organizer-attested browser history,
+not independent backend verification. The legacy `lnurl` field stores all receiving destination types; the payout
+`paymentHash` coordination key is a random intent ID for Ark/BOLT12, with actual Lightning hashes stored separately.
+Live signet Ark/BOLT12 payouts still need rehearsal; local backend tests cover preparation, authorization, amount and
+destination matching, proof checks, and interrupted-attempt reconciliation.
 
 The **Managed settlement** page at `/groups/<inviteKey>/settlement` also supports private participant Bark-address
 links, debtor QR codes, deposit progress, and organizer-authorized payouts through a server-held wallet. An event

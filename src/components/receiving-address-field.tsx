@@ -1,33 +1,37 @@
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { isLnurl, LNURL_ERROR, MAX_LNURL_LENGTH } from "@/domain/lnurl";
+import {
+  isPayoutDestination,
+  PAYOUT_DESTINATION_ERROR,
+  MAX_PAYOUT_DESTINATION_LENGTH,
+} from "@/domain/payout-destination";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-interface LnurlFieldProps {
+interface ReceivingAddressFieldProps {
   readonly id: string;
   readonly name: string;
 }
 
 function validate(input: HTMLInputElement): boolean {
   const value = input.value.trim();
-  const valid = value === "" || isLnurl(value);
-  input.setCustomValidity(valid ? "" : LNURL_ERROR);
+  const valid = value === "" || isPayoutDestination(value);
+  input.setCustomValidity(valid ? "" : PAYOUT_DESTINATION_ERROR);
   return valid;
 }
 
-export function LnurlField({ id, name }: LnurlFieldProps): ReactNode {
+export function ReceivingAddressField({ id, name }: ReceivingAddressFieldProps): ReactNode {
   const [invalid, setInvalid] = useState(false);
 
   return (
     <Field data-invalid={invalid}>
-      <FieldLabel htmlFor={id}>LNURL (optional)</FieldLabel>
+      <FieldLabel htmlFor={id}>Receiving address (optional)</FieldLabel>
       <Input
         id={id}
         name={name}
-        placeholder="name@wallet.com or lnurl1…"
+        placeholder="name@wallet.com, lnurl1…, tark1…, or lno1…"
         className="h-12 px-4"
-        maxLength={MAX_LNURL_LENGTH}
+        maxLength={MAX_PAYOUT_DESTINATION_LENGTH}
         autoCapitalize="none"
         autoComplete="off"
         spellCheck={false}
@@ -43,7 +47,7 @@ export function LnurlField({ id, name }: LnurlFieldProps): ReactNode {
           setInvalid(!validate(event.currentTarget));
         }}
       />
-      {invalid && <FieldError id={`${id}-error`}>{LNURL_ERROR}</FieldError>}
+      {invalid && <FieldError id={`${id}-error`}>{PAYOUT_DESTINATION_ERROR}</FieldError>}
     </Field>
   );
 }

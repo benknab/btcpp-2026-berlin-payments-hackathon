@@ -1,5 +1,5 @@
 import type { ParticipantData } from "@/db/groups";
-import { isLnurl } from "@/domain/lnurl";
+import { isPayoutDestination, MAX_PAYOUT_DESTINATION_LENGTH } from "@/domain/payout-destination";
 import { updateReceivingAddress } from "@/server/event-settlement";
 import { useState } from "react";
 import type { ReactNode } from "react";
@@ -23,7 +23,7 @@ export function EventReceivingAddress({
   function handleSave(): void {
     action.run(async () => {
       await updateReceivingAddress({ data: { inviteKey, participantId: participant.id, lnurl: value.trim() } });
-    }, "Could not save the receiving address. Use a distinct Lightning address or LNURL.");
+    }, "Could not save the receiving address. Use a distinct Lightning address, LNURL, Ark address, or BOLT12 offer.");
   }
   return (
     <FieldGroup className="gap-2">
@@ -31,6 +31,11 @@ export function EventReceivingAddress({
         <Input
           id={`receiving-${participant.id}`}
           value={value}
+          placeholder="name@wallet.com, lnurl1…, tark1…, or lno1…"
+          maxLength={MAX_PAYOUT_DESTINATION_LENGTH}
+          autoCapitalize="none"
+          autoComplete="off"
+          spellCheck={false}
           disabled={action.pending}
           onChange={(event) => {
             setValue(event.target.value);
@@ -39,7 +44,7 @@ export function EventReceivingAddress({
       </LabeledField>
       <Button
         variant="outline"
-        disabled={action.pending || !isLnurl(value.trim()) || value === participant.lnurl}
+        disabled={action.pending || !isPayoutDestination(value.trim()) || value === participant.lnurl}
         onClick={handleSave}
       >
         Save address

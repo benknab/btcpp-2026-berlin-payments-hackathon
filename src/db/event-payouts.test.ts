@@ -1,5 +1,12 @@
+import {
+  BOLT12_OFFER,
+  SIGNET_ARK_ADDRESS,
+  PREIMAGE,
+  PAYMENT_HASH,
+  INVOICE,
+  signetInvoice,
+} from "@/domain/payout-fixture";
 import { describe, expect, it } from "@effect/vitest";
-import { bech32, hex } from "@scure/base";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -9,18 +16,6 @@ import { eventPaymentFixture, EventTestDatabase } from "./event-payment-fixture"
 import { eventInvoices, eventPayouts } from "./event-payment-schema";
 import { claimEventPayout, confirmEventPayout, loadEventPayouts, prepareEventPayout } from "./event-payouts";
 import { getGroup } from "./groups";
-
-const PREIMAGE = "0".repeat(64);
-const PAYMENT_HASH = "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925";
-const WORDS = [
-  ...Array.from({ length: 7 }, () => 0),
-  1,
-  1,
-  20,
-  ...bech32.toWords(hex.decode(PAYMENT_HASH)),
-  ...Array.from({ length: 104 }, () => 0),
-];
-const INVOICE = bech32.encode("lntbs50u", WORDS, false);
 
 const fundEvent = Effect.fn("fundPayoutFixture")(function* fundEvent(event: {
   readonly groupId: string;
@@ -40,6 +35,65 @@ const fundEvent = Effect.fn("fundPayoutFixture")(function* fundEvent(event: {
 });
 
 describe("browser payout coordination", () => {
+  it.effect.each([
+    { destination: SIGNET_ARK_ADDRESS, method: "ark" },
+    { destination: BOLT12_OFFER, method: "bolt12" },
+  ])(
+    "persists and reconciles $method payouts without replacing unknown attempts",
+    ({ destination, method }: Readonly<{ destination: string; method: string }>) =>
+      Effect.gen(function* verifyNativePayout() {
+        expect.hasAssertions();
+        const event = yield* eventPaymentFixture(destination);
+        const input = { inviteKey: event.inviteKey, participantId: event.organizerId };
+        expect(yield* Effect.flip(prepareEventPayout(input, event.organizerToken))).toMatchObject({
+          _tag: "GroupError",
+        });
+        yield* fundEvent(event);
+        expect(yield* Effect.flip(prepareEventPayout(input, "wrong-owner"))).toMatchObject({ _tag: "GroupError" });
+        expect(
+          yield* Effect.flip(prepareEventPayout({ ...input, invoice: INVOICE }, event.organizerToken)),
+        ).toMatchObject({ _tag: "GroupError" });
+        const payout = yield* prepareEventPayout(input, event.organizerToken);
+        expect(payout).toMatchObject({ method, invoice: destination, amountSats: 5000, status: "prepared" });
+        const request = { inviteKey: event.inviteKey, paymentHash: payout.paymentHash };
+        expect(yield* Effect.flip(claimEventPayout(request, event.organizerToken))).toMatchObject({
+          _tag: "GroupError",
+        });
+        expect((yield* claimEventPayout({ ...request, historyStartId: 10 }, event.organizerToken)).claimed).toBe(true);
+        expect(
+          (yield* claimEventPayout({ ...request, historyStartId: 20 }, event.organizerToken)).payout.historyStartId,
+        ).toBe(10);
+        expect((yield* prepareEventPayout(input, event.organizerToken)).status).toBe("sending");
+        const movement = {
+          id: 11,
+          status: "successful",
+          intendedBalanceSats: -5000,
+          sentToAddresses: method === "ark" ? [JSON.stringify({ type: "ark", value: destination })] : [],
+          ...(method === "bolt12" ? { lightningOffer: destination, paymentHash: PAYMENT_HASH } : {}),
+        };
+        const proof = { ...request, movement, ...(method === "bolt12" ? { preimage: PREIMAGE } : {}) };
+        for (const invalid of [
+          { ...proof, movement: { ...movement, id: 10 } },
+          { ...proof, movement: { ...movement, status: "pending" } },
+          { ...proof, movement: { ...movement, intendedBalanceSats: -6000 } },
+          { ...proof, movement: { ...movement, sentToAddresses: ["wrong"], lightningOffer: "wrong" } },
+        ]) {
+          expect(yield* Effect.flip(confirmEventPayout(invalid, event.organizerToken))).toMatchObject({
+            _tag: "GroupError",
+          });
+        }
+        if (method === "bolt12") {
+          expect(
+            yield* Effect.flip(confirmEventPayout({ ...proof, preimage: "1".repeat(64) }, event.organizerToken)),
+          ).toMatchObject({ _tag: "GroupError" });
+        }
+        expect(yield* completeEventSettlement(event.inviteKey, event.organizerToken)).toBe(false);
+        yield* confirmEventPayout(proof, event.organizerToken);
+        yield* confirmEventPayout(proof, event.organizerToken);
+        expect((yield* loadEventPayouts(event.inviteKey))[0]).toMatchObject({ status: "paid", movementId: 11 });
+        expect(yield* completeEventSettlement(event.inviteKey, event.organizerToken)).toBe(true);
+      }).pipe(Effect.provide(EventTestDatabase)),
+  );
   it.effect("requires funding and owner access, persists before claiming, and verifies settlement proofs", () =>
     Effect.gen(function* verifyPayout() {
       expect.hasAssertions();
@@ -49,9 +103,7 @@ describe("browser payout coordination", () => {
       yield* fundEvent(event);
       expect(yield* Effect.flip(prepareEventPayout(input, "wrong-owner"))).toMatchObject({ _tag: "GroupError" });
       expect(
-        yield* Effect.flip(
-          prepareEventPayout({ ...input, invoice: bech32.encode("lntbs60u", WORDS, false) }, event.organizerToken),
-        ),
+        yield* Effect.flip(prepareEventPayout({ ...input, invoice: signetInvoice("60") }, event.organizerToken)),
       ).toMatchObject({ _tag: "GroupError" });
       const payout = yield* prepareEventPayout(input, event.organizerToken);
       expect(payout.status).toBe("prepared");

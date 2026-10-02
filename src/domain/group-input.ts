@@ -1,7 +1,11 @@
 import { SignetAddress } from "@/lib/pot";
 import { Schema } from "effect";
 
-import { DUPLICATE_LNURL_ERROR, hasUniqueLnurls, Lnurl } from "./lnurl";
+import {
+  DUPLICATE_PAYOUT_DESTINATION_ERROR,
+  hasUniquePayoutDestinations,
+  ReceivingAddress,
+} from "./payout-destination";
 
 export const MAX_GROUP_NAME = 100;
 export const MAX_PARTICIPANT_NAME = 40;
@@ -18,7 +22,7 @@ const OtherParticipants = Schema.Array(ParticipantName).pipe(
   Schema.check(Schema.isMinLength(1), Schema.isMaxLength(MAX_PARTICIPANTS - 1)),
 );
 export const EntityId = Schema.String.pipe(Schema.check(Schema.isUUID()));
-const ParticipantLnurls = Schema.Array(Schema.NullOr(Lnurl));
+const ParticipantLnurls = Schema.Array(Schema.NullOr(ReceivingAddress));
 
 export const NewGroup = Schema.Struct({
   name: GroupName,
@@ -37,7 +41,9 @@ export const NewGroup = Schema.Struct({
         input.participantLnurls.length === input.participantNames.length ||
         "Receiving addresses must match the participants.",
     ),
-    Schema.makeFilter((input) => hasUniqueLnurls(input.participantLnurls ?? []) || DUPLICATE_LNURL_ERROR),
+    Schema.makeFilter(
+      (input) => hasUniquePayoutDestinations(input.participantLnurls ?? []) || DUPLICATE_PAYOUT_DESTINATION_ERROR,
+    ),
   ),
 );
 

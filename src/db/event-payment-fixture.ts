@@ -9,7 +9,9 @@ import { createGroup, getGroup } from "./groups";
 
 export const EventTestDatabase = Database.layer.pipe(Layer.provide(LibsqlClient.layer({ url: "file::memory:" })));
 
-export const eventPaymentFixture = Effect.fn("eventPaymentFixture")(function* eventPaymentFixture() {
+export const eventPaymentFixture = Effect.fn("eventPaymentFixture")(function* eventPaymentFixture(
+  destination?: string,
+) {
   const database = yield* Database;
   yield* migrate(database, { migrationsFolder: "./drizzle" });
   const event = yield* createGroup({
@@ -19,7 +21,7 @@ export const eventPaymentFixture = Effect.fn("eventPaymentFixture")(function* ev
     arkAddress: "tark1ace",
   });
   yield* saveReceivingAddress(
-    { inviteKey: event.inviteKey, participantId: event.organizerId, lnurl: "alice@wallet.com" },
+    { inviteKey: event.inviteKey, participantId: event.organizerId, lnurl: destination ?? "alice@wallet.com" },
     event.organizerToken,
   );
   yield* addExpense({

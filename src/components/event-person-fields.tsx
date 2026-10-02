@@ -1,6 +1,6 @@
 import { EventPersonNameInput } from "@/components/event-person-name-input";
 import { LabeledField } from "@/components/labeled-field";
-import { LnurlField } from "@/components/lnurl-field";
+import { ReceivingAddressField } from "@/components/receiving-address-field";
 import { FieldGroup } from "@/components/ui/field";
 import type { ReactNode } from "react";
 
@@ -17,7 +17,7 @@ export function EventPersonFields({ id, number, removable, onRemove }: EventPers
       <LabeledField id={`person-${id}`} label={`Person ${number}`}>
         <EventPersonNameInput id={id} number={number} removable={removable} onRemove={onRemove} />
       </LabeledField>
-      <LnurlField id={`person-${id}-lnurl`} name="participantLnurl" />
+      <ReceivingAddressField id={`person-${id}-lnurl`} name="participantLnurl" />
     </FieldGroup>
   );
 }

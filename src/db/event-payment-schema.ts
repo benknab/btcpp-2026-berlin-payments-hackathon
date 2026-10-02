@@ -28,7 +28,14 @@ export type EventInvoice = typeof eventInvoices.$inferSelect;
 export const eventPayouts = sqliteTable(
   "event_payouts",
   {
+    // Legacy coordination key: a BOLT11 hash, or a random intent ID for Ark/BOLT12.
     paymentHash: text("payment_hash").primaryKey(),
+    method: text("method", { enum: ["bolt11", "ark", "bolt12"] })
+      .notNull()
+      .default("bolt11"),
+    historyStartId: integer("history_start_id"),
+    movementId: integer("movement_id"),
+    proofPaymentHash: text("proof_payment_hash"),
     groupId: text("group_id")
       .notNull()
       .references(() => groups.id, { onDelete: "cascade" }),
@@ -43,6 +50,8 @@ export const eventPayouts = sqliteTable(
       .default("prepared"),
   },
   () => [
+    uniqueIndex("event_payout_movement").on(sql`"group_id"`, sql`"movement_id"`),
+    uniqueIndex("event_payout_proof").on(sql`"proof_payment_hash"`),
     uniqueIndex("event_active_payout")
       .on(sql`"group_id"`, sql`"participant_id"`)
       .where(sql`"status" <> 'expired'`),

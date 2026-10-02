@@ -1,11 +1,13 @@
 import type { EventPayout } from "@/db/event-payment-schema";
 import { isEventFunded } from "@/domain/event-funding";
 import type { EventSettlementMember } from "@/domain/event-settlement";
+import { payoutDestination } from "@/domain/payout-destination";
 import { eventPage } from "@/server/event-page";
 import { claimPayout, completeEvent, confirmPayout, preparePayout } from "@/server/event-payouts";
 import type { Wallet } from "@secondts/bark/web";
 
 import { resolvePayoutInvoice } from "./lnurl-invoice";
+import { executeNativePayout } from "./native-event-payout";
 import { withEventWallet } from "./with-event-wallet";
 
 async function prepareMember(
@@ -22,8 +24,14 @@ async function prepareMember(
   if (member.lnurl === null) {
     throw new Error("A creditor is missing their receiving address.");
   }
-  const invoice = await resolvePayoutInvoice(member.lnurl, member.receiveSats);
-  return preparePayout({ data: { inviteKey, participantId: member.participantId, invoice } });
+  const destination = payoutDestination(member.lnurl);
+  if (destination === null) {
+    throw new Error("Invalid receiving address.");
+  }
+  const data = { inviteKey, participantId: member.participantId };
+  return destination.kind === "lnurl"
+    ? preparePayout({ data: { ...data, invoice: await resolvePayoutInvoice(destination.value, member.receiveSats) } })
+    : preparePayout({ data });
 }
 
 async function executePayout(
@@ -32,6 +40,10 @@ async function executePayout(
   payout: Readonly<EventPayout>,
 ): Promise<void> {
   if (payout.status === "paid") {
+    return;
+  }
+  if (payout.method !== "bolt11") {
+    await executeNativePayout(wallet, inviteKey, payout);
     return;
   }
   const data = { inviteKey, paymentHash: payout.paymentHash };
@@ -54,7 +66,10 @@ async function requirePayoutBalance(
 ): Promise<void> {
   const amounts = await Promise.all(
     members.map(async (member): Promise<number> => {
-      const estimate = await wallet.estimateLightningSendFee(member.receiveSats);
+      const estimate =
+        payoutDestination(member.lnurl ?? "")?.kind === "ark"
+          ? await wallet.estimateArkoorPaymentFee(member.receiveSats)
+          : await wallet.estimateLightningSendFee(member.receiveSats);
       return member.receiveSats + estimate.feeSats;
     }),
   );

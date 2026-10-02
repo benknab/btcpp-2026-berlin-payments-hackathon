@@ -1,7 +1,12 @@
 import { useAction } from "@/components/use-action";
 import { useEventWallet } from "@/components/use-event-wallet";
 import { NewGroup } from "@/domain/group-input";
-import { DUPLICATE_LNURL_ERROR, hasUniqueLnurls, isLnurl, LNURL_ERROR } from "@/domain/lnurl";
+import {
+  DUPLICATE_PAYOUT_DESTINATION_ERROR,
+  hasUniquePayoutDestinations,
+  isPayoutDestination,
+  PAYOUT_DESTINATION_ERROR,
+} from "@/domain/payout-destination";
 import { newGroup } from "@/server/groups";
 import { useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
@@ -18,10 +23,10 @@ function formText(value: unknown): string {
 }
 
 function receivingAddressError(values: readonly string[]): string | null {
-  if (values.some((value) => value !== "" && !isLnurl(value))) {
-    return LNURL_ERROR;
+  if (values.some((value) => value !== "" && !isPayoutDestination(value))) {
+    return PAYOUT_DESTINATION_ERROR;
   }
-  return hasUniqueLnurls(values) ? null : DUPLICATE_LNURL_ERROR;
+  return hasUniquePayoutDestinations(values) ? null : DUPLICATE_PAYOUT_DESTINATION_ERROR;
 }
 
 export function useEventCreate(): EventCreateState {

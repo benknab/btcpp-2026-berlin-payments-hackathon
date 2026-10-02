@@ -16,6 +16,10 @@ const invoice: EventInvoice = {
   status: "delivered",
 };
 const payout: EventPayout = {
+  method: "bolt11",
+  historyStartId: null,
+  movementId: null,
+  proofPaymentHash: null,
   groupId: "event",
   participantId: "alice",
   paymentHash: "payout",

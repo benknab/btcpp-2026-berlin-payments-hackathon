@@ -1,7 +1,7 @@
 import type { AccountingError } from "@/domain/accounting";
 import { SettlementMembers } from "@/domain/event-settlement";
 import type { EventSettlementMember, ReceivingAddressRequest } from "@/domain/event-settlement";
-import { hasUniqueLnurls } from "@/domain/lnurl";
+import { hasUniquePayoutDestinations } from "@/domain/payout-destination";
 import { and, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
@@ -50,7 +50,7 @@ export const saveReceivingAddress = Effect.fn("saveReceivingAddress")(function* 
       if (
         view.group.status !== "open" ||
         !view.participants.some((member) => member.id === input.participantId) ||
-        !hasUniqueLnurls(destinations)
+        !hasUniquePayoutDestinations(destinations)
       ) {
         yield* new GroupError({ message: "Use a distinct receiving address before settlement is locked." });
         return;
@@ -74,7 +74,7 @@ const prepareMembers = Effect.fn("prepareEventSettlementMembers")(function* prep
     };
   });
   if (members.some((member) => member.receiveSats > 0 && member.lnurl === null)) {
-    return yield* new GroupError({ message: "Everyone receiving sats needs a Lightning address or LNURL." });
+    return yield* new GroupError({ message: "Everyone receiving sats needs a receiving address." });
   }
   return members;
 });
