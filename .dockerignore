@@ -7,6 +7,9 @@
 !tsconfig.json
 !vite.config.ts
 
+!public/
+!public/favicon.svg
+
 !src/
 !src/**/
 !src/**/*.ts
