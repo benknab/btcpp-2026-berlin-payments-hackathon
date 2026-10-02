@@ -82,9 +82,54 @@ Lightning collection on the owner's behalf; the current prototype uses backend B
 
 ## Bark signet development wallet
 
-See [the shared signet wallet notes](dev/bark/README.md) for CLI configuration and access to the funded test wallet.
-Its recovery phrase is intentionally stored in `dev/bark/signet.mnemonic` for developers. Treat it as public and
-use it **only on signet**, never for mainnet or real funds.
+### Install Bark and Barkd
+
+Install **both tools at 0.7.1**; the pinned `@secondts/barkd@0.7.2` client targets this daemon API.
+These commands use Second's official binary releases and install without sudo on macOS or Linux x86_64:
+
+```sh
+(
+  set -eu
+  case "$(uname -s)-$(uname -m)" in
+    Darwin-arm64) platform=apple-aarch64 ;;
+    Darwin-x86_64) platform=apple-x86_64 ;;
+    Linux-x86_64) platform=linux-x86_64 ;;
+    *) echo "See Second's install guides for this platform." >&2; exit 1 ;;
+  esac
+
+  mkdir -p "$HOME/.local/bin"
+  for tool in bark barkd; do
+    if [ -e "$HOME/.local/bin/$tool" ] || [ -L "$HOME/.local/bin/$tool" ]; then
+      echo "Already installed: $HOME/.local/bin/$tool; check its version before replacing it." >&2
+      exit 1
+    fi
+  done
+
+  download_dir=$(mktemp -d "${TMPDIR:-/tmp}/bark-install.XXXXXX")
+  for tool in bark barkd; do
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      "https://gitlab.com/ark-bitcoin/bark/-/releases/bark-0.7.1/downloads/$tool-0.7.1-$platform" \
+      --output "$download_dir/$tool"
+    install -m 755 "$download_dir/$tool" "$HOME/.local/bin/$tool"
+  done
+)
+
+export PATH="$HOME/.local/bin:$PATH"
+bark --version
+barkd --version
+```
+
+Add `export PATH="$HOME/.local/bin:$PATH"` to your shell configuration if needed, then restart the app so it
+inherits that PATH. Both version commands should report **0.7.1**. For other platforms or source builds, see
+Second's [Bark CLI](https://second.tech/docs/getting-started/bark-cli) and
+[Barkd](https://second.tech/docs/barkd/install) installation guides.
+
+### Create and fund a local wallet
+
+Follow [the signet wallet setup](dev/bark/README.md) to create a fresh wallet and fund it from Second's faucet.
+Installing the tools or cloning this repository does **not** restore the funded wallet on the remote environment.
+An Ark address is only a receiving destination, not a wallet backup. The legacy recovery phrase in
+`dev/bark/signet.mnemonic` is public and is not a complete backup of that wallet; never use it for mainnet.
 
 The [backend pot demo](dev/bark/POTS.md) nets a JSON debt setup, assigns participant addresses, confirms deposits,
 and pays creditors using the Bark TypeScript SDK wrapped in Effect. Open `/settle` to list settled/unsettled pots,

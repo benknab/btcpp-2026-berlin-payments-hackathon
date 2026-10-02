@@ -14,9 +14,11 @@ The pot collects and pays out **9,000 sats**. Reciprocal debts are netted first,
 
 ## Run
 
-Install Barkd **0.7.1** following [Second's install guide](https://second.tech/docs/barkd/install).
+Install Bark and Barkd **0.7.1** using the [repository installation instructions](../../README.md#install-bark-and-barkd).
 The TypeScript client is pinned to `@secondts/barkd@0.7.2`, which targets the daemon's 0.7.1 API.
-Use the [signet guide](https://second.tech/docs/getting-started/bark-cli/signet) for wallet creation/funding.
+Follow the [local signet wallet setup](README.md) for creation/funding using Second's signet guide.
+The previously funded remote wallet is not included in a checkout; a fresh machine needs a newly funded wallet
+or a coordinated migration of the complete wallet data.
 
 Start the existing funded signet wallet in a separate terminal:
 
@@ -134,9 +136,9 @@ Keep Barkd authenticated and bound to loopback. **Never use this flow or the sha
 
 ## Verified live run
 
-On 2026-10-01, the sample completed on Second's signet Ark with Alice's 5,000-sat and Dave's 4,000-sat receipts
+On 2026-10-01 in the remote development environment, the sample completed on Second's signet Ark with Alice's 5,000-sat and Dave's 4,000-sat receipts
 confirmed, followed by confirmed 8,000-sat and 1,000-sat payouts. The pot reached `settled`; the source wallet
-transferred 26,000 sats. Local artifacts: `~/.local/share/bark-pot-demos/run-2HToEM/`.
+transferred 26,000 sats. Artifacts on that remote host: `~/.local/share/bark-pot-demos/run-2HToEM/`.
 The source wallet's verified remaining spendable balance was 274,000 sats; this is a historical balance, not a live one.
 
 Unit/integration tests run offline with `pnpm test` and cover debt validation, receipt attribution, underpayment,
